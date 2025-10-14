@@ -5,6 +5,16 @@
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
     
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <?php 
+    // Show flash messages with SweetAlert2
+    if (function_exists('show_alert')) {
+        show_alert();
+    }
+    ?>
+    
     <!-- Mobile Sidebar -->
     <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white transform -translate-x-full transition-transform duration-300 z-50 lg:hidden overflow-y-auto">
         <div class="p-6 border-b border-slate-700">
@@ -100,13 +110,31 @@
             });
         }, 5000);
         
-        // Confirm delete
+        // Confirm delete with SweetAlert2
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                if (!confirm('ต้องการลบรายการนี้?')) {
-                    e.preventDefault();
-                    return false;
-                }
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'ใช่, ลบเลย!',
+                    cancelButtonText: 'ยกเลิก',
+                    customClass: {
+                        popup: 'rounded-xl',
+                        confirmButton: 'rounded-lg px-6 py-2.5 font-medium',
+                        cancelButton: 'rounded-lg px-6 py-2.5 font-medium'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = href;
+                    }
+                });
             });
         });
     </script>

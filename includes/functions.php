@@ -302,6 +302,47 @@ function get_message() {
     return null;
 }
 
+// Show SweetAlert2 message
+function show_alert() {
+    $message = get_message();
+    if ($message) {
+        $icons = [
+            'success' => 'success',
+            'error' => 'error',
+            'warning' => 'warning',
+            'info' => 'info'
+        ];
+        $icon = $icons[$message['type']] ?? 'info';
+        
+        $titles = [
+            'success' => 'สำเร็จ!',
+            'error' => 'เกิดข้อผิดพลาด!',
+            'warning' => 'คำเตือน!',
+            'info' => 'แจ้งเตือน'
+        ];
+        $title = $titles[$message['type']] ?? 'แจ้งเตือน';
+        
+        echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: '{$icon}',
+                title: '{$title}',
+                text: '" . addslashes($message['message']) . "',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'ตกลง',
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'rounded-xl shadow-2xl',
+                    title: 'text-2xl font-bold',
+                    confirmButton: 'rounded-lg px-6 py-2.5 font-medium shadow-lg hover:shadow-xl transition-all'
+                }
+            });
+        });
+        </script>";
+    }
+}
+
 // Generate slug from string
 function generate_slug($string) {
     $string = preg_replace('/[^\p{L}\p{N}\s-]/u', '', $string);
