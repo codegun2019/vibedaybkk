@@ -20,63 +20,66 @@ $categories = db_get_rows($conn, $sql);
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-th-large me-2"></i>จัดการหมวดหมู่</h2>
-        <p class="text-muted">จำนวนหมวดหมู่ทั้งหมด: <?php echo count($categories); ?> หมวด</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-th-large mr-3 text-red-600"></i>จัดการหมวดหมู่
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนหมวดหมู่ทั้งหมด: <?php echo count($categories); ?> หมวด</p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="add.php" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i>เพิ่มหมวดหมู่ใหม่
+    <div class="mt-4 sm:mt-0">
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-plus-circle mr-2"></i>เพิ่มหมวดหมู่ใหม่
         </a>
     </div>
 </div>
 
 <!-- Categories Table -->
-<div class="card">
-    <div class="card-body">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
         <?php if (empty($categories)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">ยังไม่มีหมวดหมู่</h5>
-                <a href="add.php" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus-circle me-2"></i>เพิ่มหมวดหมู่ใหม่
+            <div class="text-center py-12">
+                <i class="fas fa-folder-open text-6xl text-gray-400 mb-4"></i>
+                <h5 class="text-gray-600 text-xl font-medium mb-4">ยังไม่มีหมวดหมู่</h5>
+                <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+                    <i class="fas fa-plus-circle mr-2"></i>เพิ่มหมวดหมู่ใหม่
                 </a>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th width="80">ไอคอน</th>
-                            <th>รหัส</th>
-                            <th>ชื่อหมวดหมู่</th>
-                            <th>ชื่ออังกฤษ</th>
-                            <th>เพศ</th>
-                            <th>ช่วงราคา</th>
-                            <th class="text-center">จำนวนโมเดล</th>
-                            <th>ลำดับ</th>
-                            <th>สถานะ</th>
-                            <th width="120" class="text-center">การกระทำ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ไอคอน</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">รหัส</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ชื่อหมวดหมู่</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ชื่ออังกฤษ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">เพศ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ช่วงราคา</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">จำนวนโมเดล</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ลำดับ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">สถานะ</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">การกระทำ</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         <?php foreach ($categories as $cat): ?>
-                        <tr>
-                            <td>
-                                <div class="bg-gradient-to-br <?php echo $cat['color']; ?> text-white text-center rounded" 
-                                     style="width: 50px; height: 50px; line-height: 50px;">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <div class="w-12 h-12 bg-gradient-to-br <?php echo $cat['color']; ?> text-white flex items-center justify-center rounded-lg">
                                     <i class="fas <?php echo $cat['icon']; ?>"></i>
                                 </div>
                             </td>
-                            <td><strong><?php echo $cat['code']; ?></strong></td>
-                            <td>
-                                <strong><?php echo $cat['name']; ?></strong>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-gray-900"><?php echo $cat['code']; ?></div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-gray-900"><?php echo $cat['name']; ?></div>
                                 <?php if ($cat['description']): ?>
-                                    <br><small class="text-muted"><?php echo truncate_text($cat['description'], 50); ?></small>
+                                    <div class="text-sm text-gray-500 mt-1"><?php echo truncate_text($cat['description'], 50); ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo $cat['name_en']; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $cat['name_en']; ?></td>
                             <td>
                                 <?php
                                 $gender_badges = [
@@ -94,27 +97,45 @@ include '../includes/header.php';
                                     -
                                 <?php endif; ?>
                             </td>
-                            <td class="text-center">
-                                <span class="badge bg-info"><?php echo $cat['model_count']; ?> คน</span>
+                            <td class="px-4 py-3 text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <?php echo $cat['model_count']; ?> คน
+                                </span>
                             </td>
-                            <td><?php echo $cat['sort_order']; ?></td>
-                            <td><?php echo get_status_badge($cat['status']); ?></td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $cat['sort_order']; ?></td>
+                            <td class="px-4 py-3">
+                                <?php 
+                                $status_classes = [
+                                    'active' => 'bg-green-100 text-green-800',
+                                    'inactive' => 'bg-gray-100 text-gray-800'
+                                ];
+                                $status_texts = [
+                                    'active' => 'ใช้งาน',
+                                    'inactive' => 'ไม่ใช้งาน'
+                                ];
+                                $status_class = $status_classes[$cat['status']] ?? 'bg-gray-100 text-gray-800';
+                                $status_text = $status_texts[$cat['status']] ?? $cat['status'];
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $status_class; ?>">
+                                    <?php echo $status_text; ?>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center space-x-2">
                                     <a href="edit.php?id=<?php echo $cat['id']; ?>" 
-                                       class="btn btn-sm btn-warning" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors duration-200" 
                                        title="แก้ไข">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit text-sm"></i>
                                     </a>
                                     <?php if ($cat['model_count'] == 0): ?>
                                     <a href="delete.php?id=<?php echo $cat['id']; ?>" 
-                                       class="btn btn-sm btn-danger btn-delete" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 btn-delete" 
                                        title="ลบ">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash text-sm"></i>
                                     </a>
                                     <?php else: ?>
-                                    <button class="btn btn-sm btn-secondary" disabled title="มีโมเดลอยู่ในหมวดหมู่นี้">
-                                        <i class="fas fa-trash"></i>
+                                    <button class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed" disabled title="มีโมเดลอยู่ในหมวดหมู่นี้">
+                                        <i class="fas fa-trash text-sm"></i>
                                     </button>
                                     <?php endif; ?>
                                 </div>

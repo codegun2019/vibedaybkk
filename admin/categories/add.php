@@ -78,13 +78,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-plus-circle me-2"></i>เพิ่มหมวดหมู่ใหม่</h2>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-plus-circle mr-3 text-red-600"></i>เพิ่มหมวดหมู่ใหม่
+        </h2>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>กลับ
+    <div class="mt-4 sm:mt-0">
+        <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>กลับ
         </a>
     </div>
 </div>
