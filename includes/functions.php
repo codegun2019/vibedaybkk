@@ -90,25 +90,75 @@ function db_query($conn, $sql) {
     return $result;
 }
 
-// Get single row
-function db_get_row($conn, $sql) {
-    $result = db_query($conn, $sql);
-    if ($result && $result->num_rows > 0) {
-        return $result->fetch_assoc();
+// Get single row (supports prepared statements)
+function db_get_row($conn, $sql, $params = []) {
+    if (!empty($params)) {
+        // Use prepared statement
+        global $pdo;
+        if (!isset($pdo)) {
+            // If PDO not available, use mysqli
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) return null;
+            
+            $types = str_repeat('s', count($params));
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            return $result ? $result->fetch_assoc() : null;
+        } else {
+            // Use PDO
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        }
+    } else {
+        // Regular query
+        $result = db_query($conn, $sql);
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        return null;
     }
-    return null;
 }
 
-// Get all rows
-function db_get_rows($conn, $sql) {
-    $result = db_query($conn, $sql);
-    $rows = [];
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $rows[] = $row;
+// Get all rows (supports prepared statements)
+function db_get_rows($conn, $sql, $params = []) {
+    if (!empty($params)) {
+        // Use prepared statement
+        global $pdo;
+        if (!isset($pdo)) {
+            // If PDO not available, use mysqli
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) return [];
+            
+            $types = str_repeat('s', count($params));
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $rows = [];
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $rows[] = $row;
+                }
+            }
+            return $rows;
+        } else {
+            // Use PDO
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         }
+    } else {
+        // Regular query
+        $result = db_query($conn, $sql);
+        $rows = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = $row;
+            }
+        }
+        return $rows;
     }
-    return $rows;
 }
 
 // Insert with prepared statement (PDO)

@@ -3,8 +3,8 @@
 -- ข้อมูลตัวอย่าง 10 รายการต่อ module
 -- ===================================
 
--- Insert 10 Models
-INSERT INTO `models` (`category_id`, `code`, `name`, `name_en`, `description`, `price_min`, `price_max`, `height`, `weight`, `age`, `bust`, `waist`, `hips`, `experience_years`, `skin_tone`, `hair_color`, `eye_color`, `languages`, `skills`, `featured`, `status`, `sort_order`) VALUES
+-- Insert 10 Models (skip if exists)
+INSERT IGNORE INTO `models` (`category_id`, `code`, `name`, `name_en`, `description`, `price_min`, `price_max`, `height`, `weight`, `age`, `bust`, `waist`, `hips`, `experience_years`, `skin_tone`, `hair_color`, `eye_color`, `languages`, `skills`, `featured`, `status`, `sort_order`) VALUES
 (1, 'FM001', 'สุภาพร สวยงาม', 'Supaporn Suayngam', 'โมเดลมืออาชีพ มีประสบการณ์ในงานแฟชั่นโชว์และถ่ายแบบ', 3000, 5000, 170, 48, 25, 34, 24, 36, 5, 'ขาว', 'ดำ', 'น้ำตาล', 'ไทย, อังกฤษ', 'เดินรันเวย์, ถ่ายแบบ, MC', 1, 'available', 1),
 (1, 'FM002', 'วรรณา ใจดี', 'Wanna Jaidee', 'โมเดลรุ่นใหม่ มีความสดใส เหมาะกับงานอีเวนท์', 2500, 4000, 168, 47, 23, 33, 23, 35, 3, 'ขาวเหลือง', 'น้ำตาล', 'น้ำตาล', 'ไทย, อังกฤษ', 'เดินรันเวย์, ถ่ายแบบ', 1, 'available', 2),
 (1, 'FM003', 'ปิยะนุช มั่นคง', 'Piyanut Munkong', 'โมเดลที่มีความเป็นมืออาชีพสูง ทำงานได้หลากหลาย', 3500, 6000, 172, 50, 27, 35, 25, 37, 7, 'ขาว', 'ดำ', 'ดำ', 'ไทย, อังกฤษ, จีน', 'เดินรันเวย์, ถ่ายแบบ, MC, พรีเซ็นเตอร์', 1, 'available', 3),
@@ -16,8 +16,8 @@ INSERT INTO `models` (`category_id`, `code`, `name`, `name_en`, `description`, `
 (1, 'FM006', 'กมลวรรณ ศรีสุข', 'Kamonwan Srisuk', 'โมเดลที่มีความเป็นธรรมชาติ เหมาะกับงานถ่ายแบบ', 2500, 4000, 167, 46, 24, 33, 24, 35, 4, 'ขาว', 'น้ำตาลอ่อน', 'น้ำตาล', 'ไทย, อังกฤษ', 'ถ่ายแบบ, พรีเซ็นเตอร์', 0, 'available', 9),
 (2, 'MM004', 'วีรภัทร แข็งแรง', 'Weerapat Kaengraeng', 'โมเดลชายที่มีรูปร่างแข็งแรง เหมาะกับงานสปอร์ต', 2800, 4500, 179, 75, 27, NULL, NULL, NULL, 5, 'ขาวเหลือง', 'ดำ', 'น้ำตาล', 'ไทย, อังกฤษ', 'เดินรันเวย์, ถ่ายแบบ, ฟิตเนส', 0, 'available', 10);
 
--- Insert 10 Articles
-INSERT INTO `articles` (`title`, `slug`, `excerpt`, `content`, `category`, `author_id`, `read_time`, `status`, `published_at`) VALUES
+-- Insert 10 Articles (skip if slug exists)
+INSERT IGNORE INTO `articles` (`title`, `slug`, `excerpt`, `content`, `category`, `author_id`, `read_time`, `status`, `published_at`) VALUES
 ('เทรนด์แฟชั่น 2024 ที่ต้องจับตามอง', 'fashion-trends-2024', 'รวมเทรนด์แฟชั่นที่กำลังมาแรงในปี 2024', '<p>เทรนด์แฟชั่นในปี 2024 มีความหลากหลายและน่าสนใจมาก ตั้งแต่สีสันสดใส ไปจนถึงการตัดเย็บที่เน้นความเรียบง่าย</p><p>ไฮไลท์สำคัญ ได้แก่ การใช้วัสดุที่เป็นมิตรกับสิ่งแวดล้อม และการผสมผสานสไตล์วินเทจเข้ากับความทันสมัย</p>', 'Fashion', 1, 5, 'published', NOW()),
 ('10 ทริคการถ่ายภาพแฟชั่นให้สวยปัง', '10-fashion-photography-tips', 'เทคนิคการถ่ายภาพแฟชั่นสำหรับมือใหม่', '<p>การถ่ายภาพแฟชั่นไม่ใช่เรื่องยาก หากคุณรู้เทคนิคพื้นฐาน</p><p>1. เลือกแสงที่เหมาะสม<br>2. ใช้มุมกล้องที่น่าสนใจ<br>3. ดูแลรายละเอียดของชุด<br>4. สื่อสารกับโมเดลให้ชัดเจน<br>5. ใช้โปรแกรมแต่งภาพอย่างเหมาะสม</p>', 'Photography', 1, 7, 'published', NOW()),
 ('วิธีเลือกโมเดลที่เหมาะกับงาน', 'how-to-choose-right-model', 'คำแนะนำในการเลือกโมเดลสำหรับงานต่างๆ', '<p>การเลือกโมเดลที่เหมาะสมเป็นสิ่งสำคัญต่อความสำเร็จของงาน</p><p>พิจารณาจาก: ประเภทงาน, งบประมาณ, ประสบการณ์, บุคลิกภาพ, และความเหมาะสมกับแบรนด์</p>', 'Tips', 1, 6, 'published', NOW()),
@@ -29,8 +29,8 @@ INSERT INTO `articles` (`title`, `slug`, `excerpt`, `content`, `category`, `auth
 ('ประวัติความเป็นมาของ VIBEDAYBKK', 'about-vibedaybkk', 'เรื่องราวของเราตั้งแต่วันแรก', '<p>VIBEDAYBKK ก่อตั้งขึ้นในปี 2014 ด้วยความมุ่งมั่นที่จะเป็นเอเจนซี่โมเดลชั้นนำ</p><p>เราเติบโตมาพร้อมกับโมเดลมากกว่า 500 คน และทำงานกับแบรนด์ชั้นนำมากมาย</p>', 'About', 1, 4, 'published', NOW()),
 ('แนวโน้มการตลาดด้วยโมเดล', 'model-marketing-trends', 'การใช้โมเดลในการตลาดยุคใหม่', '<p>การตลาดด้วยโมเดลในยุคดิจิทัลมีความสำคัญมากขึ้น</p><p>ไม่ว่าจะเป็น Social Media Marketing, Influencer Marketing, หรือ Content Marketing ล้วนต้องใช้โมเดลที่เหมาะสม</p>', 'Marketing', 1, 7, 'published', NOW());
 
--- Insert 10 Menus
-INSERT INTO `menus` (`parent_id`, `title`, `url`, `icon`, `target`, `sort_order`, `status`) VALUES
+-- Insert 10 Menus (skip if exists)
+INSERT IGNORE INTO `menus` (`parent_id`, `title`, `url`, `icon`, `target`, `sort_order`, `status`) VALUES
 (NULL, 'หน้าแรก', 'index.php', 'fa-home', '_self', 1, 'active'),
 (NULL, 'เกี่ยวกับเรา', 'about.php', 'fa-info-circle', '_self', 2, 'active'),
 (NULL, 'บริการ', 'services.php', 'fa-briefcase', '_self', 3, 'active'),
@@ -68,8 +68,8 @@ INSERT INTO `bookings` (`model_id`, `customer_name`, `customer_email`, `customer
 (9, 'นิตยสาร ไลฟ์สไตล์', 'lifestyle@magazine.com', '02-901-2345', 'Editorial Shoot', '2024-12-25', 'กรุงเทพ', 1, 4000, 'ถ่ายแบบไลฟ์สไตล์', 'confirmed'),
 (10, 'แบรนด์ แฟชั่น', 'fashion@brand.com', '02-012-3456', 'Fashion Show', '2024-12-30', 'ศูนย์ประชุม', 1, 5500, 'งานเปิดตัวคอลเลคชั่นใหม่', 'pending');
 
--- Insert 10 Users (additional editors)
-INSERT INTO `users` (`username`, `password`, `full_name`, `email`, `role`, `status`) VALUES
+-- Insert 10 Users (skip if username exists)
+INSERT IGNORE INTO `users` (`username`, `password`, `full_name`, `email`, `role`, `status`) VALUES
 ('editor1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'สมชาย บรรณาธิการ', 'editor1@vibedaybkk.com', 'editor', 'active'),
 ('editor2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'วิภา จัดการ', 'editor2@vibedaybkk.com', 'editor', 'active'),
 ('editor3', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ธนพล ดูแล', 'editor3@vibedaybkk.com', 'editor', 'active'),
