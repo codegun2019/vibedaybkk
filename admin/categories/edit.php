@@ -28,6 +28,7 @@ $requirements = db_get_rows($conn, "SELECT * FROM model_requirements WHERE categ
 $requirements_text = implode("\n", array_column($requirements, 'requirement'));
 
 $errors = [];
+$success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -83,8 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 log_activity($pdo, $_SESSION['user_id'], 'update', 'categories', $category_id, $category, $data);
                 
-                set_message('success', 'อัพเดทหมวดหมู่สำเร็จ');
-                redirect(ADMIN_URL . '/categories/');
+                $success = true;
+                // Refresh data
+                $category = get_category($conn, $category_id);
+                $requirements = db_get_rows($conn, "SELECT * FROM model_requirements WHERE category_id = {$category_id} ORDER BY sort_order ASC");
+                $requirements_text = implode("\n", array_column($requirements, 'requirement'));
             } else {
                 $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
             }
@@ -95,21 +99,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-edit me-2"></i>แก้ไขหมวดหมู่</h2>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>กลับ
-        </a>
-    </div>
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-edit mr-3 text-blue-600"></i>แก้ไขหมวดหมู่
+    </h2>
+    <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-arrow-left mr-2"></i>กลับ
+    </a>
 </div>
 
+<?php if ($success): ?>
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>บันทึกข้อมูลเรียบร้อยแล้ว</span>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <h5><i class="fas fa-exclamation-circle me-2"></i>พบข้อผิดพลาด:</h5>
-    <ul class="mb-0">
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <h5 class="font-bold mb-2 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>พบข้อผิดพลาด:
+    </h5>
+    <ul class="list-disc list-inside">
         <?php foreach ($errors as $error): ?>
         <li><?php echo $error; ?></li>
         <?php endforeach; ?>
@@ -120,19 +133,27 @@ include '../includes/header.php';
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>ข้อมูลหมวดหมู่</h5>
+    <!-- ข้อมูลหมวดหมู่ -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>ข้อมูลหมวดหมู่
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">รหัสหมวดหมู่ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="code" value="<?php echo $category['code']; ?>" required>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        รหัสหมวดหมู่ <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="code" required placeholder="female-fashion" value="<?php echo htmlspecialchars($category['code']); ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">ใช้ตัวอักษรภาษาอังกฤษและ - เท่านั้น</p>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">เพศ</label>
-                    <select class="form-select" name="gender">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">เพศ</label>
+                    <select name="gender" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="all" <?php echo $category['gender'] == 'all' ? 'selected' : ''; ?>>ทั้งหมด</option>
                         <option value="female" <?php echo $category['gender'] == 'female' ? 'selected' : ''; ?>>หญิง</option>
                         <option value="male" <?php echo $category['gender'] == 'male' ? 'selected' : ''; ?>>ชาย</option>
@@ -140,83 +161,109 @@ include '../includes/header.php';
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อหมวดหมู่ (ไทย) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="name" value="<?php echo $category['name']; ?>" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ชื่อหมวดหมู่ (ไทย) <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="name" required value="<?php echo htmlspecialchars($category['name']); ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อหมวดหมู่ (อังกฤษ)</label>
-                    <input type="text" class="form-control" name="name_en" value="<?php echo $category['name_en']; ?>">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อหมวดหมู่ (อังกฤษ)</label>
+                    <input type="text" name="name_en" placeholder="Fashion Models" value="<?php echo htmlspecialchars($category['name_en']); ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">คำอธิบาย</label>
-                <textarea class="form-control" name="description" rows="3"><?php echo $category['description']; ?></textarea>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">คำอธิบาย</label>
+                <textarea name="description" rows="3" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"><?php echo htmlspecialchars($category['description']); ?></textarea>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-palette me-2"></i>การแสดงผล</h5>
+    <!-- การแสดงผล -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-palette mr-3"></i>การแสดงผล
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ไอคอน Font Awesome</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas <?php echo $category['icon']; ?>"></i></span>
-                        <input type="text" class="form-control" name="icon" value="<?php echo $category['icon']; ?>">
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ไอคอน Font Awesome</label>
+                    <input type="text" name="icon" placeholder="fa-female" value="<?php echo htmlspecialchars($category['icon']); ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เช่น: fa-female, fa-male, fa-camera, fa-star</p>
+                    <div class="mt-3">
+                        <a href="https://fontawesome.com/icons" target="_blank" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors duration-200 text-sm font-medium">
+                            <i class="fas fa-external-link-alt mr-2"></i>ดูไอคอน
+                        </a>
                     </div>
-                    <small class="text-muted">เช่น: fa-female, fa-male, fa-camera</small>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สี Gradient</label>
-                    <input type="text" class="form-control" name="color" value="<?php echo $category['color']; ?>">
-                    <small class="text-muted">Tailwind CSS gradient classes</small>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สี Gradient (Tailwind)</label>
+                    <input type="text" name="color" placeholder="from-pink-500 to-red-primary" value="<?php echo htmlspecialchars($category['color']); ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เช่น: from-pink-500 to-red-primary</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>ราคาและคุณสมบัติ</h5>
+    <!-- ราคาและคุณสมบัติ -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-dollar-sign mr-3"></i>ราคาและคุณสมบัติ
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาขั้นต่ำ (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_min" step="100" value="<?php echo $category['price_min']; ?>">
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ราคาขั้นต่ำ (บาท/วัน)</label>
+                    <input type="number" name="price_min" step="100" placeholder="3000" value="<?php echo $category['price_min']; ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาสูงสุด (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_max" step="100" value="<?php echo $category['price_max']; ?>">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ราคาสูงสุด (บาท/วัน)</label>
+                    <input type="number" name="price_max" step="100" placeholder="5000" value="<?php echo $category['price_max']; ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">คุณสมบัติที่ต้องการ (แยกแต่ละบรรทัด)</label>
-                <textarea class="form-control" name="requirements" rows="5"><?php echo $requirements_text; ?></textarea>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">คุณสมบัติที่ต้องการ (แยกแต่ละบรรทัด)</label>
+                <textarea name="requirements" rows="5" placeholder="ส่วนสูง 165-175 cm&#10;รูปร่างสมส่วน&#10;มีประสบการณ์" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"><?php echo htmlspecialchars($requirements_text); ?></textarea>
+                <p class="text-sm text-gray-500 mt-2">แยกแต่ละคุณสมบัติด้วยการขึ้นบรรทัดใหม่</p>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>การตั้งค่า</h5>
+    <!-- การตั้งค่า -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-cog mr-3"></i>การตั้งค่า
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ลำดับการแสดง</label>
-                    <input type="number" class="form-control" name="sort_order" value="<?php echo $category['sort_order']; ?>">
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ลำดับการแสดง</label>
+                    <input type="number" name="sort_order" value="<?php echo $category['sort_order']; ?>" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เลขน้อยแสดงก่อน</p>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สถานะ</label>
-                    <select class="form-select" name="status">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+                    <select name="status" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
                         <option value="active" <?php echo $category['status'] == 'active' ? 'selected' : ''; ?>>ใช้งาน</option>
                         <option value="inactive" <?php echo $category['status'] == 'inactive' ? 'selected' : ''; ?>>ไม่ใช้งาน</option>
                     </select>
@@ -225,15 +272,17 @@ include '../includes/header.php';
         </div>
     </div>
     
-    <div class="text-end">
-        <a href="index.php" class="btn btn-secondary me-2">
-            <i class="fas fa-times me-2"></i>ยกเลิก
+    <!-- Buttons -->
+    <div class="flex justify-end space-x-4">
+        <a href="index.php" 
+           class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-times mr-2"></i>ยกเลิก
         </a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>บันทึกการแก้ไข
+        <button type="submit" 
+                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
+            <i class="fas fa-save mr-2"></i>บันทึกการเปลี่ยนแปลง
         </button>
     </div>
 </form>
 
 <?php include '../includes/footer.php'; ?>
-

@@ -92,9 +92,11 @@ include '../includes/header.php';
 </div>
 
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <h5><i class="fas fa-exclamation-circle me-2"></i>พบข้อผิดพลาด:</h5>
-    <ul class="mb-0">
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <h5 class="font-bold mb-2 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>พบข้อผิดพลาด:
+    </h5>
+    <ul class="list-disc list-inside">
         <?php foreach ($errors as $error): ?>
         <li><?php echo $error; ?></li>
         <?php endforeach; ?>
@@ -105,20 +107,27 @@ include '../includes/header.php';
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>ข้อมูลหมวดหมู่</h5>
+    <!-- ข้อมูลหมวดหมู่ -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>ข้อมูลหมวดหมู่
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">รหัสหมวดหมู่ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="code" required placeholder="female-fashion">
-                    <small class="text-muted">ใช้ตัวอักษรภาษาอังกฤษและ - เท่านั้น</small>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        รหัสหมวดหมู่ <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="code" required placeholder="female-fashion" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">ใช้ตัวอักษรภาษาอังกฤษและ - เท่านั้น</p>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">เพศ</label>
-                    <select class="form-select" name="gender">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">เพศ</label>
+                    <select name="gender" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="all">ทั้งหมด</option>
                         <option value="female">หญิง</option>
                         <option value="male">ชาย</option>
@@ -126,87 +135,109 @@ include '../includes/header.php';
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อหมวดหมู่ (ไทย) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="name" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ชื่อหมวดหมู่ (ไทย) <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="name" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อหมวดหมู่ (อังกฤษ)</label>
-                    <input type="text" class="form-control" name="name_en" placeholder="Fashion Models">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อหมวดหมู่ (อังกฤษ)</label>
+                    <input type="text" name="name_en" placeholder="Fashion Models" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">คำอธิบาย</label>
-                <textarea class="form-control" name="description" rows="3"></textarea>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">คำอธิบาย</label>
+                <textarea name="description" rows="3" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"></textarea>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-palette me-2"></i>การแสดงผล</h5>
+    <!-- การแสดงผล -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-palette mr-3"></i>การแสดงผล
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ไอคอน Font Awesome</label>
-                    <input type="text" class="form-control" name="icon" placeholder="fa-female" value="fa-user">
-                    <small class="text-muted">เช่น: fa-female, fa-male, fa-camera, fa-star</small>
-                    <div class="mt-2">
-                        <a href="https://fontawesome.com/icons" target="_blank" class="btn btn-sm btn-info">
-                            <i class="fas fa-external-link-alt me-1"></i>ดูไอคอน
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ไอคอน Font Awesome</label>
+                    <input type="text" name="icon" placeholder="fa-female" value="fa-user" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เช่น: fa-female, fa-male, fa-camera, fa-star</p>
+                    <div class="mt-3">
+                        <a href="https://fontawesome.com/icons" target="_blank" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors duration-200 text-sm font-medium">
+                            <i class="fas fa-external-link-alt mr-2"></i>ดูไอคอน
                         </a>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สี Gradient (Tailwind)</label>
-                    <input type="text" class="form-control" name="color" placeholder="from-pink-500 to-red-primary">
-                    <small class="text-muted">เช่น: from-pink-500 to-red-primary</small>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สี Gradient (Tailwind)</label>
+                    <input type="text" name="color" placeholder="from-pink-500 to-red-primary" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เช่น: from-pink-500 to-red-primary</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>ราคาและคุณสมบัติ</h5>
+    <!-- ราคาและคุณสมบัติ -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-dollar-sign mr-3"></i>ราคาและคุณสมบัติ
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาขั้นต่ำ (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_min" step="100" placeholder="3000">
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ราคาขั้นต่ำ (บาท/วัน)</label>
+                    <input type="number" name="price_min" step="100" placeholder="3000" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาสูงสุด (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_max" step="100" placeholder="5000">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ราคาสูงสุด (บาท/วัน)</label>
+                    <input type="number" name="price_max" step="100" placeholder="5000" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">คุณสมบัติที่ต้องการ (แยกแต่ละบรรทัด)</label>
-                <textarea class="form-control" name="requirements" rows="5" placeholder="ส่วนสูง 165-175 cm&#10;รูปร่างสมส่วน&#10;มีประสบการณ์"></textarea>
-                <small class="text-muted">แยกแต่ละคุณสมบัติด้วยการขึ้นบรรทัดใหม่</small>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">คุณสมบัติที่ต้องการ (แยกแต่ละบรรทัด)</label>
+                <textarea name="requirements" rows="5" placeholder="ส่วนสูง 165-175 cm&#10;รูปร่างสมส่วน&#10;มีประสบการณ์" 
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"></textarea>
+                <p class="text-sm text-gray-500 mt-2">แยกแต่ละคุณสมบัติด้วยการขึ้นบรรทัดใหม่</p>
             </div>
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>การตั้งค่า</h5>
+    <!-- การตั้งค่า -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-cog mr-3"></i>การตั้งค่า
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ลำดับการแสดง</label>
-                    <input type="number" class="form-control" name="sort_order" value="0">
-                    <small class="text-muted">เลขน้อยแสดงก่อน</small>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ลำดับการแสดง</label>
+                    <input type="number" name="sort_order" value="0" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">เลขน้อยแสดงก่อน</p>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สถานะ</label>
-                    <select class="form-select" name="status">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+                    <select name="status" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
                         <option value="active">ใช้งาน</option>
                         <option value="inactive">ไม่ใช้งาน</option>
                     </select>
@@ -215,12 +246,15 @@ include '../includes/header.php';
         </div>
     </div>
     
-    <div class="text-end">
-        <a href="index.php" class="btn btn-secondary me-2">
-            <i class="fas fa-times me-2"></i>ยกเลิก
+    <!-- Buttons -->
+    <div class="flex justify-end space-x-4">
+        <a href="index.php" 
+           class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-times mr-2"></i>ยกเลิก
         </a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>บันทึก
+        <button type="submit" 
+                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
+            <i class="fas fa-save mr-2"></i>บันทึก
         </button>
     </div>
 </form>
