@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">บทความ - VIBEDAYBKK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'kanit': ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark': '#0a0a0a',
+                        'dark-light': '#1a1a1a',
+                        'red-primary': '#DC2626',
+                        'red-light': '#EF4444',
+                        'accent': '#FBBF24',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .article-content {
+            line-height: 1.8;
+        }
+
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #DC2626;
+        }
+
+        .article-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #EF4444;
+        }
+
+        .article-content p {
+            margin-bottom: 1.25rem;
+            color: #D1D5DB;
+        }
+
+        .article-content ul, .article-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.25rem;
+            color: #D1D5DB;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid #DC2626;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #9CA3AF;
+        }
+
+        .go-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .go-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .go-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.5);
+        }
+
+        .related-article {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .related-article:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .go-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .article-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .article-content h3 {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Active menu state */
+        .nav-link.active {
+            color: #DC2626 !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white font-kanit">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-dark/95 backdrop-blur-sm z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-red-primary">
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="index.html" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
+                        <a href="index.html#about" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
+                        <a href="index.html#services" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                        <a href="articles.html" class="nav-link active text-white hover:text-red-primary transition-colors duration-300">บทความ</a>
+                        <a href="index.html#contact" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
+                    </div>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-dark-light shadow-lg md:hidden">
+            <div class="p-6">
+                <button id="close-menu" class="float-right text-gray-300 hover:text-white mb-8">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                <div class="clear-both space-y-6">
+                    <a href="index.html" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
+                    <a href="index.html#about" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
+                    <a href="index.html#services" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                    <a href="articles.html" class="block text-red-primary font-semibold transition-colors duration-300">บทความ</a>
+                    <a href="index.html#contact" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Go to Top Button -->
+    <button id="go-to-top" class="go-to-top bg-red-primary hover:bg-red-light text-white" title="กลับขึ้นด้านบน">
+        <i class="fas fa-arrow-up text-lg"></i>
+    </button>
+
+    <!-- Article Content -->
+    <article class="pt-24 pb-16 bg-dark">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Back Button -->
+            <a href="articles.html" class="inline-flex items-center text-gray-400 hover:text-red-primary transition-colors mb-8">
+                <i class="fas fa-arrow-left mr-2"></i> กลับไปหน้าบทความ
+            </a>
+
+            <!-- Article Header -->
+            <div id="article-header" class="mb-8">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+
+            <!-- Article Featured Image -->
+            <div id="article-image" class="mb-8 rounded-lg overflow-hidden">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+
+            <!-- Article Meta -->
+            <div id="article-meta" class="flex items-center justify-between border-b border-gray-700 pb-6 mb-8">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+
+            <!-- Article Body -->
+            <div id="article-body" class="article-content mb-12">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+
+            <!-- Share Section -->
+            <div class="border-t border-b border-gray-700 py-8 mb-12">
+                <h3 class="text-xl font-semibold mb-4">แชร์บทความนี้</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="bg-blue-600 hover:bg-blue-700 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="แชร์บน Facebook">
+                        <i class="fab fa-facebook-f text-lg"></i>
+                    </a>
+                    <a href="#" class="bg-black hover:bg-gray-800 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="แชร์บน X">
+                        <i class="fab fa-x-twitter text-lg"></i>
+                    </a>
+                    <a href="#" class="bg-green-500 hover:bg-green-600 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="แชร์บน Line">
+                        <i class="fab fa-line text-lg"></i>
+                    </a>
+                    <a href="#" class="bg-gray-700 hover:bg-gray-600 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="คัดลอกลิงก์">
+                        <i class="fas fa-link text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Related Articles -->
+            <div id="related-articles">
+                <h3 class="text-2xl font-bold mb-6">บทความที่เกี่ยวข้อง</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="related-articles-container">
+                    <!-- Content will be injected by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-2xl font-bold text-red-primary mb-4">
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
+                    </div>
+                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="bg-gray-800 hover:bg-blue-600 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-pink-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-red-primary w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="X (Twitter)">
+                            <i class="fab fa-x-twitter"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-green-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Line">
+                            <i class="fab fa-line"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                        <li><a href="index.html#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <li><a href="index.html#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">บริการ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่น</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลถ่ายภาพ</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">นางแบบอีเวนต์</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลโฆษณา</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><i class="fas fa-phone mr-2"></i>02-123-4567</li>
+                        <li><i class="fas fa-envelope mr-2"></i>info@vibedaybkk.com</li>
+                        <li><i class="fab fa-line mr-2"></i>@vibedaybkk</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Articles Data
+        const articles = {
+            1: {
+                title: "เทคนิคการถ่ายภาพโมเดลสำหรับมือใหม่",
+                date: "10 ต.ค. 2025",
+                readTime: "5 นาที",
+                author: "ทีมงาน VIBEDAYBKK",
+                category: "Photography",
+                image: "from-pink-500 to-red-primary",
+                icon: "fa-camera",
+                content: `
+                    <p>การถ่ายภาพโมเดลเป็นศิลปะที่ต้องอาศัยทั้งทักษะและความเข้าใจในหลักการพื้นฐาน สำหรับผู้ที่เพิ่งเริ่มต้นในวงการ เราได้รวบรวมเทคนิคสำคัญที่จะช่วยให้คุณถ่ายภาพโมเดลได้อย่างมืออาชีพ</p>
+
+                    <h2>1. การเลือกแสงที่เหมาะสม</h2>
+                    <p>แสงเป็นองค์ประกอบสำคัญที่สุดในการถ่ายภาพ การใช้แสงธรรมชาติช่วงเช้าหรือเย็นจะให้ผลลัพธ์ที่นุ่มนวลและสวยงาม ขณะที่แสงเที่ยงวันอาจทำให้เกิดเงาที่คมชัดเกินไป</p>
+
+                    <h3>เทคนิคการใช้แสง:</h3>
+                    <ul>
+                        <li>ใช้แสงธรรมชาติจากหน้าต่างสำหรับการถ่ายในร่ม</li>
+                        <li>หลีกเลี่ยงแสงแดดจ้าในช่วงเที่ยง</li>
+                        <li>ใช้ reflector เพื่อเติมแสงส่วนที่มืด</li>
+                        <li>ทดลองใช้แสงด้านข้างเพื่อสร้างมิติ</li>
+                    </ul>
+
+                    <h2>2. การเลือกมุมกล้องที่เหมาะสม</h2>
+                    <p>มุมกล้องมีผลต่อภาพรวมของรูปภาพอย่างมาก การถ่ายจากระดับสายตาให้ความรู้สึกเป็นกันเอง ขณะที่การถ่ายจากมุมสูงอาจทำให้โมเดลดูเล็กลง</p>
+
+                    <blockquote>
+                        "การถ่ายภาพที่ดีไม่ได้อยู่ที่กล้องราคาแพง แต่อยู่ที่การเข้าใจแสงและองค์ประกอบ"
+                    </blockquote>
+
+                    <h2>3. การสื่อสารกับโมเดล</h2>
+                    <p>การสื่อสารที่ดีเป็นกุญแจสำคัญ ช่างภาพควรให้คำแนะนำที่ชัดเจนและสร้างบรรยากาศที่ผ่อนคลาย เพื่อให้โมเดลแสดงออกได้อย่างเป็นธรรมชาติ</p>
+
+                    <h3>เคล็ดลับการสื่อสาร:</h3>
+                    <ol>
+                        <li>แสดงตัวอย่างภาพหรือ mood board ก่อนเริ่มถ่าย</li>
+                        <li>ให้คำชมและสร้างกำลังใจระหว่างถ่าย</li>
+                        <li>ถามความคิดเห็นของโมเดลเป็นครั้งคราว</li>
+                        <li>หยุดพักสักครู่หากโมเดลดูเหนื่อย</li>
+                    </ol>
+
+                    <h2>4. การตั้งค่ากล้อง</h2>
+                    <p>สำหรับมือใหม่ แนะนำให้เริ่มจาก Aperture Priority Mode (A หรือ Av) โดยตั้งค่า aperture ที่ f/2.8-f/5.6 สำหรับพอร์ตเทรต</p>
+
+                    <h2>5. การจัดองค์ประกอบภาพ</h2>
+                    <p>ใช้ Rule of Thirds เป็นแนวทางพื้นฐาน วางโมเดลไว้ที่จุดตัดของเส้นแบ่งสามส่วน แทนที่จะวางตรงกลางภาพ นอกจากนี้ยังควรให้ความสำคัญกับพื้นหลังที่ไม่ฟุ้งซ่าน</p>
+
+                    <p>การถ่ายภาพโมเดลต้องใช้เวลาในการฝึกฝนและพัฒนาทักษะ แต่ถ้าคุณเข้าใจหลักการพื้นฐานเหล่านี้ คุณจะสามารถสร้างสรรค์ผลงานที่น่าประทับใจได้อย่างแน่นอน</p>
+                `
+            },
+            2: {
+                title: "วิธีเลือกโมเดลที่เหมาะกับแบรนด์",
+                date: "8 ต.ค. 2025",
+                readTime: "7 นาที",
+                author: "ทีมงาน VIBEDAYBKK",
+                category: "Business",
+                image: "from-purple-500 to-pink-500",
+                icon: "fa-user-tie",
+                content: `
+                    <p>การเลือกโมเดลที่เหมาะสมกับแบรนด์เป็นหนึ่งในปัจจัยสำคัญที่จะช่วยให้แคมเปญการตลาดของคุณประสบความสำเร็จ โมเดลที่ดีไม่เพียงแค่มีรูปร่างหน้าตาที่สวยงาม แต่ยังต้องสามารถสื่อสารค่านิยมและภาพลักษณ์ของแบรนด์ได้อย่างมีประสิทธิภาพ</p>
+
+                    <h2>เข้าใจ DNA ของแบรนด์</h2>
+                    <p>ก่อนเลือกโมเดล คุณต้องเข้าใจลึกซึ้งถึงตัวตนของแบรนด์ก่อน ถามตัวเองว่า:</p>
+                    <ul>
+                        <li>แบรนด์ต้องการสื่อสารอะไรกับลูกค้า?</li>
+                        <li>กลุ่มเป้าหมายหลักคือใคร?</li>
+                        <li>บุคลิกของแบรนด์เป็นอย่างไร? (หรูหรา, ลำลอง, กีฬา, etc.)</li>
+                        <li>สีและสไตล์ของแบรนด์มีลักษณะอย่างไร?</li>
+                    </ul>
+
+                    <h2>พิจารณาเรื่องความหลากหลาย (Diversity)</h2>
+                    <p>ในยุคปัจจุบัน ผู้บริโภคให้ความสำคัญกับความหลากหลายและการเป็นตัวแทนที่แท้จริง การเลือกโมเดลที่สะท้อนความหลากหลายทางเชื้อชาติ รูปร่าง อายุ และเพศ จะช่วยให้แบรนด์เข้าถึงผู้บริโภคได้กว้างขวางขึ้น</p>
+
+                    <h2>ประสบการณ์และพอร์ตโฟลิโอ</h2>
+                    <p>ตรวจสอบผลงานก่อนหน้าของโมเดล:</p>
+                    <ol>
+                        <li>ดูว่าเคยทำงานกับแบรนด์ที่มีสไตล์คล้ายกันหรือไม่</li>
+                        <li>ประเมินความสามารถในการแสดงอารมณ์และสื่อสาร</li>
+                        <li>พิจารณาความหลากหลายในการโพสท่า</li>
+                        <li>ดูว่ามีความเป็นมืออาชีพในการทำงานหรือไม่</li>
+                    </ol>
+
+                    <blockquote>
+                        "โมเดลที่ดีคือผู้ที่สามารถทำให้ผลิตภัณฑ์เป็นตัวเอก ไม่ใช่ตนเอง"
+                    </blockquote>
+
+                    <h2>การทดสอบและ Casting</h2>
+                    <p>อย่าตัดสินใจจากรูปภาพเพียงอย่างเดียว จัด casting session เพื่อ:</p>
+                    <ul>
+                        <li>ดูบุคลิกและพฤติกรรมจริง</li>
+                        <li>ทดสอบการโต้ตอบกับทีมงาน</li>
+                        <li>ให้ลองโพสท่าและแสดงออกต่างๆ</li>
+                        <li>ถ่ายภาพทดสอบกับผลิตภัณฑ์จริง</li>
+                    </ul>
+
+                    <h2>ความเหมาะสมกับสื่อต่างๆ</h2>
+                    <p>พิจารณาว่าโมเดลจะต้องปรากฏในสื่อประเภทใด:</p>
+                    <ul>
+                        <li>Print ads - ต้องการใบหน้าที่โดดเด่นและจดจำง่าย</li>
+                        <li>TV/Video - ต้องการความสามารถในการเคลื่อนไหวและแสดงออก</li>
+                        <li>Social Media - ต้องการความเป็นธรรมชาติและ relatable</li>
+                        <li>Runway - ต้องการความมั่นใจและ presence ที่แข็งแกร่ง</li>
+                    </ul>
+
+                    <h2>งบประมาณและการเจรจา</h2>
+                    <p>โมเดลที่มีชื่อเสียงอาจมีค่าตัวสูง แต่ไม่ได้หมายความว่าจะเหมาะกับแบรนด์เสมอไป บางครั้งโมเดลมือใหม่ที่มีลักษณะตรงกับแบรนด์อาจให้ผลลัพธ์ที่ดีกว่า</p>
+
+                    <p>การเลือกโมเดลที่เหมาะสมต้องอาศัยการวิเคราะห์หลายด้าน ตั้งแต่การเข้าใจแบรนด์ ความต้องการของแคมเปญ ไปจนถึงงบประมาณ การทำงานกับเอเจนซี่โมเดลที่มีประสบการณ์จะช่วยให้กระบวนการนี้ง่ายขึ้นและได้ผลลัพธ์ที่ดีที่สุด</p>
+                `
+            },
+            3: {
+                title: "เทรนด์แฟชั่นสำหรับโมเดลปี 2025",
+                date: "5 ต.ค. 2025",
+                readTime: "6 นาที",
+                author: "ทีมงาน VIBEDAYBKK",
+                category: "Fashion",
+                image: "from-blue-500 to-indigo-600",
+                icon: "fa-lightbulb",
+                content: `
+                    <p>ปี 2025 มาพร้อมกับเทรนด์แฟชั่นใหม่ๆ ที่น่าตื่นเต้น สำหรับโมเดลที่ต้องการอัพเดทตัวเองให้ทันสมัย เราได้รวบรวมเทรนด์สำคัญที่กำลังมาแรงในวงการ</p>
+
+                    <h2>1. Sustainable Fashion</h2>
+                    <p>แฟชั่นที่ยั่งยืนยังคงเป็นเทรนด์ใหญ่ต่อเนื่อง ผู้บริโภคให้ความสำคัญกับสิ่งแวดล้อมมากขึ้น การเลือกใส่เสื้อผ้าจากวัสดุรีไซเคิลและแบรนด์ที่เป็นมิตรกับสิ่งแวดล้อมจึงเป็นที่นิยม</p>
+
+                    <h2>2. Oversized Everything</h2>
+                    <p>เสื้อผ้าทรงโอเวอร์ไซส์ยังคงครองใจแฟชั่นนิสต้า จากเสื้อยืด เสื้อเชิ้ต ไปจนถึงกางเกงขายาว ความสบายและสไตล์มินิมอลเป็นที่ต้องการ</p>
+
+                    <h3>Tips สำหรับโมเดล:</h3>
+                    <ul>
+                        <li>รู้จักทรงร่างของตัวเองเพื่อเลือก oversized ที่เหมาะสม</li>
+                        <li>สร้างสมดุลด้วยการผสมผสานทั้งหลวมและเข้ารูป</li>
+                        <li>เน้นการแสดงออกของท่าทางให้มีความมั่นใจ</li>
+                    </ul>
+
+                    <h2>3. Bold Colors & Patterns</h2>
+                    <p>สีสันสดใสและลายพิมพ์ที่โดดเด่นกลับมาฮิตอีกครั้ง ตั้งแต่สีนีออนจนถึงลายเรขาคณิตที่ซับซ้อน</p>
+
+                    <blockquote>
+                        "แฟชั่นไม่ได้อยู่ที่เสื้อผ้า แต่อยู่ที่วิธีที่คุณใส่มัน"
+                    </blockquote>
+
+                    <h2>4. Tech-Wear & Futuristic Style</h2>
+                    <p>แฟชั่นที่ผสมผสานเทคโนโลยีเข้ามา ไม่ว่าจะเป็นเสื้อผ้าที่มีฟังก์ชันพิเศษ หรือดีไซน์ที่ดูล้ำสมัย</p>
+
+                    <h2>5. Gender-Fluid Fashion</h2>
+                    <p>เสื้อผ้าที่ไม่จำกัดเพศกำลังเป็นที่นิยมมากขึ้น แบรนด์ต่างๆ ออกแบบคอลเลกชันที่สามารถใส่ได้ทุกเพศ</p>
+
+                    <h2>6. Y2K Revival</h2>
+                    <p>สไตล์ยุค 2000 กลับมาอีกครั้งในรูปแบบที่ทันสมัยขึ้น:</p>
+                    <ul>
+                        <li>กางเกงเอวต่ำ</li>
+                        <li>เสื้อครอปสั้น</li>
+                        <li>อุปกรณ์เสริมแบบบลิงบลิง</li>
+                        <li>สีพาสเทลและโลหะ</li>
+                    </ul>
+
+                    <h2>7. Comfort is Key</h2>
+                    <p>หลังจากช่วง pandemic ผู้คนให้ความสำคัญกับความสบายมากขึ้น แต่ไม่ลดทอนความสวยงาม</p>
+
+                    <h2>คำแนะนำสำหรับโมเดล</h2>
+                    <ol>
+                        <li>ติดตามเทรนด์แต่รักษาเอกลักษณ์ของตัวเอง</li>
+                        <li>ทดลองสไตล์ใหม่ๆ อยู่เสมอ</li>
+                        <li>สร้างพอร์ตโฟลิโอที่หลากหลาย</li>
+                        <li>อย่ากลัวที่จะโดดเด่นและแตกต่าง</li>
+                    </ol>
+
+                    <p>การเข้าใจเทรนด์แฟชั่นจะช่วยให้โมเดลสามารถปรับตัวและทำงานได้อย่างมีประสิทธิภาพมากขึ้น อย่างไรก็ตาม การมีสไตล์และเอกลักษณ์ของตัวเองก็เป็นสิ่งสำคัญที่จะทำให้คุณโดดเด่นในวงการ</p>
+                `
+            },
+            // เพิ่มบทความอื่นๆ ตามต้องการ
+        };
+
+        // Get article ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id') || '1';
+
+        // Load article content
+        function loadArticle(id) {
+            const article = articles[id];
+            if (!article) {
+                window.location.href = 'articles.html';
+                return;
+            }
+
+            // Set page title
+            document.getElementById('page-title').textContent = `${article.title} - VIBEDAYBKK`;
+
+            // Header
+            document.getElementById('article-header').innerHTML = `
+                <div class="mb-4">
+                    <span class="inline-block px-3 py-1 bg-red-primary text-white text-sm rounded-full mb-4">
+                        ${article.category}
+                    </span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-4">${article.title}</h1>
+            `;
+
+            // Image
+            document.getElementById('article-image').innerHTML = `
+                <div class="h-96 bg-gradient-to-br ${article.image} flex items-center justify-center">
+                    <i class="fas ${article.icon} text-8xl text-white opacity-50"></i>
+                </div>
+            `;
+
+            // Meta
+            document.getElementById('article-meta').innerHTML = `
+                <div class="flex items-center space-x-6 text-gray-400">
+                    <div class="flex items-center">
+                        <i class="far fa-calendar mr-2"></i>
+                        <span>${article.date}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="far fa-clock mr-2"></i>
+                        <span>${article.readTime}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="far fa-user mr-2"></i>
+                        <span>${article.author}</span>
+                    </div>
+                </div>
+            `;
+
+            // Body
+            document.getElementById('article-body').innerHTML = article.content;
+
+            // Related articles
+            loadRelatedArticles(id);
+        }
+
+        function loadRelatedArticles(currentId) {
+            const related = Object.keys(articles)
+                .filter(id => id !== currentId)
+                .slice(0, 3);
+
+            const container = document.getElementById('related-articles-container');
+            container.innerHTML = related.map(id => {
+                const article = articles[id];
+                return `
+                    <article class="related-article bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                        <div class="h-40 bg-gradient-to-br ${article.image} flex items-center justify-center">
+                            <i class="fas ${article.icon} text-4xl text-white opacity-50"></i>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-semibold mb-2 hover:text-red-primary transition-colors">
+                                <a href="article-detail.html?id=${id}">${article.title}</a>
+                            </h4>
+                            <div class="flex items-center text-sm text-gray-400 mb-3">
+                                <i class="far fa-clock mr-2"></i>
+                                <span>${article.readTime}</span>
+                            </div>
+                            <a href="article-detail.html?id=${id}" class="text-red-primary hover:text-red-light text-sm">
+                                อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // Load article on page load
+        loadArticle(articleId);
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenuBtn = document.getElementById('close-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('open');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+        });
+
+        // Close mobile menu when clicking on links
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+            });
+        });
+
+        // Go to Top Button
+        const goToTopBtn = document.getElementById('go-to-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                goToTopBtn.classList.add('show');
+            } else {
+                goToTopBtn.classList.remove('show');
+            }
+        });
+
+        goToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
+

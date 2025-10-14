@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทความ - VIBEDAYBKK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'kanit': ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark': '#0a0a0a',
+                        'dark-light': '#1a1a1a',
+                        'red-primary': '#DC2626',
+                        'red-light': '#EF4444',
+                        'accent': '#FBBF24',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Preloader Styles */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #DC2626;
+            margin-bottom: 2rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a1a1a;
+            border-top: 4px solid #DC2626;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .article-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(220, 38, 38, 0.3);
+        }
+
+        .article-image {
+            overflow: hidden;
+        }
+
+        .article-image img {
+            transition: transform 0.5s ease;
+        }
+
+        .article-card:hover .article-image img {
+            transform: scale(1.1);
+        }
+
+        .go-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .go-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .go-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .go-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .loader-logo {
+                font-size: 2rem;
+            }
+        }
+
+        /* Active menu state */
+        .nav-link.active {
+            color: #DC2626 !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white font-kanit">
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <i class="fas fa-star"></i> VIBEDAYBKK
+            </div>
+            <div class="loader-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-dark/95 backdrop-blur-sm z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-red-primary">
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="index.html" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
+                        <a href="index.html#about" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
+                        <a href="index.html#services" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                        <a href="articles.html" class="nav-link active text-white hover:text-red-primary transition-colors duration-300">บทความ</a>
+                        <a href="index.html#contact" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
+                    </div>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-dark-light shadow-lg md:hidden">
+            <div class="p-6">
+                <button id="close-menu" class="float-right text-gray-300 hover:text-white mb-8">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                <div class="clear-both space-y-6">
+                    <a href="index.html" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
+                    <a href="index.html#about" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
+                    <a href="index.html#services" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                    <a href="articles.html" class="block text-red-primary font-semibold transition-colors duration-300">บทความ</a>
+                    <a href="index.html#contact" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Go to Top Button -->
+    <button id="go-to-top" class="go-to-top bg-red-primary hover:bg-red-light text-white" title="กลับขึ้นด้านบน">
+        <i class="fas fa-arrow-up text-lg"></i>
+    </button>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-12 bg-gradient-to-b from-dark-light to-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    <span class="text-red-primary">บทความ</span>และความรู้
+                </h1>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                    ค้นพบเคลือบลับ เทคนิค และความรู้ในวงการโมเดลและนางแบบ
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Grid -->
+    <section class="py-16 bg-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Article 1 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-pink-500 to-red-primary flex items-center justify-center">
+                        <i class="fas fa-camera text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>10 ต.ค. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>5 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=1">เทคนิคการถ่ายภาพโมเดลสำหรับมือใหม่</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            เรียนรู้เทคนิคพื้นฐานการถ่ายภาพโมเดลที่จะทำให้ผลงานของคุณดูเป็นมืออาชีพ ตั้งแต่การจัดแสง โพสท่า ไปจนถึงการเลือกมุมกล้อง
+                        </p>
+                        <a href="article-detail.html?id=1" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 2 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <i class="fas fa-user-tie text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>8 ต.ค. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>7 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=2">วิธีเลือกโมเดลที่เหมาะกับแบรนด์</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            คู่มือการเลือกโมเดลให้ตรงกับคอนเซ็ปต์และภาพลักษณ์ของแบรนด์ เพื่อสื่อสารได้อย่างตรงใจกลุ่มเป้าหมาย
+                        </p>
+                        <a href="article-detail.html?id=2" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 3 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-lightbulb text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>5 ต.ค. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>6 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=3">เทรนด์แฟชั่นสำหรับโมเดลปี 2025</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            อัพเดทเทรนด์แฟชั่นล่าสุดที่กำลังมาแรงในวงการ พร้อมเคล็ดลับการแต่งตัวให้โดดเด่นในทุกงานถ่ายภาพ
+                        </p>
+                        <a href="article-detail.html?id=3" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 4 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
+                        <i class="fas fa-dumbbell text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>3 ต.ค. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>8 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=4">การดูแลรูปร่างสำหรับโมเดล</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            เคล็ดลับการออกกำลังกายและการดูแลสุขภาพเพื่อรักษารูปร่างที่สมบูรณ์แบบสำหรับโมเดลมืออาชีพ
+                        </p>
+                        <a href="article-detail.html?id=4" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 5 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                        <i class="fas fa-handshake text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>1 ต.ค. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>6 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=5">สัญญาและข้อตกลงในงานโมเดล</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            สิ่งที่ต้องรู้เกี่ยวกับสัญญา ข้อตกลง และสิทธิประโยชน์ต่างๆ ก่อนรับงานโมเดลเพื่อป้องกันปัญหา
+                        </p>
+                        <a href="article-detail.html?id=5" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 6 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                        <i class="fas fa-makeup text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>28 ก.ย. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>5 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=6">เทคนิคการแต่งหน้าสำหรับงานถ่ายภาพ</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            ศิลปะการแต่งหน้าที่เหมาะกับการถ่ายภาพ เพื่อให้ใบหน้าดูคมชัดและสวยงามในทุกมุมกล้อง
+                        </p>
+                        <a href="article-detail.html?id=6" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 7 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                        <i class="fas fa-trophy text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>25 ก.ย. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>7 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=7">เส้นทางสู่ความสำเร็จของโมเดลมืออาชีพ</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            เรื่องราวและคำแนะนำจากโมเดลชื่อดังที่ประสบความสำเร็จในวงการ พร้อมเคล็ดลับการเติบโตในอาชีพ
+                        </p>
+                        <a href="article-detail.html?id=7" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 8 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-users text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>22 ก.ย. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>6 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=8">การสร้างพอร์ตโฟลิโอที่โดดเด่น</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            วิธีการสร้างพอร์ตโฟลิโอที่น่าสนใจและดึงดูดลูกค้า ตั้งแต่การเลือกภาพ การจัดเรียง จนถึงการนำเสนอ
+                        </p>
+                        <a href="article-detail.html?id=8" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Article 9 -->
+                <article class="article-card bg-dark-light rounded-lg overflow-hidden shadow-lg">
+                    <div class="article-image h-48 bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-6xl text-white opacity-50"></i>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-400 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>20 ก.ย. 2025</span>
+                            <span class="mx-2">•</span>
+                            <i class="far fa-clock mr-2"></i>
+                            <span>8 นาที</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 hover:text-red-primary transition-colors">
+                            <a href="article-detail.html?id=9">การเจรจาค่าตัวและค่าจ้างโมเดล</a>
+                        </h3>
+                        <p class="text-gray-400 mb-4 line-clamp-3">
+                            คู่มือการเจรจาค่าตัวอย่างมืออาชีพ รวมถึงการกำหนดราคา แพคเกจ และสิ่งที่ควรพิจารณาก่อนตกลงงาน
+                        </p>
+                        <a href="article-detail.html?id=9" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors">
+                            อ่านเพิ่มเติม <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-2xl font-bold text-red-primary mb-4">
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
+                    </div>
+                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="bg-gray-800 hover:bg-blue-600 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-pink-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-red-primary w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="X (Twitter)">
+                            <i class="fab fa-x-twitter"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 hover:bg-green-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Line">
+                            <i class="fab fa-line"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                        <li><a href="index.html#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <li><a href="index.html#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">บริการ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่น</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลถ่ายภาพ</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">นางแบบอีเวนต์</a></li>
+                        <li><a href="index.html#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลโฆษณา</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><i class="fas fa-phone mr-2"></i>02-123-4567</li>
+                        <li><i class="fas fa-envelope mr-2"></i>info@vibedaybkk.com</li>
+                        <li><i class="fab fa-line mr-2"></i>@vibedaybkk</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Preloader
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                setTimeout(() => {
+                    preloader.remove();
+                }, 500);
+            }, 800);
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenuBtn = document.getElementById('close-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('open');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+        });
+
+        // Close mobile menu when clicking on links
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+            });
+        });
+
+        // Go to Top Button
+        const goToTopBtn = document.getElementById('go-to-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                goToTopBtn.classList.add('show');
+            } else {
+                goToTopBtn.classList.remove('show');
+            }
+        });
+
+        goToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
+
