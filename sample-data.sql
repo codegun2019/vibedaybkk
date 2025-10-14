@@ -56,7 +56,7 @@ INSERT INTO `contacts` (`name`, `email`, `phone`, `service_type`, `message`, `st
 ('วีรภัทร สมบูรณ์', 'weerapat@email.com', '090-123-4567', 'Photo Shoot', 'ต้องการโมเดลชายและหญิงอย่างละ 2 คน', 'read');
 
 -- Insert 10 Bookings
-INSERT INTO `bookings` (`model_id`, `customer_name`, `customer_email`, `customer_phone`, `event_type`, `event_date`, `event_location`, `duration_days`, `total_price`, `special_requirements`, `status`) VALUES
+INSERT INTO `bookings` (`model_id`, `customer_name`, `customer_email`, `customer_phone`, `service_type`, `booking_date`, `location`, `booking_days`, `total_price`, `message`, `status`) VALUES
 (1, 'บริษัท แฟชั่น จำกัด', 'fashion@company.com', '02-123-4567', 'Fashion Show', '2024-11-15', 'ศูนย์การค้าสยามพารากอน', 1, 5000, 'ต้องการโมเดลมาซ้อมล่วงหน้า 1 วัน', 'confirmed'),
 (2, 'บริษัท โฆษณา จำกัด', 'ads@company.com', '02-234-5678', 'Commercial Shoot', '2024-11-20', 'สตูดิโอ ถ่ายภาพ กรุงเทพ', 2, 8000, 'ถ่ายโฆษณาเครื่องสำอาง', 'confirmed'),
 (3, 'นิตยสาร แฟชั่น', 'magazine@fashion.com', '02-345-6789', 'Editorial Shoot', '2024-11-25', 'หาดชะอำ', 3, 18000, 'ถ่ายแบบริมทะเล', 'pending'),
