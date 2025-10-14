@@ -25,7 +25,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Invalid CSRF token';
     } else {
-        // Update each setting
+        // Handle logo image upload
+        if (isset($_FILES['logo_image']) && $_FILES['logo_image']['error'] === UPLOAD_ERR_OK) {
+            // Delete old logo
+            if (!empty($settings['logo_image'])) {
+                delete_image($settings['logo_image']);
+            }
+            
+            $upload_result = upload_image($_FILES['logo_image'], 'general');
+            if ($upload_result['success']) {
+                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'logo_image'");
+                $stmt->execute([$upload_result['path']]);
+            } else {
+                $errors[] = 'Logo: ' . $upload_result['message'];
+            }
+        }
+        
+        // Handle favicon upload
+        if (isset($_FILES['favicon']) && $_FILES['favicon']['error'] === UPLOAD_ERR_OK) {
+            // Delete old favicon
+            if (!empty($settings['favicon'])) {
+                delete_image($settings['favicon']);
+            }
+            
+            $upload_result = upload_image($_FILES['favicon'], 'general');
+            if ($upload_result['success']) {
+                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'favicon'");
+                $stmt->execute([$upload_result['path']]);
+            } else {
+                $errors[] = 'Favicon: ' . $upload_result['message'];
+            }
+        }
+        
+        // Update text settings
         foreach ($_POST as $key => $value) {
             if ($key != 'csrf_token' && strpos($key, 'setting_') === 0) {
                 $setting_key = str_replace('setting_', '', $key);
@@ -36,9 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        log_activity($pdo, $_SESSION['user_id'], 'update_settings', 'settings', null);
-        set_message('success', 'บันทึกการตั้งค่าสำเร็จ');
-        redirect(ADMIN_URL . '/settings/');
+        if (empty($errors)) {
+            log_activity($pdo, $_SESSION['user_id'], 'update_settings', 'settings', null);
+            set_message('success', 'บันทึกการตั้งค่าสำเร็จ');
+            redirect(ADMIN_URL . '/settings/');
+        }
+    }
+    
+    // Refresh settings
+    $settings = [];
+    $result = db_get_rows($conn, "SELECT * FROM settings");
+    foreach ($result as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
     }
 }
 
@@ -59,8 +100,70 @@ include '../includes/header.php';
 </div>
 <?php endif; ?>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+    
+    <!-- Logo & Branding -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-image me-2"></i>โลโก้และไอคอน</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label class="form-label">ประเภทโลโก้</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="setting_logo_type" id="logo_text" value="text" <?php echo ($settings['logo_type'] ?? 'text') == 'text' ? 'checked' : ''; ?>>
+                        <label class="btn btn-outline-primary" for="logo_text">
+                            <i class="fas fa-font me-2"></i>ข้อความ
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="setting_logo_type" id="logo_image" value="image" <?php echo ($settings['logo_type'] ?? 'text') == 'image' ? 'checked' : ''; ?>>
+                        <label class="btn btn-outline-primary" for="logo_image">
+                            <i class="fas fa-image me-2"></i>รูปภาพ
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">ข้อความโลโก้</label>
+                    <input type="text" class="form-control form-control-lg" name="setting_logo_text" value="<?php echo $settings['logo_text'] ?? 'VIBEDAYBKK'; ?>">
+                    <small class="text-muted">ใช้เมื่อเลือกประเภทโลโก้เป็น "ข้อความ"</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">รูปภาพโลโก้</label>
+                    <?php if (!empty($settings['logo_image'])): ?>
+                    <div class="mb-2">
+                        <img src="<?php echo UPLOADS_URL . '/' . $settings['logo_image']; ?>" class="img-thumbnail" style="max-height: 80px;">
+                        <div class="mt-2">
+                            <small class="text-muted">รูปปัจจุบัน</small>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <input type="file" class="form-control" name="logo_image" accept="image/*">
+                    <small class="text-muted">แนะนำขนาด: 200x60px, PNG มีพื้นหลังโปร่งใส</small>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Favicon</label>
+                    <?php if (!empty($settings['favicon'])): ?>
+                    <div class="mb-2">
+                        <img src="<?php echo UPLOADS_URL . '/' . $settings['favicon']; ?>" class="img-thumbnail" style="max-height: 32px;">
+                        <small class="text-muted ms-2">Favicon ปัจจุบัน</small>
+                    </div>
+                    <?php endif; ?>
+                    <input type="file" class="form-control" name="favicon" accept="image/x-icon,image/png,image/svg+xml">
+                    <small class="text-muted">แนะนำขนาด: 32x32px หรือ 64x64px (.ico, .png)</small>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Site Info -->
     <div class="card mb-4">

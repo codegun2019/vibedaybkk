@@ -29,6 +29,7 @@ $articles = db_get_rows($conn, "
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>บทความ - <?php echo $settings['site_name'] ?? 'VIBEDAYBKK'; ?></title>
+    <?php echo get_favicon($settings); ?>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,7 +73,7 @@ $articles = db_get_rows($conn, "
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="index.php" class="text-2xl font-bold text-red-primary"><i class="fas fa-star mr-2"></i>VIBEDAYBKK</a>
+                    <a href="index.php" class="text-2xl font-bold text-red-primary"><?php echo get_logo($settings); ?></a>
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
@@ -165,7 +166,7 @@ $articles = db_get_rows($conn, "
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <div class="text-2xl font-bold text-red-primary mb-4"><i class="fas fa-star mr-2"></i>VIBEDAYBKK</div>
+                    <div class="text-2xl font-bold text-red-primary mb-4"><?php echo get_logo($settings); ?></div>
                     <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
                     <div class="flex space-x-3">
                         <a href="#" class="bg-gray-800 hover:bg-blue-600 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110"><i class="fab fa-facebook-f"></i></a>

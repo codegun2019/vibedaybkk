@@ -194,7 +194,14 @@ INSERT INTO settings (setting_key, setting_value, setting_type, description) VAL
 ('site_address', '123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110', 'text', 'ที่อยู่'),
 ('booking_advance_days', '3', 'number', 'จองล่วงหน้าอย่างน้อย (วัน)'),
 ('items_per_page', '12', 'number', 'จำนวนรายการต่อหน้า'),
-('enable_registration', 'false', 'boolean', 'เปิดให้สมัครสมาชิก');
+('enable_registration', 'false', 'boolean', 'เปิดให้สมัครสมาชิก'),
+('logo_type', 'text', 'text', 'ประเภทโลโก้ (text, image)'),
+('logo_text', 'VIBEDAYBKK', 'text', 'ข้อความโลโก้'),
+('logo_image', '', 'text', 'รูปภาพโลโก้'),
+('favicon', '', 'text', 'Favicon'),
+('facebook_url', '', 'text', 'Facebook URL'),
+('instagram_url', '', 'text', 'Instagram URL'),
+('twitter_url', '', 'text', 'Twitter/X URL');
 
 -- ตาราง bookings (การจองโมเดล)
 CREATE TABLE IF NOT EXISTS bookings (

@@ -462,6 +462,30 @@ function get_category_badge_color($gender) {
 }
 
 /**
+ * Get logo HTML
+ */
+function get_logo($settings) {
+    $logo_type = $settings['logo_type'] ?? 'text';
+    
+    if ($logo_type == 'image' && !empty($settings['logo_image'])) {
+        return '<img src="' . UPLOADS_URL . '/' . $settings['logo_image'] . '" alt="' . ($settings['site_name'] ?? 'VIBEDAYBKK') . '" style="height: 40px;">';
+    } else {
+        $logo_text = $settings['logo_text'] ?? $settings['site_name'] ?? 'VIBEDAYBKK';
+        return '<i class="fas fa-star mr-2"></i>' . $logo_text;
+    }
+}
+
+/**
+ * Get favicon HTML
+ */
+function get_favicon($settings) {
+    if (!empty($settings['favicon'])) {
+        return '<link rel="icon" type="image/x-icon" href="' . UPLOADS_URL . '/' . $settings['favicon'] . '">';
+    }
+    return '';
+}
+
+/**
  * Display status badge
  */
 function get_status_badge($status) {

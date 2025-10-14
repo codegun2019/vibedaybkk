@@ -1,7 +1,6 @@
 <?php
 /**
- * VIBEDAYBKK Admin - Dashboard
- * หน้าแรกของระบบ Admin
+ * VIBEDAYBKK Admin - Dashboard (Tailwind CSS)
  */
 
 define('VIBEDAYBKK_ADMIN', true);
@@ -10,41 +9,19 @@ require_once '../includes/config.php';
 $page_title = 'Dashboard';
 $current_page = 'dashboard';
 
-// ดึงสถิติต่างๆ
+// ดึงสถิติ
 $stats = [];
+$stats['total_models'] = $conn->query("SELECT COUNT(*) as c FROM models")->fetch_assoc()['c'];
+$stats['available_models'] = $conn->query("SELECT COUNT(*) as c FROM models WHERE status = 'available'")->fetch_assoc()['c'];
+$stats['total_categories'] = $conn->query("SELECT COUNT(*) as c FROM categories WHERE status = 'active'")->fetch_assoc()['c'];
+$stats['published_articles'] = $conn->query("SELECT COUNT(*) as c FROM articles WHERE status = 'published'")->fetch_assoc()['c'];
+$stats['new_contacts'] = $conn->query("SELECT COUNT(*) as c FROM contacts WHERE status = 'new'")->fetch_assoc()['c'];
+$stats['pending_bookings'] = $conn->query("SELECT COUNT(*) as c FROM bookings WHERE status = 'pending'")->fetch_assoc()['c'];
+$stats['total_revenue'] = $conn->query("SELECT COALESCE(SUM(total_price), 0) as c FROM bookings WHERE status = 'completed'")->fetch_assoc()['c'];
 
-// จำนวนโมเดลทั้งหมด
-$result = $conn->query("SELECT COUNT(*) as total FROM models");
-$stats['total_models'] = $result->fetch_assoc()['total'];
-
-// จำนวนโมเดลที่ว่าง
-$result = $conn->query("SELECT COUNT(*) as total FROM models WHERE status = 'available'");
-$stats['available_models'] = $result->fetch_assoc()['total'];
-
-// จำนวนหมวดหมู่
-$result = $conn->query("SELECT COUNT(*) as total FROM categories WHERE status = 'active'");
-$stats['total_categories'] = $result->fetch_assoc()['total'];
-
-// จำนวนบทความ
-$result = $conn->query("SELECT COUNT(*) as total FROM articles WHERE status = 'published'");
-$stats['published_articles'] = $result->fetch_assoc()['total'];
-
-// ข้อความติดต่อใหม่
-$result = $conn->query("SELECT COUNT(*) as total FROM contacts WHERE status = 'new'");
-$stats['new_contacts'] = $result->fetch_assoc()['total'];
-
-// การจองใหม่
-$result = $conn->query("SELECT COUNT(*) as total FROM bookings WHERE status = 'pending'");
-$stats['pending_bookings'] = $result->fetch_assoc()['total'];
-
-// รายได้รวม
-$result = $conn->query("SELECT COALESCE(SUM(total_price), 0) as total FROM bookings WHERE status = 'completed'");
-$stats['total_revenue'] = $result->fetch_assoc()['total'];
-
-// โมเดลยอดนิยม (Top 5)
+// โมเดลยอดนิยม
 $top_models = db_get_rows($conn, "
-    SELECT m.*, c.name as category_name,
-           COUNT(b.id) as booking_count
+    SELECT m.*, c.name as category_name, COUNT(b.id) as booking_count
     FROM models m
     LEFT JOIN categories c ON m.category_id = c.id
     LEFT JOIN bookings b ON m.id = b.model_id AND b.status = 'completed'
@@ -53,12 +30,8 @@ $top_models = db_get_rows($conn, "
     LIMIT 5
 ");
 
-// ข้อความติดต่อล่าสุด
-$recent_contacts = db_get_rows($conn, "
-    SELECT * FROM contacts
-    ORDER BY created_at DESC
-    LIMIT 5
-");
+// ข้อความล่าสุด
+$recent_contacts = db_get_rows($conn, "SELECT * FROM contacts ORDER BY created_at DESC LIMIT 5");
 
 // การจองล่าสุด
 $recent_bookings = db_get_rows($conn, "
@@ -69,286 +42,243 @@ $recent_bookings = db_get_rows($conn, "
     LIMIT 5
 ");
 
-// Activity logs ล่าสุด
-$recent_activities = db_get_rows($conn, "
-    SELECT a.*, u.full_name
-    FROM activity_logs a
-    LEFT JOIN users u ON a.user_id = u.id
-    ORDER BY a.created_at DESC
-    LIMIT 10
-");
-
 include 'includes/header.php';
 ?>
 
-<div class="row">
-    <div class="col-12 mb-4">
-        <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
-        <p class="text-muted">ภาพรวมของระบบ VIBEDAYBKK</p>
-    </div>
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-tachometer-alt mr-3 text-red-600"></i>Dashboard
+    </h2>
+    <p class="text-gray-600 mt-1">ภาพรวมของระบบ VIBEDAYBKK</p>
 </div>
 
 <!-- Statistics Cards -->
-<div class="row">
-    <!-- Total Models -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2" style="border-left: 4px solid #DC2626;">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #DC2626;">
-                            โมเดลทั้งหมด
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total_models']; ?> คน</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-600 hover:shadow-xl transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-red-600 uppercase">โมเดลทั้งหมด</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['total_models']; ?> <span class="text-lg text-gray-600">คน</span></p>
+            </div>
+            <div class="bg-red-100 p-4 rounded-full">
+                <i class="fas fa-users text-3xl text-red-600"></i>
             </div>
         </div>
     </div>
 
-    <!-- Available Models -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2" style="border-left: 4px solid #10B981;">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            โมเดลว่าง
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['available_models']; ?> คน</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-600 hover:shadow-xl transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-green-600 uppercase">โมเดลว่าง</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['available_models']; ?> <span class="text-lg text-gray-600">คน</span></p>
+            </div>
+            <div class="bg-green-100 p-4 rounded-full">
+                <i class="fas fa-user-check text-3xl text-green-600"></i>
             </div>
         </div>
     </div>
 
-    <!-- Pending Bookings -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2" style="border-left: 4px solid #F59E0B;">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            การจองรอดำเนินการ
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['pending_bookings']; ?> รายการ</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-600 hover:shadow-xl transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-yellow-600 uppercase">จองรอดำเนินการ</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['pending_bookings']; ?> <span class="text-lg text-gray-600">รายการ</span></p>
+            </div>
+            <div class="bg-yellow-100 p-4 rounded-full">
+                <i class="fas fa-calendar-check text-3xl text-yellow-600"></i>
             </div>
         </div>
     </div>
 
-    <!-- Total Revenue -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2" style="border-left: 4px solid #3B82F6;">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            รายได้รวม
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo format_price($stats['total_revenue']); ?></div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-blue-600 uppercase">รายได้รวม</p>
+                <p class="text-2xl font-bold text-gray-900 mt-2"><?php echo format_price($stats['total_revenue']); ?></p>
+            </div>
+            <div class="bg-blue-100 p-4 rounded-full">
+                <i class="fas fa-dollar-sign text-3xl text-blue-600"></i>
             </div>
         </div>
     </div>
 </div>
 
 <!-- More Stats -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <i class="fas fa-th-large fa-3x text-primary mb-3"></i>
-                <h3><?php echo $stats['total_categories']; ?></h3>
-                <p class="text-muted mb-0">หมวดหมู่บริการ</p>
-            </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-th-large text-3xl text-purple-600"></i>
         </div>
+        <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['total_categories']; ?></h3>
+        <p class="text-gray-600 mt-1">หมวดหมู่บริการ</p>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <i class="fas fa-newspaper fa-3x text-success mb-3"></i>
-                <h3><?php echo $stats['published_articles']; ?></h3>
-                <p class="text-muted mb-0">บทความเผยแพร่</p>
-            </div>
+    
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-newspaper text-3xl text-green-600"></i>
         </div>
+        <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['published_articles']; ?></h3>
+        <p class="text-gray-600 mt-1">บทความเผยแพร่</p>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <i class="fas fa-envelope fa-3x text-warning mb-3"></i>
-                <h3><?php echo $stats['new_contacts']; ?></h3>
-                <p class="text-muted mb-0">ข้อความใหม่</p>
-            </div>
+    
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
+        <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-envelope text-3xl text-orange-600"></i>
         </div>
+        <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['new_contacts']; ?></h3>
+        <p class="text-gray-600 mt-1">ข้อความใหม่</p>
     </div>
 </div>
 
-<div class="row">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- Top Models -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-star me-2"></i>โมเดลยอดนิยม (Top 5)
-            </div>
-            <div class="card-body">
-                <?php if (empty($top_models)): ?>
-                    <p class="text-muted text-center py-3">ยังไม่มีข้อมูล</p>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>รหัส</th>
-                                    <th>ชื่อ</th>
-                                    <th>หมวดหมู่</th>
-                                    <th class="text-center">จองสำเร็จ</th>
-                                    <th class="text-center">Views</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($top_models as $model): ?>
-                                <tr>
-                                    <td><?php echo $model['code']; ?></td>
-                                    <td><?php echo $model['name']; ?></td>
-                                    <td><span class="badge bg-secondary"><?php echo $model['category_name']; ?></span></td>
-                                    <td class="text-center"><?php echo $model['booking_count']; ?></td>
-                                    <td class="text-center"><?php echo $model['view_count']; ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-red-600 to-red-500 text-white p-4">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-star mr-2"></i>โมเดลยอดนิยม (Top 5)
+            </h3>
+        </div>
+        <div class="p-6">
+            <?php if (empty($top_models)): ?>
+                <p class="text-gray-500 text-center py-4">ยังไม่มีข้อมูล</p>
+            <?php else: ?>
+                <div class="space-y-4">
+                    <?php foreach ($top_models as $model): ?>
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900"><?php echo $model['name']; ?></p>
+                            <p class="text-sm text-gray-600"><?php echo $model['code']; ?> - <?php echo $model['category_name']; ?></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600"><i class="fas fa-calendar-check mr-1"></i><?php echo $model['booking_count']; ?> จอง</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-eye mr-1"></i><?php echo $model['view_count']; ?> views</p>
+                        </div>
                     </div>
-                <?php endif; ?>
-            </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
     <!-- Recent Contacts -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-envelope me-2"></i>ข้อความติดต่อล่าสุด
-            </div>
-            <div class="card-body">
-                <?php if (empty($recent_contacts)): ?>
-                    <p class="text-muted text-center py-3">ยังไม่มีข้อความ</p>
-                <?php else: ?>
-                    <div class="list-group">
-                        <?php foreach ($recent_contacts as $contact): ?>
-                        <a href="<?php echo ADMIN_URL; ?>/contacts/view.php?id=<?php echo $contact['id']; ?>" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1"><?php echo $contact['name']; ?></h6>
-                                <small><?php echo time_ago($contact['created_at']); ?></small>
-                            </div>
-                            <p class="mb-1 small"><?php echo truncate_text($contact['message'], 60); ?></p>
-                            <small><?php echo get_status_badge($contact['status']); ?></small>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-envelope mr-2"></i>ข้อความติดต่อล่าสุด
+            </h3>
+        </div>
+        <div class="p-6">
+            <?php if (empty($recent_contacts)): ?>
+                <p class="text-gray-500 text-center py-4">ยังไม่มีข้อความ</p>
+            <?php else: ?>
+                <div class="space-y-3">
+                    <?php foreach ($recent_contacts as $contact): ?>
+                    <a href="<?php echo ADMIN_URL; ?>/contacts/view.php?id=<?php echo $contact['id']; ?>" 
+                       class="block p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors">
+                        <div class="flex items-start justify-between mb-2">
+                            <p class="font-semibold text-gray-900"><?php echo $contact['name']; ?></p>
+                            <span class="text-xs text-gray-500"><?php echo time_ago($contact['created_at']); ?></span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2"><?php echo truncate_text($contact['message'], 50); ?></p>
+                        <span class="inline-block px-2 py-1 text-xs rounded-full <?php echo $contact['status'] == 'new' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'; ?>">
+                            <?php echo $contact['status'] == 'new' ? 'ใหม่' : $contact['status']; ?>
+                        </span>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
 <!-- Recent Bookings -->
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-calendar-check me-2"></i>การจองล่าสุด
+<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+    <div class="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-4">
+        <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-calendar-check mr-2"></i>การจองล่าสุด
+        </h3>
+    </div>
+    <div class="p-6">
+        <?php if (empty($recent_bookings)): ?>
+            <p class="text-gray-500 text-center py-4">ยังไม่มีการจอง</p>
+        <?php else: ?>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">รหัส</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">โมเดล</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ลูกค้า</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">วันที่จอง</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ราคา</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php foreach ($recent_bookings as $booking): ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm font-medium text-gray-900">#<?php echo $booking['id']; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo $booking['model_name']; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo $booking['customer_name']; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-700"><?php echo format_date_thai($booking['booking_date']); ?></td>
+                            <td class="px-4 py-3 text-sm font-medium text-gray-900"><?php echo format_price($booking['total_price']); ?></td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="px-3 py-1 rounded-full text-xs font-medium
+                                    <?php 
+                                    echo $booking['status'] == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                        ($booking['status'] == 'confirmed' ? 'bg-green-100 text-green-700' : 
+                                        ($booking['status'] == 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'));
+                                    ?>">
+                                    <?php 
+                                    echo $booking['status'] == 'pending' ? 'รอดำเนินการ' : 
+                                        ($booking['status'] == 'confirmed' ? 'ยืนยันแล้ว' : 
+                                        ($booking['status'] == 'completed' ? 'เสร็จสิ้น' : $booking['status']));
+                                    ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body">
-                <?php if (empty($recent_bookings)): ?>
-                    <p class="text-muted text-center py-3">ยังไม่มีการจอง</p>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>รหัส</th>
-                                    <th>โมเดล</th>
-                                    <th>ลูกค้า</th>
-                                    <th>วันที่จอง</th>
-                                    <th>ราคา</th>
-                                    <th>สถานะ</th>
-                                    <th>วันที่</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($recent_bookings as $booking): ?>
-                                <tr>
-                                    <td>#<?php echo $booking['id']; ?></td>
-                                    <td><?php echo $booking['model_name']; ?></td>
-                                    <td><?php echo $booking['customer_name']; ?></td>
-                                    <td><?php echo format_date_thai($booking['booking_date']); ?></td>
-                                    <td><?php echo format_price($booking['total_price']); ?></td>
-                                    <td><?php echo get_status_badge($booking['status']); ?></td>
-                                    <td><?php echo time_ago($booking['created_at']); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <!-- Quick Actions -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-bolt me-2"></i>Quick Actions
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3 mb-3">
-                        <a href="<?php echo ADMIN_URL; ?>/models/add.php" class="btn btn-primary btn-lg w-100">
-                            <i class="fas fa-plus-circle mb-2 d-block fa-2x"></i>
-                            เพิ่มโมเดลใหม่
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="<?php echo ADMIN_URL; ?>/categories/add.php" class="btn btn-success btn-lg w-100">
-                            <i class="fas fa-plus-circle mb-2 d-block fa-2x"></i>
-                            เพิ่มหมวดหมู่
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="<?php echo ADMIN_URL; ?>/articles/add.php" class="btn btn-info btn-lg w-100">
-                            <i class="fas fa-plus-circle mb-2 d-block fa-2x"></i>
-                            เพิ่มบทความ
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="<?php echo ADMIN_URL; ?>/models/" class="btn btn-warning btn-lg w-100">
-                            <i class="fas fa-users mb-2 d-block fa-2x"></i>
-                            ดูโมเดลทั้งหมด
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-gradient-to-r from-gray-800 to-gray-700 text-white p-4">
+        <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-bolt mr-2"></i>Quick Actions
+        </h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="<?php echo ADMIN_URL; ?>/models/add.php" 
+               class="group bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <p class="font-medium">เพิ่มโมเดล</p>
+            </a>
+            
+            <a href="<?php echo ADMIN_URL; ?>/categories/add.php" 
+               class="group bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <p class="font-medium">เพิ่มหมวดหมู่</p>
+            </a>
+            
+            <a href="<?php echo ADMIN_URL; ?>/articles/add.php" 
+               class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <p class="font-medium">เพิ่มบทความ</p>
+            </a>
+            
+            <a href="<?php echo ADMIN_URL; ?>/models/" 
+               class="group bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-users text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <p class="font-medium">ดูโมเดลทั้งหมด</p>
+            </a>
         </div>
     </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>
-

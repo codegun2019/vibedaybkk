@@ -1,6 +1,6 @@
 <?php
 /**
- * VIBEDAYBKK Admin - Header
+ * VIBEDAYBKK Admin - Header (Tailwind CSS)
  * ส่วน Header สำหรับหน้า Admin ทุกหน้า
  */
 
@@ -8,10 +8,8 @@ if (!defined('VIBEDAYBKK_ADMIN')) {
     die('Direct access not permitted');
 }
 
-// ต้อง login ก่อน
 require_login();
 
-// ดึงข้อมูล user
 $current_user = $_SESSION['username'];
 $user_role = $_SESSION['user_role'];
 $full_name = $_SESSION['full_name'];
@@ -23,231 +21,164 @@ $full_name = $_SESSION['full_name'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title ?? 'Dashboard'; ?> - VIBEDAYBKK Admin</title>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- DataTables CSS (optional) -->
-    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'kanit': ['Kanit', 'sans-serif'] },
+                    colors: {
+                        'admin-dark': '#1e293b',
+                        'admin-darker': '#0f172a',
+                        'admin-light': '#334155',
+                        'red-primary': '#DC2626',
+                        'red-light': '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background: #f8f9fa;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            width: 260px;
-            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
-            color: white;
-            overflow-y: auto;
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-        .sidebar-header {
-            padding: 20px;
-            background: rgba(220, 38, 38, 0.2);
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .sidebar-header h4 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: #cbd5e1;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .sidebar-menu a:hover {
-            background: rgba(220, 38, 38, 0.2);
-            color: white;
-            padding-left: 30px;
-        }
-        .sidebar-menu a.active {
-            background: #DC2626;
-            color: white;
-        }
-        .sidebar-menu a i {
-            width: 25px;
-            margin-right: 10px;
-        }
-        .main-content {
-            margin-left: 260px;
-            padding: 0;
-            min-height: 100vh;
-        }
-        .top-navbar {
-            background: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .content-wrapper {
-            padding: 30px;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-        .card-header {
-            background: white;
-            border-bottom: 2px solid #f1f5f9;
-            padding: 20px;
-            font-weight: 600;
-        }
-        .btn-primary {
-            background: #DC2626;
-            border-color: #DC2626;
-        }
-        .btn-primary:hover {
-            background: #B91C1C;
-            border-color: #B91C1C;
-        }
-        .badge {
-            padding: 5px 10px;
-        }
-        .table {
-            font-size: 14px;
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                margin-left: -260px;
-            }
-            .sidebar.show {
-                margin-left: 0;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-        }
+        body { font-family: 'Kanit', sans-serif; }
+        .sidebar-link.active { background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%); color: white; }
     </style>
-    
-    <?php if (isset($extra_css)): ?>
-        <?php echo $extra_css; ?>
-    <?php endif; ?>
+    <?php if (isset($extra_css)): ?><?php echo $extra_css; ?><?php endif; ?>
 </head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-star mb-2" style="font-size: 30px; color: #DC2626;"></i>
-            <h4>VIBEDAYBKK</h4>
-            <small>Admin Panel</small>
-        </div>
-        
-        <div class="sidebar-menu">
-            <a href="<?php echo ADMIN_URL; ?>/index.php" class="<?php echo ($current_page ?? '') == 'dashboard' ? 'active' : ''; ?>">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/models/" class="<?php echo ($current_page ?? '') == 'models' ? 'active' : ''; ?>">
-                <i class="fas fa-users"></i>
-                <span>จัดการโมเดล</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/categories/" class="<?php echo ($current_page ?? '') == 'categories' ? 'active' : ''; ?>">
-                <i class="fas fa-th-large"></i>
-                <span>จัดการหมวดหมู่</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/articles/" class="<?php echo ($current_page ?? '') == 'articles' ? 'active' : ''; ?>">
-                <i class="fas fa-newspaper"></i>
-                <span>จัดการบทความ</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/menus/" class="<?php echo ($current_page ?? '') == 'menus' ? 'active' : ''; ?>">
-                <i class="fas fa-bars"></i>
-                <span>จัดการเมนู</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/contacts/" class="<?php echo ($current_page ?? '') == 'contacts' ? 'active' : ''; ?>">
-                <i class="fas fa-envelope"></i>
-                <span>ข้อความติดต่อ</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/bookings/" class="<?php echo ($current_page ?? '') == 'bookings' ? 'active' : ''; ?>">
-                <i class="fas fa-calendar-check"></i>
-                <span>การจอง</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/settings/" class="<?php echo ($current_page ?? '') == 'settings' ? 'active' : ''; ?>">
-                <i class="fas fa-cog"></i>
-                <span>ตั้งค่าระบบ</span>
-            </a>
-            
-            <?php if (is_admin()): ?>
-            <a href="<?php echo ADMIN_URL; ?>/users/" class="<?php echo ($current_page ?? '') == 'users' ? 'active' : ''; ?>">
-                <i class="fas fa-user-shield"></i>
-                <span>จัดการผู้ใช้</span>
-            </a>
-            <?php endif; ?>
-            
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px;">
-            
-            <a href="<?php echo SITE_URL; ?>" target="_blank">
-                <i class="fas fa-external-link-alt"></i>
-                <span>ดูหน้าเว็บ</span>
-            </a>
-            
-            <a href="<?php echo ADMIN_URL; ?>/logout.php" onclick="return confirm('ต้องการออกจากระบบ?')">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ออกจากระบบ</span>
-            </a>
-        </div>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Navbar -->
-        <div class="top-navbar">
-            <div>
-                <button class="btn btn-link d-md-none" id="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <span class="text-muted">ยินดีต้อนรับ, <strong><?php echo $full_name; ?></strong></span>
+<body class="bg-gray-100">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-admin-dark to-admin-darker text-white flex-shrink-0 hidden md:block overflow-y-auto">
+            <div class="p-6 border-b border-gray-700 bg-red-primary/20">
+                <div class="text-center">
+                    <i class="fas fa-star text-4xl text-red-primary mb-2"></i>
+                    <h2 class="text-xl font-bold">VIBEDAYBKK</h2>
+                    <p class="text-sm text-gray-400">Admin Panel</p>
+                </div>
             </div>
-            <div>
-                <span class="badge bg-primary"><?php echo $user_role == 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้แก้ไข'; ?></span>
-                <a href="<?php echo ADMIN_URL; ?>/logout.php" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('ต้องการออกจากระบบ?')">
-                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+            
+            <nav class="p-4">
+                <a href="<?php echo ADMIN_URL; ?>/index.php" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'dashboard' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-tachometer-alt w-6"></i>
+                    <span>Dashboard</span>
                 </a>
-            </div>
-        </div>
+                
+                <a href="<?php echo ADMIN_URL; ?>/models/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'models' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-users w-6"></i>
+                    <span>จัดการโมเดล</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/categories/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'categories' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-th-large w-6"></i>
+                    <span>จัดการหมวดหมู่</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/articles/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'articles' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-newspaper w-6"></i>
+                    <span>จัดการบทความ</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/menus/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'menus' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-bars w-6"></i>
+                    <span>จัดการเมนู</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/contacts/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'contacts' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-envelope w-6"></i>
+                    <span>ข้อความติดต่อ</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/bookings/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'bookings' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-calendar-check w-6"></i>
+                    <span>การจอง</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/settings/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'settings' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-cog w-6"></i>
+                    <span>ตั้งค่าระบบ</span>
+                </a>
+                
+                <?php if (is_admin()): ?>
+                <a href="<?php echo ADMIN_URL; ?>/users/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'users' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-user-shield w-6"></i>
+                    <span>จัดการผู้ใช้</span>
+                </a>
+                <?php endif; ?>
+                
+                <hr class="border-gray-700 my-4">
+                
+                <a href="<?php echo SITE_URL; ?>" target="_blank" 
+                   class="flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200">
+                    <i class="fas fa-external-link-alt w-6"></i>
+                    <span>ดูหน้าเว็บ</span>
+                </a>
+                
+                <a href="<?php echo ADMIN_URL; ?>/logout.php" onclick="return confirm('ต้องการออกจากระบบ?')"
+                   class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-primary/20 hover:text-red-300 transition-all duration-200">
+                    <i class="fas fa-sign-out-alt w-6"></i>
+                    <span>ออกจากระบบ</span>
+                </a>
+            </nav>
+        </aside>
         
-        <!-- Content Wrapper -->
-        <div class="content-wrapper">
-            <?php
-            // Display flash message
-            $message = get_message();
-            if ($message):
-            ?>
-            <div class="alert alert-<?php echo $message['type']; ?> alert-dismissible fade show" role="alert">
-                <i class="fas fa-<?php 
-                    echo $message['type'] == 'success' ? 'check-circle' : 
-                        ($message['type'] == 'error' ? 'exclamation-circle' : 'info-circle'); 
-                ?> me-2"></i>
-                <?php echo $message['message']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
-
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navbar -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center">
+                        <button id="sidebar-toggle" class="md:hidden mr-4 text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <span class="text-gray-600">ยินดีต้อนรับ, <strong class="text-gray-900"><?php echo $full_name; ?></strong></span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                            <?php echo $user_role == 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้แก้ไข'; ?>
+                        </span>
+                        <a href="<?php echo ADMIN_URL; ?>/logout.php" 
+                           onclick="return confirm('ต้องการออกจากระบบ?')"
+                           class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm">
+                            <i class="fas fa-sign-out-alt mr-1"></i> ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <?php
+                $message = get_message();
+                if ($message):
+                    $colors = [
+                        'success' => 'bg-green-100 border-green-400 text-green-700',
+                        'error' => 'bg-red-100 border-red-400 text-red-700',
+                        'warning' => 'bg-yellow-100 border-yellow-400 text-yellow-700',
+                        'info' => 'bg-blue-100 border-blue-400 text-blue-700'
+                    ];
+                    $icons = [
+                        'success' => 'fa-check-circle',
+                        'error' => 'fa-exclamation-circle',
+                        'warning' => 'fa-exclamation-triangle',
+                        'info' => 'fa-info-circle'
+                    ];
+                    $color = $colors[$message['type']] ?? $colors['info'];
+                    $icon = $icons[$message['type']] ?? $icons['info'];
+                ?>
+                <div class="<?php echo $color; ?> border-l-4 p-4 mb-6 rounded-r-lg" role="alert">
+                    <div class="flex items-center">
+                        <i class="fas <?php echo $icon; ?> mr-3 text-xl"></i>
+                        <span><?php echo $message['message']; ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>

@@ -65,114 +65,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>เข้าสู่ระบบ - VIBEDAYBKK Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'kanit': ['Kanit', 'sans-serif'] }
+                }
+            }
         }
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 450px;
-            width: 100%;
-        }
-        .login-header {
-            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-        .login-header i {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-        .login-body {
-            padding: 40px 30px;
-        }
-        .form-control:focus {
-            border-color: #DC2626;
-            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
-        }
-        .btn-login {
-            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
-            border: none;
-            padding: 12px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        .btn-login:hover {
-            background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);
-        }
-        .alert {
-            border-radius: 10px;
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="login-card">
-        <div class="login-header">
-            <i class="fas fa-star"></i>
-            <h2 class="mb-0">VIBEDAYBKK</h2>
-            <p class="mb-0 mt-2">ระบบจัดการ Admin</p>
+<body class="bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 min-h-screen flex items-center justify-center font-kanit p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-red-600 to-red-500 text-white p-10 text-center">
+                <i class="fas fa-star text-6xl mb-4 animate-pulse"></i>
+                <h2 class="text-3xl font-bold">VIBEDAYBKK</h2>
+                <p class="text-red-100 mt-2">ระบบจัดการ Admin</p>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-8">
+                <?php if ($error): ?>
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg" role="alert">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-3"></i>
+                        <span><?php echo $error; ?></span>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <form method="POST" action="" class="space-y-5">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2 text-red-600"></i>ชื่อผู้ใช้
+                        </label>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               required 
+                               autofocus
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2 text-red-600"></i>รหัสผ่าน
+                        </label>
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember" 
+                               name="remember"
+                               class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                        <label for="remember" class="ml-2 text-sm text-gray-700">
+                            จดจำการเข้าสู่ระบบ (30 วัน)
+                        </label>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-sign-in-alt mr-2"></i>เข้าสู่ระบบ
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        ระบบปลอดภัยด้วย CSRF Protection
+                    </p>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <a href="<?php echo SITE_URL; ?>/index.php" 
+                       class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                        <i class="fas fa-home mr-1"></i>กลับหน้าแรก
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="login-body">
-            <?php if ($error): ?>
-                <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <?php echo $error; ?>
-                </div>
-            <?php endif; ?>
-            
-            <form method="POST" action="">
-                <div class="mb-3">
-                    <label for="username" class="form-label">
-                        <i class="fas fa-user me-2"></i>ชื่อผู้ใช้
-                    </label>
-                    <input type="text" class="form-control form-control-lg" id="username" name="username" required autofocus>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i>รหัสผ่าน
-                    </label>
-                    <input type="password" class="form-control form-control-lg" id="password" name="password" required>
-                </div>
-                
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">
-                        จดจำการเข้าสู่ระบบ
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn btn-danger btn-login w-100 btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>เข้าสู่ระบบ
-                </button>
-            </form>
-            
-            <div class="text-center mt-4">
-                <small class="text-muted">
-                    <i class="fas fa-shield-alt me-1"></i>
-                    ระบบปลอดภัยด้วย CSRF Protection
-                </small>
-            </div>
-            
-            <div class="text-center mt-3">
-                <a href="<?php echo SITE_URL; ?>" class="text-decoration-none">
-                    <i class="fas fa-home me-1"></i>กลับหน้าแรก
-                </a>
-            </div>
+        
+        <!-- Info Box -->
+        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4 text-white text-center">
+            <p class="text-sm">
+                <i class="fas fa-info-circle mr-2"></i>
+                ข้อมูลเริ่มต้น: <strong>admin</strong> / <strong>admin123</strong>
+            </p>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
