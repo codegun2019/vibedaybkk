@@ -12,8 +12,17 @@ require_admin(); // Only admin can access
 $page_title = 'จัดการผู้ใช้';
 $current_page = 'users';
 
-// Get all users
-$users = db_get_rows($conn, "SELECT * FROM users ORDER BY created_at DESC");
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count total
+$total_users = $conn->query("SELECT COUNT(*) as total FROM users")->fetch_assoc()['total'];
+$total_pages = ceil($total_users / $per_page);
+
+// Get users with pagination
+$users = db_get_rows($conn, "SELECT * FROM users ORDER BY created_at DESC LIMIT {$per_page} OFFSET {$offset}");
 
 include '../includes/header.php';
 ?>
@@ -109,10 +118,18 @@ include '../includes/header.php';
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
-            </table>
+                </table>
+            </div>
+            
+            <?php 
+            // Pagination
+            if ($total_pages > 1):
+                include '../includes/pagination.php';
+                render_pagination($page, $total_pages);
+            endif;
+            ?>
         </div>
     </div>
-</div>
 
 <?php include '../includes/footer.php'; ?>
 

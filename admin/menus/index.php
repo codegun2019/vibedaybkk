@@ -10,11 +10,21 @@ require_once '../../includes/config.php';
 $page_title = 'จัดการเมนู';
 $current_page = 'menus';
 
-// Get all menus
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count total
+$total_menus = $conn->query("SELECT COUNT(*) as total FROM menus")->fetch_assoc()['total'];
+$total_pages = ceil($total_menus / $per_page);
+
+// Get menus with pagination
 $sql = "SELECT m.*,
         (SELECT title FROM menus WHERE id = m.parent_id) as parent_title
         FROM menus m
-        ORDER BY m.parent_id ASC, m.sort_order ASC";
+        ORDER BY m.parent_id ASC, m.sort_order ASC
+        LIMIT {$per_page} OFFSET {$offset}";
 $menus = db_get_rows($conn, $sql);
 
 include '../includes/header.php';
@@ -122,6 +132,14 @@ include '../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            
+            <?php 
+            // Pagination
+            if ($total_pages > 1):
+                include '../includes/pagination.php';
+                render_pagination($page, $total_pages);
+            endif;
+            ?>
         <?php endif; ?>
     </div>
 </div>
