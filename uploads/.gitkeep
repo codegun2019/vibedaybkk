@@ -1,0 +1,11 @@
+# Upload Directory
+# This folder stores all uploaded images
+
+## Structure:
+- models/ - Model images
+- articles/ - Article images  
+- general/ - General images
+
+## Note:
+Set permission to 755 (chmod 755 uploads)
+
