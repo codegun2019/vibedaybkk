@@ -59,64 +59,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-user-plus me-2"></i>เพิ่มผู้ใช้ใหม่</h2>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">กลับ</a>
-    </div>
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-user-plus mr-3 text-green-600"></i>เพิ่มผู้ใช้ใหม่
+    </h2>
+    <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-arrow-left mr-2"></i>กลับ
+    </a>
 </div>
 
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <ul class="mb-0"><?php foreach ($errors as $error): ?><li><?php echo $error; ?></li><?php endforeach; ?></ul>
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <ul class="list-disc list-inside">
+        <?php foreach ($errors as $error): ?>
+        <li><?php echo $error; ?></li>
+        <?php endforeach; ?>
+    </ul>
 </div>
 <?php endif; ?>
 
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อผู้ใช้ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="username" required>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-user mr-3"></i>ข้อมูลผู้ใช้
+            </h5>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ชื่อผู้ใช้ <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="username" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อเต็ม <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="full_name" required>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">อีเมล <span class="text-danger">*</span></label>
-                <input type="email" class="form-control" name="email" required>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">รหัสผ่าน <span class="text-danger">*</span></label>
-                    <input type="password" class="form-control" name="password" required minlength="6">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ยืนยันรหัสผ่าน <span class="text-danger">*</span></label>
-                    <input type="password" class="form-control" name="confirm_password" required>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ชื่อเต็ม <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="full_name" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">บทบาท</label>
-                    <select class="form-select" name="role">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    อีเมล <span class="text-red-600">*</span>
+                </label>
+                <input type="email" name="email" required 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        รหัสผ่าน <span class="text-red-600">*</span>
+                    </label>
+                    <input type="password" name="password" required minlength="6" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <p class="text-sm text-gray-500 mt-2">อย่างน้อย 6 ตัวอักษร</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ยืนยันรหัสผ่าน <span class="text-red-600">*</span>
+                    </label>
+                    <input type="password" name="confirm_password" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">บทบาท</label>
+                    <select name="role" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="editor">ผู้แก้ไข (Editor)</option>
                         <option value="admin">ผู้ดูแลระบบ (Admin)</option>
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สถานะ</label>
-                    <select class="form-select" name="status">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+                    <select name="status" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="active">ใช้งาน</option>
                         <option value="inactive">ไม่ใช้งาน</option>
                     </select>
@@ -125,13 +152,16 @@ include '../includes/header.php';
         </div>
     </div>
     
-    <div class="text-end">
-        <a href="index.php" class="btn btn-secondary me-2">ยกเลิก</a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>บันทึก
+    <div class="flex justify-end space-x-4">
+        <a href="index.php" 
+           class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-times mr-2"></i>ยกเลิก
+        </a>
+        <button type="submit" 
+                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
+            <i class="fas fa-save mr-2"></i>บันทึก
         </button>
     </div>
 </form>
 
 <?php include '../includes/footer.php'; ?>
-

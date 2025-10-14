@@ -28,10 +28,11 @@ if (!$model) {
 // Get model images
 $model_images = get_model_images($conn, $model_id);
 
+$errors = [];
+$success = false;
+
 // Get categories
 $categories = get_categories($conn);
-
-$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
@@ -65,6 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         // Validate
+        if (empty($data['category_id'])) {
+            $errors[] = 'กรุณาเลือกหมวดหมู่';
+        }
         if (empty($data['code'])) {
             $errors[] = 'กรุณากรอกรหัสโมเดล';
         }
@@ -85,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             if (db_update($pdo, 'models', $data, 'id = :id', ['id' => $model_id])) {
                 
-                // Handle new image upload
+                // Handle image upload
                 if (!empty($_FILES['images']['name'][0])) {
                     foreach ($_FILES['images']['name'] as $key => $name) {
                         if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
@@ -103,8 +107,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     'model_id' => $model_id,
                                     'image_path' => $upload_result['path'],
                                     'image_type' => 'portfolio',
-                                    'is_primary' => empty($model_images) ? 1 : 0,
-                                    'sort_order' => count($model_images)
+                                    'is_primary' => $key == 0 ? 1 : 0,
+                                    'sort_order' => $key
                                 ];
                                 db_insert($pdo, 'model_images', $image_data);
                             }
@@ -115,8 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Log activity
                 log_activity($pdo, $_SESSION['user_id'], 'update', 'models', $model_id, $model, $data);
                 
-                set_message('success', 'อัพเดทข้อมูลโมเดลสำเร็จ');
-                redirect(ADMIN_URL . '/models/edit.php?id=' . $model_id);
+                $success = true;
+                
+                // Refresh model data
+                $model = get_model($conn, $model_id);
+                $model_images = get_model_images($conn, $model_id);
             } else {
                 $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
             }
@@ -127,25 +134,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-edit me-2"></i>แก้ไขโมเดล: <?php echo $model['name']; ?></h2>
-        <small class="text-muted">รหัส: <?php echo $model['code']; ?></small>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-edit mr-3 text-blue-600"></i>แก้ไขโมเดล
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">รหัส: <?php echo $model['code']; ?> | ID: #<?php echo $model_id; ?></p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>กลับ
+    <div class="mt-4 sm:mt-0 flex space-x-3">
+        <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>กลับ
         </a>
-        <a href="delete.php?id=<?php echo $model_id; ?>" class="btn btn-danger btn-delete">
-            <i class="fas fa-trash me-2"></i>ลบโมเดล
+        <a href="delete.php?id=<?php echo $model_id; ?>" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium btn-delete">
+            <i class="fas fa-trash mr-2"></i>ลบ
         </a>
     </div>
 </div>
 
+<?php if ($success): ?>
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>บันทึกข้อมูลเรียบร้อยแล้ว</span>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <h5><i class="fas fa-exclamation-circle me-2"></i>พบข้อผิดพลาด:</h5>
-    <ul class="mb-0">
+<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg" role="alert">
+    <div class="flex items-center mb-2">
+        <i class="fas fa-exclamation-circle mr-3 text-xl"></i>
+        <h5 class="font-semibold">พบข้อผิดพลาด:</h5>
+    </div>
+    <ul class="list-disc list-inside">
         <?php foreach ($errors as $error): ?>
         <li><?php echo $error; ?></li>
         <?php endforeach; ?>
@@ -157,246 +178,345 @@ include '../includes/header.php';
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
     <!-- Basic Info -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>ข้อมูลพื้นฐาน</h5>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-red-600 to-red-500 text-white p-4">
+            <h5 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>ข้อมูลพื้นฐาน
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">หมวดหมู่ <span class="text-danger">*</span></label>
-                    <select class="form-select" name="category_id" required>
+        <div class="p-6">
+            <!-- Existing Images -->
+            <?php if (!empty($model_images)): ?>
+            <div class="mb-6">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</h6>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <?php foreach ($model_images as $img): ?>
+                    <div class="relative group">
+                        <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
+                             class="w-full h-32 object-cover rounded-lg border-2 <?php echo $img['is_primary'] ? 'border-red-500' : 'border-gray-300'; ?>">
+                        <?php if ($img['is_primary']): ?>
+                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">หลัก</span>
+                        <?php endif; ?>
+                        <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <?php if (!$img['is_primary']): ?>
+                            <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-blue-600 text-white rounded text-xs" title="ตั้งเป็นรูปหลัก">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-red-600 text-white rounded text-xs btn-delete" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่ <span class="text-red-500">*</span></label>
+                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="category_id" required>
                         <option value="">เลือกหมวดหมู่</option>
                         <?php foreach ($categories as $cat): ?>
-                        <option value="<?php echo $cat['id']; ?>" <?php echo $model['category_id'] == $cat['id'] ? 'selected' : ''; ?>>
-                            <?php echo $cat['name']; ?>
-                        </option>
+                        <option value="<?php echo $cat['id']; ?>" <?php echo $model['category_id'] == $cat['id'] ? 'selected' : ''; ?>><?php echo $cat['name']; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">รหัสโมเดล <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="code" value="<?php echo $model['code']; ?>" required>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสโมเดล <span class="text-red-500">*</span></label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="code" required placeholder="เช่น FM001" value="<?php echo htmlspecialchars($model['code']); ?>">
+                    <small class="text-gray-500 text-sm mt-1">รหัสเฉพาะของโมเดล (ไม่ซ้ำกัน)</small>
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อ (ไทย) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="name" value="<?php echo $model['name']; ?>" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ (ไทย) <span class="text-red-500">*</span></label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name" required value="<?php echo htmlspecialchars($model['name']); ?>">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อ (อังกฤษ)</label>
-                    <input type="text" class="form-control" name="name_en" value="<?php echo $model['name_en']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ (อังกฤษ)</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name_en" value="<?php echo htmlspecialchars($model['name_en']); ?>">
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">คำอธิบาย</label>
-                <textarea class="form-control" name="description" rows="4"><?php echo $model['description']; ?></textarea>
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
+                <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="description" rows="4" placeholder="รายละเอียดเกี่ยวกับโมเดล..."></textarea>
             </div>
         </div>
     </div>
     
     <!-- Physical Info -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-ruler me-2"></i>ข้อมูลรูปร่าง</h5>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-green-600 to-green-500 text-white p-4">
+            <h5 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-ruler mr-2"></i>ข้อมูลรูปร่าง
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">ส่วนสูง (cm)</label>
-                    <input type="number" class="form-control" name="height" value="<?php echo $model['height']; ?>">
+        <div class="p-6">
+            <!-- Existing Images -->
+            <?php if (!empty($model_images)): ?>
+            <div class="mb-6">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</h6>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <?php foreach ($model_images as $img): ?>
+                    <div class="relative group">
+                        <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
+                             class="w-full h-32 object-cover rounded-lg border-2 <?php echo $img['is_primary'] ? 'border-red-500' : 'border-gray-300'; ?>">
+                        <?php if ($img['is_primary']): ?>
+                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">หลัก</span>
+                        <?php endif; ?>
+                        <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <?php if (!$img['is_primary']): ?>
+                            <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-blue-600 text-white rounded text-xs" title="ตั้งเป็นรูปหลัก">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-red-600 text-white rounded text-xs btn-delete" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">น้ำหนัก (kg)</label>
-                    <input type="number" class="form-control" name="weight" value="<?php echo $model['weight']; ?>">
+            </div>
+            <?php endif; ?>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ส่วนสูง (cm)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="height" placeholder="170" value="<?php echo $model['height']; ?>">
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">อายุ (ปี)</label>
-                    <input type="number" class="form-control" name="age" value="<?php echo $model['age']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">น้ำหนัก (kg)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="weight" placeholder="50" value="<?php echo $model['weight']; ?>">
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">ประสบการณ์ (ปี)</label>
-                    <input type="number" class="form-control" name="experience_years" value="<?php echo $model['experience_years']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">อายุ (ปี)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="age" placeholder="25" value="<?php echo $model['age']; ?>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ประสบการณ์ (ปี)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="experience_years" placeholder="5">
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">รอบอก (inch)</label>
-                    <input type="number" class="form-control" name="bust" value="<?php echo $model['bust']; ?>">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รอบอก (inch)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="bust" placeholder="34" value="<?php echo $model['bust']; ?>">
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">รอบเอว (inch)</label>
-                    <input type="number" class="form-control" name="waist" value="<?php echo $model['waist']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รอบเอว (inch)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="waist" placeholder="24" value="<?php echo $model['waist']; ?>">
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">รอบสะโพก (inch)</label>
-                    <input type="number" class="form-control" name="hips" value="<?php echo $model['hips']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รอบสะโพก (inch)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="hips" placeholder="34">
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">สีผิว</label>
-                    <input type="text" class="form-control" name="skin_tone" value="<?php echo $model['skin_tone']; ?>">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สีผิว</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="skin_tone" placeholder="ขาว, สองสี, ขาวเหลือง">
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">สีผม</label>
-                    <input type="text" class="form-control" name="hair_color" value="<?php echo $model['hair_color']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สีผม</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="hair_color" placeholder="ดำ, น้ำตาล">
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">สีตา</label>
-                    <input type="text" class="form-control" name="eye_color" value="<?php echo $model['eye_color']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สีตา</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="eye_color" placeholder="น้ำตาล, ดำ">
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Price & Skills -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>ราคาและความสามารถ</h5>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4">
+            <h5 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-dollar-sign mr-2"></i>ราคาและความสามารถ
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาขั้นต่ำ (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_min" step="100" value="<?php echo $model['price_min']; ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ราคาสูงสุด (บาท/วัน)</label>
-                    <input type="number" class="form-control" name="price_max" step="100" value="<?php echo $model['price_max']; ?>">
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">ภาษาที่พูดได้</label>
-                <input type="text" class="form-control" name="languages" value="<?php echo $model['languages']; ?>">
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">ความสามารถพิเศษ</label>
-                <textarea class="form-control" name="skills" rows="3"><?php echo $model['skills']; ?></textarea>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Current Images -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-images me-2"></i>รูปภาพปัจจุบัน</h5>
-        </div>
-        <div class="card-body">
-            <?php if (empty($model_images)): ?>
-                <p class="text-muted text-center py-3">ยังไม่มีรูปภาพ</p>
-            <?php else: ?>
-                <div class="row">
+        <div class="p-6">
+            <!-- Existing Images -->
+            <?php if (!empty($model_images)): ?>
+            <div class="mb-6">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</h6>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <?php foreach ($model_images as $img): ?>
-                    <div class="col-md-3 mb-3">
-                        <div class="card">
-                            <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
-                                 class="card-img-top" 
-                                 style="height: 200px; object-fit: cover;">
-                            <div class="card-body p-2">
-                                <?php if ($img['is_primary']): ?>
-                                    <span class="badge bg-success w-100 mb-2">รูปหลัก</span>
-                                <?php endif; ?>
-                                <div class="d-grid gap-2">
-                                    <?php if (!$img['is_primary']): ?>
-                                    <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-star"></i> ตั้งเป็นรูปหลัก
-                                    </a>
-                                    <?php endif; ?>
-                                    <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
-                                       class="btn btn-sm btn-danger btn-delete">
-                                        <i class="fas fa-trash"></i> ลบ
-                                    </a>
-                                </div>
-                            </div>
+                    <div class="relative group">
+                        <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
+                             class="w-full h-32 object-cover rounded-lg border-2 <?php echo $img['is_primary'] ? 'border-red-500' : 'border-gray-300'; ?>">
+                        <?php if ($img['is_primary']): ?>
+                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">หลัก</span>
+                        <?php endif; ?>
+                        <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <?php if (!$img['is_primary']): ?>
+                            <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-blue-600 text-white rounded text-xs" title="ตั้งเป็นรูปหลัก">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-red-600 text-white rounded text-xs btn-delete" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </a>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+            </div>
             <?php endif; ?>
             
-            <hr>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ราคาขั้นต่ำ (บาท/วัน)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="price_min" step="100" placeholder="3000" value="<?php echo $model['price_min']; ?>">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ราคาสูงสุด (บาท/วัน)</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="price_max" step="100" placeholder="5000" value="<?php echo $model['price_max']; ?>">
+                </div>
+            </div>
             
-            <div class="mb-3">
-                <label class="form-label">อัพโหลดรูปภาพเพิ่ม</label>
-                <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
-                <small class="text-muted">รองรับไฟล์: JPG, PNG, GIF, WEBP (สูงสุด 5MB)</small>
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">ภาษาที่พูดได้</label>
+                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="languages" placeholder="ไทย, อังกฤษ, จีน">
+            </div>
+            
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">ความสามารถพิเศษ</label>
+                <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="skills" rows="3" placeholder="เดินแบบ, แสดง, ร้องเพลง, เต้น..."></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Images -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-4">
+            <h5 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-images mr-2"></i>รูปภาพ
+            </h5>
+        </div>
+        <div class="p-6">
+            <!-- Existing Images -->
+            <?php if (!empty($model_images)): ?>
+            <div class="mb-6">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</h6>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <?php foreach ($model_images as $img): ?>
+                    <div class="relative group">
+                        <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
+                             class="w-full h-32 object-cover rounded-lg border-2 <?php echo $img['is_primary'] ? 'border-red-500' : 'border-gray-300'; ?>">
+                        <?php if ($img['is_primary']): ?>
+                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">หลัก</span>
+                        <?php endif; ?>
+                        <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <?php if (!$img['is_primary']): ?>
+                            <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-blue-600 text-white rounded text-xs" title="ตั้งเป็นรูปหลัก">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-red-600 text-white rounded text-xs btn-delete" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">อัพโหลดรูปภาพ</label>
+                <input type="file" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="images[]" accept="image/*" multiple>
+                <small class="text-gray-500 text-sm mt-1">รูปแรกจะเป็นรูปหลัก, รองรับไฟล์: JPG, PNG, GIF, WEBP (สูงสุด 5MB)</small>
             </div>
         </div>
     </div>
     
     <!-- Settings -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>การตั้งค่า</h5>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-gray-600 to-gray-500 text-white p-4">
+            <h5 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-cog mr-2"></i>การตั้งค่า
+            </h5>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">สถานะ</label>
-                    <select class="form-select" name="status">
-                        <option value="available" <?php echo $model['status'] == 'available' ? 'selected' : ''; ?>>ว่าง</option>
-                        <option value="busy" <?php echo $model['status'] == 'busy' ? 'selected' : ''; ?>>ไม่ว่าง</option>
+        <div class="p-6">
+            <!-- Existing Images -->
+            <?php if (!empty($model_images)): ?>
+            <div class="mb-6">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</h6>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <?php foreach ($model_images as $img): ?>
+                    <div class="relative group">
+                        <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
+                             class="w-full h-32 object-cover rounded-lg border-2 <?php echo $img['is_primary'] ? 'border-red-500' : 'border-gray-300'; ?>">
+                        <?php if ($img['is_primary']): ?>
+                        <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">หลัก</span>
+                        <?php endif; ?>
+                        <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <?php if (!$img['is_primary']): ?>
+                            <a href="set-primary.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-blue-600 text-white rounded text-xs" title="ตั้งเป็นรูปหลัก">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="delete-image.php?id=<?php echo $img['id']; ?>&model_id=<?php echo $model_id; ?>" 
+                               class="p-1 bg-red-600 text-white rounded text-xs btn-delete" title="ลบ">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สถานะ</label>
+                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="status">
+                        <option value="available">ว่าง</option>
+                        <option value="busy">ไม่ว่าง</option>
                         <option value="inactive" <?php echo $model['status'] == 'inactive' ? 'selected' : ''; ?>>ไม่ใช้งาน</option>
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ลำดับการแสดง</label>
-                    <input type="number" class="form-control" name="sort_order" value="<?php echo $model['sort_order']; ?>">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ลำดับการแสดง</label>
+                    <input type="number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="sort_order" value="<?php echo $model['sort_order']; ?>">
                 </div>
             </div>
             
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="featured" id="featured" <?php echo $model['featured'] ? 'checked' : ''; ?>>
-                <label class="form-check-label" for="featured">
-                    <i class="fas fa-star text-warning me-1"></i>โมเดลแนะนำ (Featured)
+            <div class="mt-6">
+                <label class="flex items-center">
+                    <input type="checkbox" name="featured" id="featured" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                    <span class="ml-2 text-sm text-gray-700">
+                        <i class="fas fa-star text-yellow-500 mr-1"></i>โมเดลแนะนำ (Featured)
+                    </span>
                 </label>
             </div>
         </div>
     </div>
     
-    <!-- Statistics -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>สถิติ</h5>
-        </div>
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <h4><?php echo $model['view_count']; ?></h4>
-                    <p class="text-muted mb-0">จำนวนครั้งที่ดู</p>
-                </div>
-                <div class="col-md-3">
-                    <h4><?php echo $model['booking_count']; ?></h4>
-                    <p class="text-muted mb-0">จำนวนการจอง</p>
-                </div>
-                <div class="col-md-3">
-                    <h4><?php echo $model['rating']; ?>/5</h4>
-                    <p class="text-muted mb-0">คะแนนเฉลี่ย</p>
-                </div>
-                <div class="col-md-3">
-                    <h4><?php echo count($model_images); ?></h4>
-                    <p class="text-muted mb-0">จำนวนรูปภาพ</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <!-- Submit -->
-    <div class="text-end">
-        <a href="index.php" class="btn btn-secondary me-2">
-            <i class="fas fa-times me-2"></i>ยกเลิก
+    <div class="flex flex-col sm:flex-row sm:justify-end gap-4">
+        <a href="index.php" class="inline-flex items-center justify-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-times mr-2"></i>ยกเลิก
         </a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>บันทึกการแก้ไข
+        <button type="submit" class="inline-flex items-center justify-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-save mr-2"></i>บันทึก
         </button>
     </div>
 </form>

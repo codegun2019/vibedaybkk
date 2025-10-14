@@ -48,20 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-plus-circle me-2"></i>เพิ่มเมนูใหม่</h2>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>กลับ
-        </a>
-    </div>
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-plus-circle mr-3 text-green-600"></i>เพิ่มเมนูใหม่
+    </h2>
+    <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-arrow-left mr-2"></i>กลับ
+    </a>
 </div>
 
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <ul class="mb-0">
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <ul class="list-disc list-inside">
         <?php foreach ($errors as $error): ?>
         <li><?php echo $error; ?></li>
         <?php endforeach; ?>
@@ -72,50 +70,66 @@ include '../includes/header.php';
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ชื่อเมนู <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="title" required>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+            <h5 class="text-white text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>ข้อมูลเมนู
+            </h5>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        ชื่อเมนู <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="title" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">URL <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="url" required placeholder="index.html หรือ #section">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        URL <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" name="url" required placeholder="index.php หรือ #section" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">เมนูหลัก (Parent)</label>
-                    <select class="form-select" name="parent_id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">เมนูหลัก (Parent)</label>
+                    <select name="parent_id" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="">ไม่มี (เมนูหลัก)</option>
                         <?php foreach ($parent_menus as $parent): ?>
                         <option value="<?php echo $parent['id']; ?>"><?php echo $parent['title']; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">ไอคอน</label>
-                    <input type="text" class="form-control" name="icon" placeholder="fa-home">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ไอคอน</label>
+                    <input type="text" name="icon" placeholder="fa-home" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
             </div>
             
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Target</label>
-                    <select class="form-select" name="target">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Target</label>
+                    <select name="target" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="_self">เปิดหน้าเดิม (_self)</option>
                         <option value="_blank">เปิดหน้าใหม่ (_blank)</option>
                     </select>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">ลำดับ</label>
-                    <input type="number" class="form-control" name="sort_order" value="0">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ลำดับ</label>
+                    <input type="number" name="sort_order" value="0" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">สถานะ</label>
-                    <select class="form-select" name="status">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+                    <select name="status" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                         <option value="active">ใช้งาน</option>
                         <option value="inactive">ไม่ใช้งาน</option>
                     </select>
@@ -124,13 +138,16 @@ include '../includes/header.php';
         </div>
     </div>
     
-    <div class="text-end">
-        <a href="index.php" class="btn btn-secondary me-2">ยกเลิก</a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>บันทึก
+    <div class="flex justify-end space-x-4">
+        <a href="index.php" 
+           class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-times mr-2"></i>ยกเลิก
+        </a>
+        <button type="submit" 
+                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
+            <i class="fas fa-save mr-2"></i>บันทึก
         </button>
     </div>
 </form>
 
 <?php include '../includes/footer.php'; ?>
-
