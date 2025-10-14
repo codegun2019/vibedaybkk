@@ -20,27 +20,29 @@ $menus = db_get_rows($conn, $sql);
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-bars me-2"></i>จัดการเมนู</h2>
-        <p class="text-muted">จำนวนเมนูทั้งหมด: <?php echo count($menus); ?> รายการ</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-bars mr-3 text-red-600"></i>จัดการเมนู
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนเมนูทั้งหมด: <?php echo count($menus); ?> รายการ</p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="add.php" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i>เพิ่มเมนูใหม่
+    <div class="mt-4 sm:mt-0">
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-plus-circle mr-2"></i>เพิ่มเมนูใหม่
         </a>
     </div>
 </div>
 
 <!-- Menus Table -->
-<div class="card">
-    <div class="card-body">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
         <?php if (empty($menus)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-bars fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">ยังไม่มีเมนู</h5>
-                <a href="add.php" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus-circle me-2"></i>เพิ่มเมนูใหม่
+            <div class="text-center py-12">
+                <i class="fas fa-bars text-6xl text-gray-400 mb-4"></i>
+                <h5 class="text-gray-600 text-xl font-medium mb-4">ยังไม่มีเมนู</h5>
+                <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+                    <i class="fas fa-plus-circle mr-2"></i>เพิ่มเมนูใหม่
                 </a>
             </div>
         <?php else: ?>

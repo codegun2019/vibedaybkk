@@ -31,23 +31,24 @@ $contacts = db_get_rows($conn, $sql);
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-envelope me-2"></i>ข้อความติดต่อ</h2>
-        <p class="text-muted">จำนวนข้อความทั้งหมด: <?php echo $total_contacts; ?> ข้อความ</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-envelope mr-3 text-red-600"></i>ข้อความติดต่อ
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนข้อความทั้งหมด: <?php echo $total_contacts; ?> ข้อความ</p>
     </div>
 </div>
 
 <!-- Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="btn-group" role="group">
-            <a href="?" class="btn <?php echo empty($status_filter) ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                ทั้งหมด
-            </a>
-            <a href="?status=new" class="btn <?php echo $status_filter == 'new' ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                <i class="fas fa-circle text-danger me-1"></i>ใหม่
-            </a>
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="flex flex-wrap gap-2">
+        <a href="?" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo empty($status_filter) ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            ทั้งหมด
+        </a>
+        <a href="?status=new" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo $status_filter == 'new' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            <i class="fas fa-circle text-red-500 mr-2"></i>ใหม่
+        </a>
             <a href="?status=read" class="btn <?php echo $status_filter == 'read' ? 'btn-primary' : 'btn-outline-primary'; ?>">
                 อ่านแล้ว
             </a>

@@ -45,9 +45,11 @@ $stats = [
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-calendar-check me-2"></i>จัดการการจอง</h2>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-calendar-check mr-3 text-red-600"></i>จัดการการจอง
+        </h2>
         <p class="text-muted">จำนวนการจองทั้งหมด: <?php echo $stats['total']; ?> รายการ</p>
     </div>
 </div>

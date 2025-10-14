@@ -86,10 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-cog me-2"></i>ตั้งค่าระบบ</h2>
-    </div>
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-cog mr-3 text-red-600"></i>ตั้งค่าระบบ
+    </h2>
+    <p class="text-gray-600 mt-1">จัดการการตั้งค่าต่างๆ ของเว็บไซต์</p>
 </div>
 
 <?php if (!empty($errors)): ?>

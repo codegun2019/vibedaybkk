@@ -59,40 +59,44 @@ $articles = $stmt->fetchAll();
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-newspaper me-2"></i>จัดการบทความ</h2>
-        <p class="text-muted">จำนวนบทความทั้งหมด: <?php echo $total_articles; ?> บทความ</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-newspaper mr-3 text-red-600"></i>จัดการบทความ
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนบทความทั้งหมด: <?php echo $total_articles; ?> บทความ</p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="add.php" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i>เพิ่มบทความใหม่
+    <div class="mt-4 sm:mt-0">
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-plus-circle mr-2"></i>เพิ่มบทความใหม่
         </a>
     </div>
 </div>
 
 <!-- Search and Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="search" placeholder="ค้นหาบทความ..." value="<?php echo htmlspecialchars($search); ?>">
-            </div>
-            <div class="col-md-4">
-                <select class="form-select" name="status">
-                    <option value="">ทุกสถานะ</option>
-                    <option value="draft" <?php echo $status_filter == 'draft' ? 'selected' : ''; ?>>แบบร่าง</option>
-                    <option value="published" <?php echo $status_filter == 'published' ? 'selected' : ''; ?>>เผยแพร่แล้ว</option>
-                    <option value="archived" <?php echo $status_filter == 'archived' ? 'selected' : ''; ?>>เก็บถาวร</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search"></i> ค้นหา
-                </button>
-            </div>
-        </form>
-    </div>
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+            <input type="text" 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" 
+                   name="search" 
+                   placeholder="ค้นหาบทความ..." 
+                   value="<?php echo htmlspecialchars($search); ?>">
+        </div>
+        <div>
+            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="status">
+                <option value="">ทุกสถานะ</option>
+                <option value="draft" <?php echo $status_filter == 'draft' ? 'selected' : ''; ?>>แบบร่าง</option>
+                <option value="published" <?php echo $status_filter == 'published' ? 'selected' : ''; ?>>เผยแพร่แล้ว</option>
+                <option value="archived" <?php echo $status_filter == 'archived' ? 'selected' : ''; ?>>เก็บถาวร</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium">
+                <i class="fas fa-search mr-2"></i> ค้นหา
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Articles Table -->

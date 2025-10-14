@@ -18,22 +18,24 @@ $users = db_get_rows($conn, "SELECT * FROM users ORDER BY created_at DESC");
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-user-shield me-2"></i>จัดการผู้ใช้</h2>
-        <p class="text-muted">จำนวนผู้ใช้: <?php echo count($users); ?> คน</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-user-shield mr-3 text-red-600"></i>จัดการผู้ใช้
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนผู้ใช้: <?php echo count($users); ?> คน</p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="add.php" class="btn btn-primary">
-            <i class="fas fa-user-plus me-2"></i>เพิ่มผู้ใช้ใหม่
+    <div class="mt-4 sm:mt-0">
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-user-plus mr-2"></i>เพิ่มผู้ใช้ใหม่
         </a>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full">
                 <thead>
                     <tr>
                         <th>ID</th>
