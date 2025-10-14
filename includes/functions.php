@@ -302,7 +302,7 @@ function get_message() {
     return null;
 }
 
-// Show SweetAlert2 message
+// Show SweetAlert2 Toast message
 function show_alert() {
     $message = get_message();
     if ($message) {
@@ -324,19 +324,26 @@ function show_alert() {
         
         echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: '{$icon}',
-                title: '{$title}',
-                text: '" . addslashes($message['message']) . "',
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'ตกลง',
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                },
                 customClass: {
                     popup: 'rounded-xl shadow-2xl',
-                    title: 'text-2xl font-bold',
-                    confirmButton: 'rounded-lg px-6 py-2.5 font-medium shadow-lg hover:shadow-xl transition-all'
+                    title: 'text-base font-semibold'
                 }
+            });
+            
+            Toast.fire({
+                icon: '{$icon}',
+                title: '{$title}',
+                text: '" . addslashes($message['message']) . "'
             });
         });
         </script>";
