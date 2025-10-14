@@ -28,7 +28,9 @@ $full_name = $_SESSION['full_name'];
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 'kanit': ['Kanit', 'sans-serif'] },
+                    fontFamily: { 
+                        'kanit': ['Kanit', 'sans-serif'] 
+                    },
                     colors: {
                         'admin-dark': '#1e293b',
                         'admin-darker': '#0f172a',
@@ -41,91 +43,99 @@ $full_name = $_SESSION['full_name'];
         }
     </script>
     <style>
-        body { font-family: 'Kanit', sans-serif; }
-        .sidebar-link.active { background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%); color: white; }
+        body { 
+            font-family: 'Kanit', sans-serif; 
+        }
+        .sidebar-link.active { 
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%); 
+            color: white; 
+        }
+        .sidebar-link:hover {
+            background-color: rgba(220, 38, 38, 0.1);
+        }
     </style>
     <?php if (isset($extra_css)): ?><?php echo $extra_css; ?><?php endif; ?>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50 font-kanit">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-admin-dark to-admin-darker text-white flex-shrink-0 hidden md:block overflow-y-auto">
-            <div class="p-6 border-b border-gray-700 bg-red-primary/20">
+        <aside class="w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white flex-shrink-0 hidden lg:block overflow-y-auto">
+            <div class="p-6 border-b border-slate-700 bg-red-600/20">
                 <div class="text-center">
-                    <i class="fas fa-star text-4xl text-red-primary mb-2"></i>
+                    <i class="fas fa-star text-4xl text-red-500 mb-2"></i>
                     <h2 class="text-xl font-bold">VIBEDAYBKK</h2>
-                    <p class="text-sm text-gray-400">Admin Panel</p>
+                    <p class="text-sm text-slate-400">Admin Panel</p>
                 </div>
             </div>
             
-            <nav class="p-4">
+            <nav class="p-4 space-y-1">
                 <a href="<?php echo ADMIN_URL; ?>/index.php" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'dashboard' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-tachometer-alt w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'dashboard' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i>
                     <span>Dashboard</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/models/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'models' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-users w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'models' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-users w-5 mr-3"></i>
                     <span>จัดการโมเดล</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/categories/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'categories' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-th-large w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'categories' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-th-large w-5 mr-3"></i>
                     <span>จัดการหมวดหมู่</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/articles/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'articles' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-newspaper w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'articles' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-newspaper w-5 mr-3"></i>
                     <span>จัดการบทความ</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/menus/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'menus' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-bars w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'menus' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-bars w-5 mr-3"></i>
                     <span>จัดการเมนู</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/contacts/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'contacts' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-envelope w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'contacts' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-envelope w-5 mr-3"></i>
                     <span>ข้อความติดต่อ</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/bookings/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'bookings' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-calendar-check w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'bookings' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-calendar-check w-5 mr-3"></i>
                     <span>การจอง</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/settings/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'settings' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-cog w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'settings' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-cog w-5 mr-3"></i>
                     <span>ตั้งค่าระบบ</span>
                 </a>
                 
                 <?php if (is_admin()): ?>
                 <a href="<?php echo ADMIN_URL; ?>/users/" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'users' ? 'active' : ''; ?> flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-red-primary/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-user-shield w-6"></i>
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'users' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-user-shield w-5 mr-3"></i>
                     <span>จัดการผู้ใช้</span>
                 </a>
                 <?php endif; ?>
                 
-                <hr class="border-gray-700 my-4">
+                <hr class="border-slate-700 my-4">
                 
                 <a href="<?php echo SITE_URL; ?>" target="_blank" 
-                   class="flex items-center px-4 py-3 mb-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200">
-                    <i class="fas fa-external-link-alt w-6"></i>
+                   class="flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200">
+                    <i class="fas fa-external-link-alt w-5 mr-3"></i>
                     <span>ดูหน้าเว็บ</span>
                 </a>
                 
                 <a href="<?php echo ADMIN_URL; ?>/logout.php" onclick="return confirm('ต้องการออกจากระบบ?')"
-                   class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-primary/20 hover:text-red-300 transition-all duration-200">
-                    <i class="fas fa-sign-out-alt w-6"></i>
+                   class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200">
+                    <i class="fas fa-sign-out-alt w-5 mr-3"></i>
                     <span>ออกจากระบบ</span>
                 </a>
             </nav>
@@ -134,13 +144,16 @@ $full_name = $_SESSION['full_name'];
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Navbar -->
-            <header class="bg-white shadow-sm">
+            <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between px-6 py-4">
                     <div class="flex items-center">
-                        <button id="sidebar-toggle" class="md:hidden mr-4 text-gray-600 hover:text-gray-900">
+                        <button id="sidebar-toggle" class="lg:hidden mr-4 text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <span class="text-gray-600">ยินดีต้อนรับ, <strong class="text-gray-900"><?php echo $full_name; ?></strong></span>
+                        <div class="flex flex-col">
+                            <span class="text-gray-600 text-sm">ยินดีต้อนรับ</span>
+                            <span class="text-gray-900 font-semibold"><?php echo $full_name; ?></span>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-3">
                         <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
@@ -148,8 +161,8 @@ $full_name = $_SESSION['full_name'];
                         </span>
                         <a href="<?php echo ADMIN_URL; ?>/logout.php" 
                            onclick="return confirm('ต้องการออกจากระบบ?')"
-                           class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm">
-                            <i class="fas fa-sign-out-alt mr-1"></i> ออกจากระบบ
+                           class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium">
+                            <i class="fas fa-sign-out-alt mr-2"></i> ออกจากระบบ
                         </a>
                     </div>
                 </div>

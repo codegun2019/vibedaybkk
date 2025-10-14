@@ -70,7 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 'kanit': ['Kanit', 'sans-serif'] }
+                    fontFamily: { 
+                        'kanit': ['Kanit', 'sans-serif'] 
+                    }
                 }
             }
         }
@@ -97,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <?php endif; ?>
                 
-                <form method="POST" action="" class="space-y-5">
+                <form method="POST" action="" class="space-y-6">
                     <div>
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-user mr-2 text-red-600"></i>ชื่อผู้ใช้
@@ -107,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                name="username" 
                                required 
                                autofocus
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 placeholder-gray-400">
                     </div>
                     
                     <div>
@@ -118,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                id="password" 
                                name="password" 
                                required
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 placeholder-gray-400">
                     </div>
                     
                     <div class="flex items-center">

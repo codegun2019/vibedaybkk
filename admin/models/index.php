@@ -71,145 +71,168 @@ $categories = get_categories($conn);
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-users me-2"></i>จัดการโมเดล</h2>
-        <p class="text-muted">จำนวนโมเดลทั้งหมด: <?php echo $total_models; ?> คน</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-users mr-3 text-red-600"></i>จัดการโมเดล
+        </h2>
+        <p class="text-gray-600 mt-1">จำนวนโมเดลทั้งหมด: <?php echo $total_models; ?> คน</p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="add.php" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i>เพิ่มโมเดลใหม่
+    <div class="mt-4 sm:mt-0">
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+            <i class="fas fa-plus-circle mr-2"></i>เพิ่มโมเดลใหม่
         </a>
     </div>
 </div>
 
 <!-- Search and Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" action="" class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">ค้นหา</label>
-                <input type="text" class="form-control" name="search" placeholder="ชื่อ, รหัส, คำอธิบาย..." value="<?php echo htmlspecialchars($search); ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">หมวดหมู่</label>
-                <select class="form-select" name="category">
-                    <option value="">ทั้งหมด</option>
-                    <?php foreach ($categories as $cat): ?>
-                    <option value="<?php echo $cat['id']; ?>" <?php echo $category_filter == $cat['id'] ? 'selected' : ''; ?>>
-                        <?php echo $cat['name']; ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">สถานะ</label>
-                <select class="form-select" name="status">
-                    <option value="">ทั้งหมด</option>
-                    <option value="available" <?php echo $status_filter == 'available' ? 'selected' : ''; ?>>ว่าง</option>
-                    <option value="busy" <?php echo $status_filter == 'busy' ? 'selected' : ''; ?>>ไม่ว่าง</option>
-                    <option value="inactive" <?php echo $status_filter == 'inactive' ? 'selected' : ''; ?>>ไม่ใช้งาน</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">&nbsp;</label>
-                <div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-2"></i>ค้นหา
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <form method="GET" action="" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">ค้นหา</label>
+            <input type="text" 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" 
+                   name="search" 
+                   placeholder="ชื่อ, รหัส, คำอธิบาย..." 
+                   value="<?php echo htmlspecialchars($search); ?>">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="category">
+                <option value="">ทั้งหมด</option>
+                <?php foreach ($categories as $cat): ?>
+                <option value="<?php echo $cat['id']; ?>" <?php echo $category_filter == $cat['id'] ? 'selected' : ''; ?>>
+                    <?php echo $cat['name']; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">สถานะ</label>
+            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="status">
+                <option value="">ทั้งหมด</option>
+                <option value="available" <?php echo $status_filter == 'available' ? 'selected' : ''; ?>>ว่าง</option>
+                <option value="busy" <?php echo $status_filter == 'busy' ? 'selected' : ''; ?>>ไม่ว่าง</option>
+                <option value="inactive" <?php echo $status_filter == 'inactive' ? 'selected' : ''; ?>>ไม่ใช้งาน</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium">
+                <i class="fas fa-search mr-2"></i>ค้นหา
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Models Table -->
-<div class="card">
-    <div class="card-body">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
         <?php if (empty($models)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">ไม่พบข้อมูลโมเดล</h5>
-                <a href="add.php" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus-circle me-2"></i>เพิ่มโมเดลใหม่
+            <div class="text-center py-12">
+                <i class="fas fa-user-slash text-6xl text-gray-400 mb-4"></i>
+                <h5 class="text-gray-600 text-xl font-medium mb-4">ไม่พบข้อมูลโมเดล</h5>
+                <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+                    <i class="fas fa-plus-circle mr-2"></i>เพิ่มโมเดลใหม่
                 </a>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover" id="modelsTable">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full" id="modelsTable">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th width="80">รูปภาพ</th>
-                            <th>รหัส</th>
-                            <th>ชื่อ</th>
-                            <th>หมวดหมู่</th>
-                            <th>ส่วนสูง</th>
-                            <th>ราคา</th>
-                            <th>ประสบการณ์</th>
-                            <th class="text-center">Featured</th>
-                            <th>สถานะ</th>
-                            <th width="120" class="text-center">การกระทำ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">รูปภาพ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">รหัส</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ชื่อ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">หมวดหมู่</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ส่วนสูง</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ราคา</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ประสบการณ์</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Featured</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">สถานะ</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">การกระทำ</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         <?php foreach ($models as $model): ?>
-                        <tr>
-                            <td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
                                 <?php 
                                 $primary_img = get_primary_image($conn, $model['id']);
                                 if ($primary_img): 
                                 ?>
                                     <img src="<?php echo UPLOADS_URL . '/' . $primary_img['image_path']; ?>" 
-                                         class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                         class="w-16 h-16 object-cover rounded-lg border border-gray-200">
                                 <?php else: ?>
-                                    <div class="bg-secondary text-white text-center" style="width: 60px; height: 60px; line-height: 60px; border-radius: 5px;">
-                                        <i class="fas fa-user"></i>
+                                    <div class="w-16 h-16 bg-gray-200 text-gray-500 flex items-center justify-center rounded-lg border border-gray-200">
+                                        <i class="fas fa-user text-xl"></i>
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <strong><?php echo $model['code']; ?></strong>
-                                <br>
-                                <small class="text-muted">
-                                    <i class="fas fa-eye me-1"></i><?php echo $model['view_count']; ?>
-                                    <i class="fas fa-calendar-check ms-2 me-1"></i><?php echo $model['booking_count']; ?>
-                                </small>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-gray-900"><?php echo $model['code']; ?></div>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    <i class="fas fa-eye mr-1"></i><?php echo $model['view_count']; ?>
+                                    <i class="fas fa-calendar-check ml-2 mr-1"></i><?php echo $model['booking_count']; ?>
+                                </div>
                             </td>
-                            <td>
-                                <strong><?php echo $model['name']; ?></strong>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-gray-900"><?php echo $model['name']; ?></div>
                                 <?php if ($model['name_en']): ?>
-                                    <br><small class="text-muted"><?php echo $model['name_en']; ?></small>
+                                    <div class="text-sm text-gray-500"><?php echo $model['name_en']; ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <span class="badge bg-secondary"><?php echo $model['category_name']; ?></span>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <?php echo $model['category_name']; ?>
+                                </span>
                             </td>
-                            <td><?php echo $model['height'] ? $model['height'] . ' cm' : '-'; ?></td>
-                            <td>
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $model['height'] ? $model['height'] . ' cm' : '-'; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-900">
                                 <?php if ($model['price_min'] && $model['price_max']): ?>
-                                    <small><?php echo format_price($model['price_min']); ?><br>- <?php echo format_price($model['price_max']); ?></small>
+                                    <div><?php echo format_price($model['price_min']); ?></div>
+                                    <div class="text-gray-500">- <?php echo format_price($model['price_max']); ?></div>
                                 <?php else: ?>
                                     -
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo $model['experience_years'] ? $model['experience_years'] . ' ปี' : '-'; ?></td>
-                            <td class="text-center">
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $model['experience_years'] ? $model['experience_years'] . ' ปี' : '-'; ?></td>
+                            <td class="px-4 py-3 text-center">
                                 <?php if ($model['featured']): ?>
-                                    <span class="badge bg-warning"><i class="fas fa-star"></i> แนะนำ</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-star mr-1"></i> แนะนำ
+                                    </span>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo get_status_badge($model['status']); ?></td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
+                            <td class="px-4 py-3">
+                                <?php 
+                                $status_classes = [
+                                    'available' => 'bg-green-100 text-green-800',
+                                    'busy' => 'bg-yellow-100 text-yellow-800',
+                                    'inactive' => 'bg-gray-100 text-gray-800'
+                                ];
+                                $status_texts = [
+                                    'available' => 'ว่าง',
+                                    'busy' => 'ไม่ว่าง',
+                                    'inactive' => 'ไม่ใช้งาน'
+                                ];
+                                $status_class = $status_classes[$model['status']] ?? 'bg-gray-100 text-gray-800';
+                                $status_text = $status_texts[$model['status']] ?? $model['status'];
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $status_class; ?>">
+                                    <?php echo $status_text; ?>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center space-x-2">
                                     <a href="edit.php?id=<?php echo $model['id']; ?>" 
-                                       class="btn btn-sm btn-warning" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors duration-200" 
                                        title="แก้ไข">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit text-sm"></i>
                                     </a>
                                     <a href="delete.php?id=<?php echo $model['id']; ?>" 
-                                       class="btn btn-sm btn-danger btn-delete" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 btn-delete" 
                                        title="ลบ">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash text-sm"></i>
                                     </a>
                                 </div>
                             </td>
@@ -221,32 +244,29 @@ include '../includes/header.php';
 
             <!-- Pagination -->
             <?php if ($total_pages > 1): ?>
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
+            <nav class="flex items-center justify-center mt-6">
+                <div class="flex items-center space-x-2">
                     <?php if ($page > 1): ?>
-                    <li class="page-item">
-                        <a class="page-link" href="?page=<?php echo ($page-1); ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>">
-                            ก่อนหน้า
-                        </a>
-                    </li>
+                    <a href="?page=<?php echo ($page-1); ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>" 
+                       class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                        ก่อนหน้า
+                    </a>
                     <?php endif; ?>
                     
                     <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                    <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>">
-                            <?php echo $i; ?>
-                        </a>
-                    </li>
+                    <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>" 
+                       class="px-3 py-2 text-sm font-medium <?php echo $i == $page ? 'text-white bg-red-600 border-red-600' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-700'; ?> border rounded-lg transition-colors duration-200">
+                        <?php echo $i; ?>
+                    </a>
                     <?php endfor; ?>
                     
                     <?php if ($page < $total_pages): ?>
-                    <li class="page-item">
-                        <a class="page-link" href="?page=<?php echo ($page+1); ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>">
-                            ถัดไป
-                        </a>
-                    </li>
+                    <a href="?page=<?php echo ($page+1); ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $category_filter; ?>&status=<?php echo $status_filter; ?>" 
+                       class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                        ถัดไป
+                    </a>
                     <?php endif; ?>
-                </ul>
+                </div>
             </nav>
             <?php endif; ?>
         <?php endif; ?>

@@ -53,61 +53,61 @@ include 'includes/header.php';
 </div>
 
 <!-- Statistics Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-600 hover:shadow-xl transition-all duration-200">
         <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-semibold text-red-600 uppercase">โมเดลทั้งหมด</p>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-red-600 uppercase tracking-wide">โมเดลทั้งหมด</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['total_models']; ?> <span class="text-lg text-gray-600">คน</span></p>
             </div>
-            <div class="bg-red-100 p-4 rounded-full">
-                <i class="fas fa-users text-3xl text-red-600"></i>
+            <div class="bg-red-100 p-3 rounded-full">
+                <i class="fas fa-users text-2xl text-red-600"></i>
             </div>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-600 hover:shadow-xl transition-all duration-200">
         <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-semibold text-green-600 uppercase">โมเดลว่าง</p>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-green-600 uppercase tracking-wide">โมเดลว่าง</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['available_models']; ?> <span class="text-lg text-gray-600">คน</span></p>
             </div>
-            <div class="bg-green-100 p-4 rounded-full">
-                <i class="fas fa-user-check text-3xl text-green-600"></i>
+            <div class="bg-green-100 p-3 rounded-full">
+                <i class="fas fa-user-check text-2xl text-green-600"></i>
             </div>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-600 hover:shadow-xl transition-all duration-200">
         <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-semibold text-yellow-600 uppercase">จองรอดำเนินการ</p>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-yellow-600 uppercase tracking-wide">จองรอดำเนินการ</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $stats['pending_bookings']; ?> <span class="text-lg text-gray-600">รายการ</span></p>
             </div>
-            <div class="bg-yellow-100 p-4 rounded-full">
-                <i class="fas fa-calendar-check text-3xl text-yellow-600"></i>
+            <div class="bg-yellow-100 p-3 rounded-full">
+                <i class="fas fa-calendar-check text-2xl text-yellow-600"></i>
             </div>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-all duration-200">
         <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-semibold text-blue-600 uppercase">รายได้รวม</p>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">รายได้รวม</p>
                 <p class="text-2xl font-bold text-gray-900 mt-2"><?php echo format_price($stats['total_revenue']); ?></p>
             </div>
-            <div class="bg-blue-100 p-4 rounded-full">
-                <i class="fas fa-dollar-sign text-3xl text-blue-600"></i>
+            <div class="bg-blue-100 p-3 rounded-full">
+                <i class="fas fa-dollar-sign text-2xl text-blue-600"></i>
             </div>
         </div>
     </div>
 </div>
 
 <!-- More Stats -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
         <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-th-large text-3xl text-purple-600"></i>
+            <i class="fas fa-th-large text-2xl text-purple-600"></i>
         </div>
         <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['total_categories']; ?></h3>
         <p class="text-gray-600 mt-1">หมวดหมู่บริการ</p>
@@ -115,7 +115,7 @@ include 'includes/header.php';
     
     <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
         <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-newspaper text-3xl text-green-600"></i>
+            <i class="fas fa-newspaper text-2xl text-green-600"></i>
         </div>
         <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['published_articles']; ?></h3>
         <p class="text-gray-600 mt-1">บทความเผยแพร่</p>
@@ -123,14 +123,14 @@ include 'includes/header.php';
     
     <div class="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
         <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-envelope text-3xl text-orange-600"></i>
+            <i class="fas fa-envelope text-2xl text-orange-600"></i>
         </div>
         <h3 class="text-3xl font-bold text-gray-900"><?php echo $stats['new_contacts']; ?></h3>
         <p class="text-gray-600 mt-1">ข้อความใหม่</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Top Models -->
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <div class="bg-gradient-to-r from-red-600 to-red-500 text-white p-4">
@@ -192,7 +192,7 @@ include 'includes/header.php';
 </div>
 
 <!-- Recent Bookings -->
-<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
     <div class="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-4">
         <h3 class="text-lg font-semibold flex items-center">
             <i class="fas fa-calendar-check mr-2"></i>การจองล่าสุด
@@ -253,28 +253,28 @@ include 'includes/header.php';
         </h3>
     </div>
     <div class="p-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="<?php echo ADMIN_URL; ?>/models/add.php" 
                class="group bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
-                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <i class="fas fa-plus-circle text-3xl mb-3 group-hover:scale-110 transition-transform"></i>
                 <p class="font-medium">เพิ่มโมเดล</p>
             </a>
             
             <a href="<?php echo ADMIN_URL; ?>/categories/add.php" 
                class="group bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
-                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <i class="fas fa-plus-circle text-3xl mb-3 group-hover:scale-110 transition-transform"></i>
                 <p class="font-medium">เพิ่มหมวดหมู่</p>
             </a>
             
             <a href="<?php echo ADMIN_URL; ?>/articles/add.php" 
                class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
-                <i class="fas fa-plus-circle text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <i class="fas fa-plus-circle text-3xl mb-3 group-hover:scale-110 transition-transform"></i>
                 <p class="font-medium">เพิ่มบทความ</p>
             </a>
             
             <a href="<?php echo ADMIN_URL; ?>/models/" 
                class="group bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl text-center transition-all duration-200 transform hover:scale-105 shadow-lg">
-                <i class="fas fa-users text-4xl mb-3 group-hover:scale-110 transition-transform"></i>
+                <i class="fas fa-users text-3xl mb-3 group-hover:scale-110 transition-transform"></i>
                 <p class="font-medium">ดูโมเดลทั้งหมด</p>
             </a>
         </div>
