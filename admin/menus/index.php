@@ -46,50 +46,74 @@ include '../includes/header.php';
                 </a>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th width="50">ไอคอน</th>
-                            <th>ชื่อเมนู</th>
-                            <th>URL</th>
-                            <th>เมนูหลัก</th>
-                            <th>Target</th>
-                            <th>ลำดับ</th>
-                            <th>สถานะ</th>
-                            <th width="120" class="text-center">การกระทำ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ไอคอน</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ชื่อเมนู</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">URL</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">เมนูหลัก</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Target</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ลำดับ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">สถานะ</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">การกระทำ</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         <?php foreach ($menus as $menu): ?>
-                        <tr>
-                            <td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
                                 <?php if ($menu['icon']): ?>
-                                <i class="fas <?php echo $menu['icon']; ?> fa-lg"></i>
+                                <i class="fas <?php echo $menu['icon']; ?> text-lg text-gray-600"></i>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <?php if ($menu['parent_id']): ?>
-                                    <span class="ms-3">└─</span>
-                                <?php endif; ?>
-                                <strong><?php echo $menu['title']; ?></strong>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <?php if ($menu['parent_id']): ?>
+                                        <span class="text-gray-400 mr-3">└─</span>
+                                    <?php endif; ?>
+                                    <span class="font-semibold text-gray-900"><?php echo $menu['title']; ?></span>
+                                </div>
                             </td>
-                            <td><code><?php echo $menu['url']; ?></code></td>
-                            <td><?php echo $menu['parent_title'] ?: '-'; ?></td>
-                            <td>
-                                <span class="badge bg-secondary"><?php echo $menu['target']; ?></span>
+                            <td class="px-4 py-3">
+                                <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm"><?php echo $menu['url']; ?></code>
                             </td>
-                            <td><?php echo $menu['sort_order']; ?></td>
-                            <td><?php echo get_status_badge($menu['status']); ?></td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $menu['parent_title'] ?: '-'; ?></td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <?php echo $menu['target']; ?>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $menu['sort_order']; ?></td>
+                            <td class="px-4 py-3">
+                                <?php 
+                                $status_classes = [
+                                    'active' => 'bg-green-100 text-green-800',
+                                    'inactive' => 'bg-gray-100 text-gray-800'
+                                ];
+                                $status_texts = [
+                                    'active' => 'ใช้งาน',
+                                    'inactive' => 'ไม่ใช้งาน'
+                                ];
+                                $status_class = $status_classes[$menu['status']] ?? 'bg-gray-100 text-gray-800';
+                                $status_text = $status_texts[$menu['status']] ?? $menu['status'];
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $status_class; ?>">
+                                    <?php echo $status_text; ?>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center space-x-2">
                                     <a href="edit.php?id=<?php echo $menu['id']; ?>" 
-                                       class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
+                                       class="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors duration-200" 
+                                       title="แก้ไข">
+                                        <i class="fas fa-edit text-sm"></i>
                                     </a>
                                     <a href="delete.php?id=<?php echo $menu['id']; ?>" 
-                                       class="btn btn-sm btn-danger btn-delete">
-                                        <i class="fas fa-trash"></i>
+                                       class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 btn-delete" 
+                                       title="ลบ">
+                                        <i class="fas fa-trash text-sm"></i>
                                     </a>
                                 </div>
                             </td>

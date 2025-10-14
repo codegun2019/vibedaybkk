@@ -70,21 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-plus-circle me-2"></i>เพิ่มบทความใหม่</h2>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>กลับ
-        </a>
-    </div>
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-plus-circle mr-3 text-green-600"></i>เพิ่มบทความใหม่
+    </h2>
+    <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-arrow-left mr-2"></i>กลับ
+    </a>
 </div>
 
 <?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-    <h5><i class="fas fa-exclamation-circle me-2"></i>พบข้อผิดพลาด:</h5>
-    <ul class="mb-0">
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <h5 class="font-bold mb-2 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>พบข้อผิดพลาด:
+    </h5>
+    <ul class="list-disc list-inside">
         <?php foreach ($errors as $error): ?>
         <li><?php echo $error; ?></li>
         <?php endforeach; ?>
@@ -95,88 +95,106 @@ include '../includes/header.php';
 <form method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
     
-    <div class="row">
-        <div class="col-lg-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
             <!-- Content -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>เนื้อหาบทความ</h5>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <h5 class="text-white text-lg font-semibold flex items-center">
+                        <i class="fas fa-edit mr-3"></i>เนื้อหาบทความ
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">หัวข้อบทความ <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-lg" name="title" required>
+                <div class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            หัวข้อบทความ <span class="text-red-600">*</span>
+                        </label>
+                        <input type="text" name="title" required 
+                               class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">URL (Slug)</label>
-                        <input type="text" class="form-control" name="slug" placeholder="auto-generate จากหัวข้อ">
-                        <small class="text-muted">ถ้าไม่กรอก จะสร้างอัตโนมัติจากหัวข้อ</small>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">URL (Slug)</label>
+                        <input type="text" name="slug" placeholder="auto-generate จากหัวข้อ" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                        <p class="text-sm text-gray-500 mt-2">ถ้าไม่กรอก จะสร้างอัตโนมัติจากหัวข้อ</p>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">คำอธิบายสั้น (Excerpt)</label>
-                        <textarea class="form-control" name="excerpt" rows="3"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">คำอธิบายสั้น (Excerpt)</label>
+                        <textarea name="excerpt" rows="3" 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"></textarea>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">เนื้อหาบทความ <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="content" rows="15" required></textarea>
-                        <small class="text-muted">รองรับ HTML tags</small>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            เนื้อหาบทความ <span class="text-red-600">*</span>
+                        </label>
+                        <textarea name="content" rows="15" required 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 font-mono text-sm"></textarea>
+                        <p class="text-sm text-gray-500 mt-2">รองรับ HTML tags</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-4">
+        <div class="space-y-6">
             <!-- Publish -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-paper-plane me-2"></i>เผยแพร่</h5>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                    <h5 class="text-white text-lg font-semibold flex items-center">
+                        <i class="fas fa-paper-plane mr-3"></i>เผยแพร่
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">สถานะ</label>
-                        <select class="form-select" name="status">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
+                        <select name="status" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
                             <option value="draft">แบบร่าง</option>
                             <option value="published">เผยแพร่ทันที</option>
                             <option value="archived">เก็บถาวร</option>
                         </select>
                     </div>
                     
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>บันทึก
-                        </button>
-                    </div>
+                    <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 font-medium">
+                        <i class="fas fa-save mr-2"></i>บันทึก
+                    </button>
                 </div>
             </div>
             
             <!-- Featured Image -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-image me-2"></i>รูปภาพหลัก</h5>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                    <h5 class="text-white text-lg font-semibold flex items-center">
+                        <i class="fas fa-image mr-3"></i>รูปภาพหลัก
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <input type="file" class="form-control" name="featured_image" accept="image/*">
-                    <small class="text-muted">แนะนำขนาด 1200x630px</small>
+                <div class="p-6">
+                    <input type="file" name="featured_image" accept="image/*" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                    <p class="text-sm text-gray-500 mt-2">แนะนำขนาด 1200x630px</p>
                 </div>
             </div>
             
             <!-- Meta -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-tags me-2"></i>ข้อมูลเพิ่มเติม</h5>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4">
+                    <h5 class="text-white text-lg font-semibold flex items-center">
+                        <i class="fas fa-tags mr-3"></i>ข้อมูลเพิ่มเติม
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">หมวดหมู่</label>
-                        <input type="text" class="form-control" name="category" placeholder="Photography">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">หมวดหมู่</label>
+                        <input type="text" name="category" placeholder="Photography" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">เวลาอ่าน (นาที)</label>
-                        <input type="number" class="form-control" name="read_time" value="5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">เวลาอ่าน (นาที)</label>
+                        <input type="number" name="read_time" value="5" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
                     </div>
                 </div>
             </div>

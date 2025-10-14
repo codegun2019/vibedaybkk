@@ -50,56 +50,48 @@ include '../includes/header.php';
         <h2 class="text-3xl font-bold text-gray-900 flex items-center">
             <i class="fas fa-calendar-check mr-3 text-red-600"></i>จัดการการจอง
         </h2>
-        <p class="text-muted">จำนวนการจองทั้งหมด: <?php echo $stats['total']; ?> รายการ</p>
+        <p class="text-gray-600 mt-1">จำนวนการจองทั้งหมด: <?php echo $stats['total']; ?> รายการ</p>
     </div>
 </div>
 
 <!-- Stats -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h3 class="text-warning"><?php echo $stats['pending']; ?></h3>
-                <p class="mb-0 text-muted">รอดำเนินการ</p>
-            </div>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <h3 class="text-3xl font-bold text-yellow-600 mb-2"><?php echo $stats['pending']; ?></h3>
+        <p class="text-gray-600 font-medium">รอดำเนินการ</p>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h3 class="text-success"><?php echo $stats['confirmed']; ?></h3>
-                <p class="mb-0 text-muted">ยืนยันแล้ว</p>
-            </div>
-        </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <h3 class="text-3xl font-bold text-green-600 mb-2"><?php echo $stats['confirmed']; ?></h3>
+        <p class="text-gray-600 font-medium">ยืนยันแล้ว</p>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h3 class="text-primary"><?php echo $stats['completed']; ?></h3>
-                <p class="mb-0 text-muted">เสร็จสิ้น</p>
-            </div>
-        </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <h3 class="text-3xl font-bold text-blue-600 mb-2"><?php echo $stats['completed']; ?></h3>
+        <p class="text-gray-600 font-medium">เสร็จสิ้น</p>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h3 class="text-info"><?php echo format_price($stats['revenue']); ?></h3>
-                <p class="mb-0 text-muted">รายได้รวม</p>
-            </div>
-        </div>
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <h3 class="text-3xl font-bold text-red-600 mb-2"><?php echo format_price($stats['revenue']); ?></h3>
+        <p class="text-gray-600 font-medium">รายได้รวม</p>
     </div>
 </div>
 
 <!-- Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="btn-group" role="group">
-            <a href="?" class="btn <?php echo empty($status_filter) ? 'btn-primary' : 'btn-outline-primary'; ?>">ทั้งหมด</a>
-            <a href="?status=pending" class="btn <?php echo $status_filter == 'pending' ? 'btn-primary' : 'btn-outline-primary'; ?>">รอดำเนินการ</a>
-            <a href="?status=confirmed" class="btn <?php echo $status_filter == 'confirmed' ? 'btn-primary' : 'btn-outline-primary'; ?>">ยืนยันแล้ว</a>
-            <a href="?status=completed" class="btn <?php echo $status_filter == 'completed' ? 'btn-primary' : 'btn-outline-primary'; ?>">เสร็จสิ้น</a>
-            <a href="?status=cancelled" class="btn <?php echo $status_filter == 'cancelled' ? 'btn-primary' : 'btn-outline-primary'; ?>">ยกเลิก</a>
-        </div>
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="flex flex-wrap gap-2">
+        <a href="?" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo empty($status_filter) ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            ทั้งหมด
+        </a>
+        <a href="?status=pending" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo $status_filter == 'pending' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            รอดำเนินการ
+        </a>
+        <a href="?status=confirmed" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo $status_filter == 'confirmed' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            ยืนยันแล้ว
+        </a>
+        <a href="?status=completed" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo $status_filter == 'completed' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            เสร็จสิ้น
+        </a>
+        <a href="?status=cancelled" class="inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 <?php echo $status_filter == 'cancelled' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'; ?>">
+            ยกเลิก
+        </a>
     </div>
 </div>
 

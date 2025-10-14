@@ -87,6 +87,12 @@ $full_name = $_SESSION['full_name'];
                     <span>จัดการหมวดหมู่</span>
                 </a>
                 
+                <a href="<?php echo ADMIN_URL; ?>/homepage/" 
+                   class="sidebar-link <?php echo ($current_page ?? '') == 'homepage' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
+                    <i class="fas fa-home w-5 mr-3"></i>
+                    <span>จัดการหน้าแรก</span>
+                </a>
+                
                 <a href="<?php echo ADMIN_URL; ?>/articles/" 
                    class="sidebar-link <?php echo ($current_page ?? '') == 'articles' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
                     <i class="fas fa-newspaper w-5 mr-3"></i>

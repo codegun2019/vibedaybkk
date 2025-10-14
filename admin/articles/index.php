@@ -100,71 +100,89 @@ include '../includes/header.php';
 </div>
 
 <!-- Articles Table -->
-<div class="card">
-    <div class="card-body">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
         <?php if (empty($articles)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">ไม่พบบทความ</h5>
-                <a href="add.php" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus-circle me-2"></i>เพิ่มบทความใหม่
+            <div class="text-center py-12">
+                <i class="fas fa-newspaper text-6xl text-gray-400 mb-4"></i>
+                <h5 class="text-gray-600 text-xl font-medium mb-4">ไม่พบบทความ</h5>
+                <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
+                    <i class="fas fa-plus-circle mr-2"></i>เพิ่มบทความใหม่
                 </a>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th width="80">รูปภาพ</th>
-                            <th>หัวข้อ</th>
-                            <th>หมวดหมู่</th>
-                            <th>ผู้เขียน</th>
-                            <th class="text-center">Views</th>
-                            <th>วันที่</th>
-                            <th>สถานะ</th>
-                            <th width="120" class="text-center">การกระทำ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">รูปภาพ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">หัวข้อ</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">หมวดหมู่</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ผู้เขียน</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Views</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">วันที่</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">สถานะ</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">การกระทำ</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         <?php foreach ($articles as $article): ?>
-                        <tr>
-                            <td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
                                 <?php if ($article['featured_image']): ?>
                                     <img src="<?php echo UPLOADS_URL . '/' . $article['featured_image']; ?>" 
-                                         class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                         class="w-15 h-15 rounded-lg object-cover">
                                 <?php else: ?>
-                                    <div class="bg-secondary text-white text-center" style="width: 60px; height: 60px; line-height: 60px; border-radius: 5px;">
-                                        <i class="fas fa-image"></i>
+                                    <div class="w-15 h-15 bg-gray-200 text-gray-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-lg"></i>
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <strong><?php echo truncate_text($article['title'], 50); ?></strong>
-                                <br>
-                                <small class="text-muted"><?php echo truncate_text($article['excerpt'], 60); ?></small>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-gray-900"><?php echo truncate_text($article['title'], 50); ?></div>
+                                <div class="text-sm text-gray-600 mt-1"><?php echo truncate_text($article['excerpt'], 60); ?></div>
                             </td>
-                            <td><?php echo $article['category'] ?: '-'; ?></td>
-                            <td><?php echo $article['author_name'] ?: '-'; ?></td>
-                            <td class="text-center">
-                                <i class="fas fa-eye text-muted"></i> <?php echo $article['view_count']; ?>
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $article['category'] ?: '-'; ?></td>
+                            <td class="px-4 py-3 text-sm text-gray-900"><?php echo $article['author_name'] ?: '-'; ?></td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center text-sm text-gray-600">
+                                    <i class="fas fa-eye mr-1"></i> <?php echo $article['view_count']; ?>
+                                </div>
                             </td>
-                            <td>
-                                <?php echo format_date_thai($article['created_at'], 'd/m/Y'); ?>
-                                <br>
-                                <small class="text-muted"><?php echo time_ago($article['created_at']); ?></small>
+                            <td class="px-4 py-3">
+                                <div class="text-sm font-medium text-gray-900"><?php echo format_date_thai($article['created_at'], 'd/m/Y'); ?></div>
+                                <div class="text-xs text-gray-500"><?php echo time_ago($article['created_at']); ?></div>
                             </td>
-                            <td><?php echo get_status_badge($article['status']); ?></td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
+                            <td class="px-4 py-3">
+                                <?php 
+                                $status_classes = [
+                                    'draft' => 'bg-gray-100 text-gray-800',
+                                    'published' => 'bg-green-100 text-green-800',
+                                    'archived' => 'bg-red-100 text-red-800'
+                                ];
+                                $status_texts = [
+                                    'draft' => 'แบบร่าง',
+                                    'published' => 'เผยแพร่แล้ว',
+                                    'archived' => 'เก็บถาวร'
+                                ];
+                                $status_class = $status_classes[$article['status']] ?? 'bg-gray-100 text-gray-800';
+                                $status_text = $status_texts[$article['status']] ?? $article['status'];
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $status_class; ?>">
+                                    <?php echo $status_text; ?>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center space-x-2">
                                     <a href="edit.php?id=<?php echo $article['id']; ?>" 
-                                       class="btn btn-sm btn-warning" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors duration-200" 
                                        title="แก้ไข">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit text-sm"></i>
                                     </a>
                                     <a href="delete.php?id=<?php echo $article['id']; ?>" 
-                                       class="btn btn-sm btn-danger btn-delete" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 btn-delete" 
                                        title="ลบ">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash text-sm"></i>
                                     </a>
                                 </div>
                             </td>
