@@ -17,14 +17,17 @@ if (!$booking_id) {
     redirect(ADMIN_URL . '/bookings/');
 }
 
-$stmt = $pdo->prepare("
+$stmt = $conn->prepare("
     SELECT b.*, m.name as model_name, m.code as model_code
     FROM bookings b
     LEFT JOIN models m ON b.model_id = m.id
     WHERE b.id = ?
 ");
-$stmt->execute([$booking_id]);
-$booking = $stmt->fetch();
+$stmt->bind_param('i', $booking_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$booking = $result->fetch_assoc();
+$stmt->close();
 
 if (!$booking) {
     set_message('error', 'ไม่พบข้อมูล');
@@ -41,60 +44,87 @@ if (isset($_GET['action'])) {
             'confirmed_at' => date('Y-m-d H:i:s'),
             'confirmed_by' => $_SESSION['user_id']
         ];
-        db_update($pdo, 'bookings', $data, 'id = :id', ['id' => $booking_id]);
+        db_update($conn, 'bookings', $data, 'id = ?', [$booking_id]);
         set_message('success', 'ยืนยันการจองสำเร็จ');
         redirect(ADMIN_URL . '/bookings/view.php?id=' . $booking_id);
     }
     
     if ($action == 'complete' && $booking['status'] == 'confirmed') {
-        $conn->query("UPDATE bookings SET status = 'completed' WHERE id = {$booking_id}");
+        $stmt = $conn->prepare("UPDATE bookings SET status = 'completed' WHERE id = ?");
+        $stmt->bind_param('i', $booking_id);
+        $stmt->execute();
+        $stmt->close();
         set_message('success', 'เปลี่ยนสถานะเป็นเสร็จสิ้น');
         redirect(ADMIN_URL . '/bookings/view.php?id=' . $booking_id);
     }
     
     if ($action == 'cancel') {
-        $conn->query("UPDATE bookings SET status = 'cancelled', cancelled_at = NOW() WHERE id = {$booking_id}");
+        $stmt = $conn->prepare("UPDATE bookings SET status = 'cancelled', cancelled_at = NOW() WHERE id = ?");
+        $stmt->bind_param('i', $booking_id);
+        $stmt->execute();
+        $stmt->close();
         set_message('warning', 'ยกเลิกการจอง');
         redirect(ADMIN_URL . '/bookings/view.php?id=' . $booking_id);
     }
 }
 
 // Refresh data
-$stmt = $pdo->prepare("
+$stmt = $conn->prepare("
     SELECT b.*, m.name as model_name, m.code as model_code
     FROM bookings b
     LEFT JOIN models m ON b.model_id = m.id
     WHERE b.id = ?
 ");
-$stmt->execute([$booking_id]);
-$booking = $stmt->fetch();
+$stmt->bind_param('i', $booking_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$booking = $result->fetch_assoc();
+$stmt->close();
 
 include '../includes/header.php';
 ?>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h2><i class="fas fa-calendar-check me-2"></i>การจอง #<?php echo $booking_id; ?></h2>
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-calendar-check mr-3 text-blue-600"></i>การจอง #<?php echo $booking_id; ?>
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">
+            <?php 
+            $status_texts = [
+                'pending' => 'รอดำเนินการ',
+                'confirmed' => 'ยืนยันแล้ว',
+                'completed' => 'เสร็จสิ้น',
+                'cancelled' => 'ยกเลิก'
+            ];
+            echo $status_texts[$booking['status']] ?? $booking['status'];
+            ?>
+        </p>
     </div>
-    <div class="col-md-6 text-end">
-        <a href="index.php" class="btn btn-secondary">กลับ</a>
-    </div>
+    <a href="index.php" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-arrow-left mr-2"></i>กลับ
+    </a>
 </div>
 
 <!-- Status Actions -->
 <?php if ($booking['status'] == 'pending'): ?>
-<div class="alert alert-warning">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>การจองนี้รอการยืนยัน</strong>
+<div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 mb-6 rounded-r-lg">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mr-3"></i>
+            <div>
+                <h5 class="font-bold text-yellow-800">การจองนี้รอการยืนยัน</h5>
+                <p class="text-sm text-yellow-700">กรุณายืนยันหรือยกเลิกการจอง</p>
+            </div>
         </div>
-        <div>
-            <a href="?id=<?php echo $booking_id; ?>&action=confirm" class="btn btn-success me-2">
-                <i class="fas fa-check me-1"></i>ยืนยันการจอง
+        <div class="flex space-x-3">
+            <a href="?id=<?php echo $booking_id; ?>&action=confirm" 
+               class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
+                <i class="fas fa-check mr-2"></i>ยืนยันการจอง
             </a>
-            <a href="?id=<?php echo $booking_id; ?>&action=cancel" class="btn btn-danger" onclick="return confirm('ต้องการยกเลิกการจอง?')">
-                <i class="fas fa-times me-1"></i>ยกเลิก
+            <a href="?id=<?php echo $booking_id; ?>&action=cancel" 
+               class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg btn-delete">
+                <i class="fas fa-times mr-2"></i>ยกเลิก
             </a>
         </div>
     </div>
@@ -102,151 +132,264 @@ include '../includes/header.php';
 <?php endif; ?>
 
 <?php if ($booking['status'] == 'confirmed'): ?>
-<div class="alert alert-success">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <i class="fas fa-check-circle me-2"></i>
-            <strong>การจองยืนยันแล้ว</strong>
+<div class="bg-green-50 border-l-4 border-green-500 p-6 mb-6 rounded-r-lg">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+            <div>
+                <h5 class="font-bold text-green-800">การจองยืนยันแล้ว</h5>
+                <p class="text-sm text-green-700">พร้อมให้บริการ</p>
+            </div>
         </div>
-        <div>
-            <a href="?id=<?php echo $booking_id; ?>&action=complete" class="btn btn-primary">
-                <i class="fas fa-check-double me-1"></i>เปลี่ยนเป็นเสร็จสิ้น
-            </a>
-        </div>
+        <a href="?id=<?php echo $booking_id; ?>&action=complete" 
+           class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
+            <i class="fas fa-check-double mr-2"></i>เปลี่ยนเป็นเสร็จสิ้น
+        </a>
     </div>
 </div>
 <?php endif; ?>
 
-<div class="row">
-    <div class="col-lg-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
         <!-- Booking Info -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between">
-                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>ข้อมูลการจอง</h5>
-                <?php echo get_status_badge($booking['status']); ?>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+                <h5 class="text-white text-lg font-semibold flex items-center">
+                    <i class="fas fa-info-circle mr-3"></i>ข้อมูลการจอง
+                </h5>
+                <?php 
+                $status_classes = [
+                    'pending' => 'bg-yellow-100 text-yellow-800',
+                    'confirmed' => 'bg-green-100 text-green-800',
+                    'completed' => 'bg-blue-100 text-blue-800',
+                    'cancelled' => 'bg-red-100 text-red-800'
+                ];
+                $status_texts = [
+                    'pending' => 'รอดำเนินการ',
+                    'confirmed' => 'ยืนยันแล้ว',
+                    'completed' => 'เสร็จสิ้น',
+                    'cancelled' => 'ยกเลิก'
+                ];
+                $status_class = $status_classes[$booking['status']] ?? 'bg-gray-100 text-gray-800';
+                $status_text = $status_texts[$booking['status']] ?? $booking['status'];
+                ?>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <?php echo $status_class; ?>">
+                    <?php echo $status_text; ?>
+                </span>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="150">โมเดล:</th>
-                                <td>
-                                    <strong><?php echo $booking['model_name']; ?></strong>
-                                    <br><small class="text-muted"><?php echo $booking['model_code']; ?></small>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>วันที่จอง:</th>
-                                <td><strong><?php echo format_date_thai($booking['booking_date'], 'd/m/Y'); ?></strong></td>
-                            </tr>
-                            <tr>
-                                <th>จำนวนวัน:</th>
-                                <td><?php echo $booking['booking_days']; ?> วัน</td>
-                            </tr>
-                            <tr>
-                                <th>ประเภทงาน:</th>
-                                <td><?php echo $booking['service_type'] ?: '-'; ?></td>
-                            </tr>
-                        </table>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">โมเดล</label>
+                            <div class="mt-1">
+                                <div class="font-bold text-gray-900 text-lg"><?php echo $booking['model_name']; ?></div>
+                                <div class="text-sm text-gray-500"><?php echo $booking['model_code']; ?></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">วันที่จอง</label>
+                            <div class="mt-1 font-semibold text-gray-900"><?php echo format_date_thai($booking['booking_date'], 'd/m/Y'); ?></div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">จำนวนวัน</label>
+                            <div class="mt-1 text-gray-900"><?php echo $booking['booking_days']; ?> วัน</div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">ประเภทงาน</label>
+                            <div class="mt-1 text-gray-900"><?php echo $booking['service_type'] ?: '-'; ?></div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="150">ราคารวม:</th>
-                                <td><h4 class="text-primary"><?php echo format_price($booking['total_price']); ?></h4></td>
-                            </tr>
-                            <tr>
-                                <th>สถานะการชำระ:</th>
-                                <td><?php echo get_status_badge($booking['payment_status']); ?></td>
-                            </tr>
-                            <tr>
-                                <th>วันที่สร้าง:</th>
-                                <td><?php echo format_date_thai($booking['created_at'], 'd/m/Y H:i'); ?></td>
-                            </tr>
-                        </table>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">ราคารวม</label>
+                            <div class="mt-1 text-3xl font-bold text-green-600"><?php echo format_price($booking['total_price']); ?></div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">สถานะการชำระ</label>
+                            <div class="mt-1">
+                                <?php 
+                                $payment_classes = [
+                                    'unpaid' => 'bg-red-100 text-red-800',
+                                    'deposit' => 'bg-yellow-100 text-yellow-800',
+                                    'paid' => 'bg-green-100 text-green-800',
+                                    'refunded' => 'bg-gray-100 text-gray-800'
+                                ];
+                                $payment_texts = [
+                                    'unpaid' => 'ยังไม่ชำระ',
+                                    'deposit' => 'มัดจำแล้ว',
+                                    'paid' => 'ชำระแล้ว',
+                                    'refunded' => 'คืนเงินแล้ว'
+                                ];
+                                $payment_class = $payment_classes[$booking['payment_status']] ?? 'bg-gray-100 text-gray-800';
+                                $payment_text = $payment_texts[$booking['payment_status']] ?? $booking['payment_status'];
+                                ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <?php echo $payment_class; ?>">
+                                    <?php echo $payment_text; ?>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm font-semibold text-gray-500">วันที่สร้าง</label>
+                            <div class="mt-1 text-sm text-gray-900"><?php echo format_date_thai($booking['created_at'], 'd/m/Y H:i'); ?></div>
+                        </div>
                     </div>
                 </div>
                 
                 <?php if ($booking['location']): ?>
-                <hr>
-                <div>
-                    <strong><i class="fas fa-map-marker-alt me-2"></i>สถานที่:</strong>
-                    <p class="mb-0"><?php echo nl2br($booking['location']); ?></p>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <label class="text-sm font-semibold text-gray-500 flex items-center mb-2">
+                        <i class="fas fa-map-marker-alt mr-2"></i>สถานที่
+                    </label>
+                    <p class="text-gray-900"><?php echo nl2br(htmlspecialchars($booking['location'])); ?></p>
                 </div>
                 <?php endif; ?>
                 
                 <?php if ($booking['message']): ?>
-                <hr>
-                <div>
-                    <strong><i class="fas fa-comment me-2"></i>ข้อความเพิ่มเติม:</strong>
-                    <p class="mb-0"><?php echo nl2br($booking['message']); ?></p>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <label class="text-sm font-semibold text-gray-500 flex items-center mb-2">
+                        <i class="fas fa-comment mr-2"></i>ข้อความเพิ่มเติม
+                    </label>
+                    <p class="text-gray-900"><?php echo nl2br(htmlspecialchars($booking['message'])); ?></p>
                 </div>
                 <?php endif; ?>
             </div>
         </div>
         
         <!-- Customer Info -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-user me-2"></i>ข้อมูลลูกค้า</h5>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                <h5 class="text-white text-lg font-semibold flex items-center">
+                    <i class="fas fa-user mr-3"></i>ข้อมูลลูกค้า
+                </h5>
             </div>
-            <div class="card-body">
-                <table class="table table-borderless">
-                    <tr>
-                        <th width="150">ชื่อ:</th>
-                        <td><?php echo $booking['customer_name']; ?></td>
-                    </tr>
-                    <tr>
-                        <th>อีเมล:</th>
-                        <td><a href="mailto:<?php echo $booking['customer_email']; ?>"><?php echo $booking['customer_email']; ?></a></td>
-                    </tr>
-                    <tr>
-                        <th>โทรศัพท์:</th>
-                        <td><a href="tel:<?php echo $booking['customer_phone']; ?>"><?php echo $booking['customer_phone']; ?></a></td>
-                    </tr>
-                </table>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="text-sm font-semibold text-gray-500">ชื่อ</label>
+                    <div class="mt-1 text-gray-900 font-medium"><?php echo $booking['customer_name']; ?></div>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-semibold text-gray-500">อีเมล</label>
+                    <div class="mt-1">
+                        <a href="mailto:<?php echo $booking['customer_email']; ?>" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            <?php echo $booking['customer_email']; ?>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-semibold text-gray-500">โทรศัพท์</label>
+                    <div class="mt-1">
+                        <a href="tel:<?php echo $booking['customer_phone']; ?>" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                            <?php echo $booking['customer_phone']; ?>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="col-lg-4">
+    <div class="space-y-6">
         <!-- Timeline -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Timeline</h5>
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4">
+                <h5 class="text-white text-lg font-semibold flex items-center">
+                    <i class="fas fa-history mr-3"></i>Timeline
+                </h5>
             </div>
-            <div class="card-body">
-                <div class="timeline">
-                    <div class="mb-3">
-                        <i class="fas fa-plus-circle text-primary"></i>
-                        <strong>สร้างการจอง</strong>
-                        <br><small class="text-muted"><?php echo format_date_thai($booking['created_at'], 'd/m/Y H:i'); ?></small>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-plus-circle text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h6 class="font-semibold text-gray-900">สร้างการจอง</h6>
+                            <p class="text-sm text-gray-500"><?php echo format_date_thai($booking['created_at'], 'd/m/Y H:i'); ?></p>
+                        </div>
                     </div>
                     
                     <?php if ($booking['confirmed_at']): ?>
-                    <div class="mb-3">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <strong>ยืนยันแล้ว</strong>
-                        <br><small class="text-muted"><?php echo format_date_thai($booking['confirmed_at'], 'd/m/Y H:i'); ?></small>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h6 class="font-semibold text-gray-900">ยืนยันแล้ว</h6>
+                            <p class="text-sm text-gray-500"><?php echo format_date_thai($booking['confirmed_at'], 'd/m/Y H:i'); ?></p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($booking['status'] == 'completed'): ?>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-double text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h6 class="font-semibold text-gray-900">เสร็จสิ้น</h6>
+                            <p class="text-sm text-gray-500">งานเสร็จเรียบร้อย</p>
+                        </div>
                     </div>
                     <?php endif; ?>
                     
                     <?php if ($booking['cancelled_at']): ?>
-                    <div class="mb-3">
-                        <i class="fas fa-times-circle text-danger"></i>
-                        <strong>ยกเลิกแล้ว</strong>
-                        <br><small class="text-muted"><?php echo format_date_thai($booking['cancelled_at'], 'd/m/Y H:i'); ?></small>
-                        <?php if ($booking['cancel_reason']): ?>
-                        <br><small><?php echo $booking['cancel_reason']; ?></small>
-                        <?php endif; ?>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-times-circle text-red-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h6 class="font-semibold text-gray-900">ยกเลิกแล้ว</h6>
+                            <p class="text-sm text-gray-500"><?php echo format_date_thai($booking['cancelled_at'], 'd/m/Y H:i'); ?></p>
+                            <?php if ($booking['cancel_reason']): ?>
+                            <p class="text-sm text-gray-600 mt-1"><?php echo $booking['cancel_reason']; ?></p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php endif; ?>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                <h5 class="text-white text-lg font-semibold flex items-center">
+                    <i class="fas fa-bolt mr-3"></i>การกระทำ
+                </h5>
+            </div>
+            <div class="p-6 space-y-3">
+                <a href="index.php" 
+                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200 font-medium">
+                    <i class="fas fa-list mr-2"></i>รายการทั้งหมด
+                </a>
+                
+                <a href="delete.php?id=<?php echo $booking_id; ?>" 
+                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 font-medium btn-delete">
+                    <i class="fas fa-trash mr-2"></i>ลบการจอง
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
 

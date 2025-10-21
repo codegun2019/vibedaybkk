@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $upload_result = upload_image($_FILES['image'], 'gallery');
             if ($upload_result['success']) {
-                $image_path = $upload_result['path'];
+                $image_path = $upload_result['file_path'];
             } else {
                 $errors[] = 'Image: ' . $upload_result['message'];
             }
@@ -182,4 +182,8 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+
+
+
+
 

@@ -7,30 +7,62 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+// Permission check
+require_permission('categories', 'view');
+$can_create = has_permission('categories', 'create');
+$can_edit = has_permission('categories', 'edit');
+$can_delete = has_permission('categories', 'delete');
+
 $page_title = 'จัดการหมวดหมู่';
 $current_page = 'categories';
 
-// Get all categories
+// Pagination
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$per_page = ADMIN_ITEMS_PER_PAGE;
+$offset = ($page - 1) * $per_page;
+
+// Count total
+$total_categories = $conn->query("SELECT COUNT(*) as total FROM categories")->fetch_assoc()['total'];
+$total_pages = ceil($total_categories / $per_page);
+
+// Get categories with pagination
 $sql = "SELECT c.*, 
         (SELECT COUNT(*) FROM models WHERE category_id = c.id) as model_count
         FROM categories c
-        ORDER BY c.sort_order ASC, c.name ASC";
+        ORDER BY c.sort_order ASC, c.name ASC
+        LIMIT {$per_page} OFFSET {$offset}";
 $categories = db_get_rows($conn, $sql);
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
 ?>
+
+<?php if (!$can_create && !$can_edit && !$can_delete): ?>
+    <?php show_readonly_notice('หมวดหมู่'); ?>
+<?php endif; ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
         <h2 class="text-3xl font-bold text-gray-900 flex items-center">
             <i class="fas fa-th-large mr-3 text-red-600"></i>จัดการหมวดหมู่
+            <?php if (!$can_edit && !$can_delete): ?>
+            <span class="ml-3 text-lg text-yellow-600">
+                <i class="fas fa-eye"></i> ดูอย่างเดียว
+            </span>
+            <?php endif; ?>
         </h2>
         <p class="text-gray-600 mt-1">จำนวนหมวดหมู่ทั้งหมด: <?php echo count($categories); ?> หมวด</p>
     </div>
     <div class="mt-4 sm:mt-0">
+        <?php if ($can_create): ?>
         <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
             <i class="fas fa-plus-circle mr-2"></i>เพิ่มหมวดหมู่ใหม่
         </a>
+        <?php else: ?>
+        <button disabled class="inline-flex items-center px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-60">
+            <i class="fas fa-lock mr-2"></i>ไม่มีสิทธิ์เพิ่ม
+        </button>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -150,6 +182,12 @@ include '../includes/header.php';
 </div>
 
 <?php
+// Pagination
+require_once '../includes/pagination.php';
+render_pagination($page, $total_pages, 'index.php', []);
+?>
+
+<?php
 $extra_css = "<style>
 .bg-gradient-to-br {
     background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
@@ -161,4 +199,6 @@ $extra_css = "<style>
 
 include '../includes/footer.php';
 ?>
+
+
 

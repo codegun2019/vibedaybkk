@@ -7,6 +7,12 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+// Permission check - allow view for all roles with permission
+require_permission('models', 'view');
+$can_create = has_permission('models', 'create');
+$can_edit = has_permission('models', 'edit');
+$can_delete = has_permission('models', 'delete');
+
 $page_title = 'จัดการโมเดล';
 $current_page = 'models';
 
@@ -44,9 +50,20 @@ $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
 // Count total
 $count_sql = "SELECT COUNT(*) as total FROM models m {$where_sql}";
-$stmt = $pdo->prepare($count_sql);
-$stmt->execute($params);
-$total_models = $stmt->fetch()['total'];
+if (!empty($params)) {
+    $stmt = $conn->prepare($count_sql);
+    $types = str_repeat('s', count($params));
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total_models = $row['total'];
+    $stmt->close();
+} else {
+    $result = $conn->query($count_sql);
+    $row = $result->fetch_assoc();
+    $total_models = $row['total'];
+}
 $total_pages = ceil($total_models / $per_page);
 
 // Get models
@@ -58,30 +75,55 @@ $sql = "SELECT m.*, c.name as category_name, c.code as category_code,
         ORDER BY m.featured DESC, m.sort_order ASC, m.created_at DESC
         LIMIT ? OFFSET ?";
 
-$params[] = $per_page;
-$params[] = $offset;
+$all_params = array_merge($params, [$per_page, $offset]);
+$models = [];
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$models = $stmt->fetchAll();
+if (!empty($all_params)) {
+    $stmt = $conn->prepare($sql);
+    $types = str_repeat('s', count($params)) . 'ii'; // params + per_page (int) + offset (int)
+    $stmt->bind_param($types, ...$all_params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $models[] = $row;
+    }
+    $stmt->close();
+}
 
 // Get categories for filter
 $categories = get_categories($conn);
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
+require_once '../includes/locked-form.php';
 ?>
+
+<?php if (!$can_create && !$can_edit && !$can_delete): ?>
+    <?php show_readonly_notice('โมเดล'); ?>
+<?php endif; ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
         <h2 class="text-3xl font-bold text-gray-900 flex items-center">
             <i class="fas fa-users mr-3 text-red-600"></i>จัดการโมเดล
+            <?php if (!$can_edit && !$can_delete): ?>
+            <span class="ml-3 text-lg text-yellow-600">
+                <i class="fas fa-eye"></i> ดูอย่างเดียว
+            </span>
+            <?php endif; ?>
         </h2>
         <p class="text-gray-600 mt-1">จำนวนโมเดลทั้งหมด: <?php echo $total_models; ?> คน</p>
     </div>
     <div class="mt-4 sm:mt-0">
+        <?php if ($can_create): ?>
         <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
             <i class="fas fa-plus-circle mr-2"></i>เพิ่มโมเดลใหม่
         </a>
+        <?php else: ?>
+        <button disabled class="inline-flex items-center px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-60">
+            <i class="fas fa-lock mr-2"></i>ไม่มีสิทธิ์เพิ่ม
+        </button>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -224,16 +266,27 @@ include '../includes/header.php';
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center space-x-2">
+                                    <?php if (has_permission('models', 'edit')): ?>
                                     <a href="edit.php?id=<?php echo $model['id']; ?>" 
                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors duration-200" 
                                        title="แก้ไข">
                                         <i class="fas fa-edit text-sm"></i>
                                     </a>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (has_permission('models', 'delete')): ?>
                                     <a href="delete.php?id=<?php echo $model['id']; ?>" 
                                        class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors duration-200 btn-delete" 
                                        title="ลบ">
                                         <i class="fas fa-trash text-sm"></i>
                                     </a>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (!has_permission('models', 'edit') && !has_permission('models', 'delete')): ?>
+                                    <span class="text-gray-400 text-sm">
+                                        <i class="fas fa-eye"></i> ดูอย่างเดียว
+                                    </span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -263,4 +316,6 @@ $(document).ready(function() {
 
 include '../includes/footer.php';
 ?>
+
+
 

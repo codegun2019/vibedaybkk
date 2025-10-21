@@ -7,6 +7,12 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+// Permission check
+require_permission('contacts', 'view');
+$can_create = has_permission('contacts', 'create');
+$can_edit = has_permission('contacts', 'edit');
+$can_delete = has_permission('contacts', 'delete');
+
 $page_title = 'ข้อความติดต่อ';
 $current_page = 'contacts';
 
@@ -29,7 +35,12 @@ $sql = "SELECT * FROM contacts {$where} ORDER BY created_at DESC LIMIT {$per_pag
 $contacts = db_get_rows($conn, $sql);
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
 ?>
+
+<?php if (!$can_create && !$can_edit && !$can_delete): ?>
+    <?php show_readonly_notice('ข้อความติดต่อ'); ?>
+<?php endif; ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
@@ -158,4 +169,6 @@ include '../includes/header.php';
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
+
 

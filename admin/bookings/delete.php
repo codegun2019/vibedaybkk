@@ -6,27 +6,25 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
-$booking_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+require_permission('bookings', 'delete');
 
-if (!$booking_id) {
-    set_message('error', 'ไม่พบข้อมูล');
-    redirect(ADMIN_URL . '/bookings/');
-}
+$id = (int)$_GET['id'] ?? 0;
 
-$stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
-$stmt->execute([$booking_id]);
-$booking = $stmt->fetch();
-
-if (!$booking) {
-    set_message('error', 'ไม่พบข้อมูล');
-    redirect(ADMIN_URL . '/bookings/');
-}
-
-if (db_delete($pdo, 'bookings', 'id = :id', ['id' => $booking_id])) {
-    log_activity($pdo, $_SESSION['user_id'], 'delete', 'bookings', $booking_id, $booking);
-    set_message('success', 'ลบการจอง #' . $booking_id . ' สำเร็จ');
-} else {
-    set_message('error', 'เกิดข้อผิดพลาด');
+if ($id > 0) {
+    $stmt = $conn->prepare("SELECT * FROM bookings WHERE id = ?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $booking = $result->fetch_assoc();
+    $stmt->close();
+    
+    if ($booking) {
+        db_delete($conn, 'bookings', 'id = ?', [$id]);
+        log_activity($conn, $_SESSION['user_id'], 'delete', 'bookings', $id, json_encode($booking));
+        set_message('success', 'ลบการจองสำเร็จ');
+    } else {
+        set_message('error', 'ไม่พบข้อมูล');
+    }
 }
 
 redirect(ADMIN_URL . '/bookings/');

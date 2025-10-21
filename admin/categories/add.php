@@ -7,6 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+
+// Permission check
+require_permission('categories', 'create');
 $page_title = 'เพิ่มหมวดหมู่ใหม่';
 $current_page = 'categories';
 
@@ -36,16 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Check duplicate code
         if (!empty($data['code'])) {
-            $stmt = $pdo->prepare("SELECT id FROM categories WHERE code = ?");
-            $stmt->execute([$data['code']]);
+            $stmt = $conn->prepare("SELECT id FROM categories WHERE code = ?");
+            $stmt->bind_param('s', $data['code']);
+            $stmt->execute();
             if ($stmt->fetch()) {
                 $errors[] = 'รหัสหมวดหมู่นี้มีอยู่แล้ว';
             }
         }
         
         if (empty($errors)) {
-            if (db_insert($pdo, 'categories', $data)) {
-                $category_id = $pdo->lastInsertId();
+            if (db_insert($conn, 'categories', $data)) {
+                $category_id = $conn->insert_id;
                 
                 // Add requirements if provided
                 if (!empty($_POST['requirements'])) {
@@ -59,12 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'requirement' => $req,
                                 'sort_order' => $sort++
                             ];
-                            db_insert($pdo, 'model_requirements', $req_data);
+                            db_insert($conn, 'model_requirements', $req_data);
                         }
                     }
                 }
                 
-                log_activity($pdo, $_SESSION['user_id'], 'create', 'categories', $category_id, null, $data);
+                log_activity($conn, $_SESSION['user_id'], 'create', 'categories', $category_id, null, $data);
                 
                 set_message('success', 'เพิ่มหมวดหมู่สำเร็จ');
                 redirect(ADMIN_URL . '/categories/');
@@ -169,10 +173,20 @@ include '../includes/header.php';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">ไอคอน Font Awesome</label>
-                    <input type="text" name="icon" placeholder="fa-female" value="fa-user" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
-                    <p class="text-sm text-gray-500 mt-2">เช่น: fa-female, fa-male, fa-camera, fa-star</p>
-                    <div class="mt-3">
+                    <div class="flex items-center space-x-3">
+                        <input type="text" name="icon" id="icon-input" placeholder="fa-female" value="fa-user" 
+                               class="icon-picker-input flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <div id="icon-input_preview" class="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-purple-300">
+                            <i class="fas fa-user text-3xl text-purple-600"></i>
+                        </div>
+                        <button type="button" class="icon-picker-btn px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
+                            <i class="fas fa-icons mr-2"></i>เลือกไอคอน
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">
+                        คลิก "เลือกไอคอน" หรือพิมพ์ชื่อไอคอนเอง เช่น: fa-female, fa-male, fa-camera
+                    </p>
+                    <div class="mt-3" style="display:none;">
                         <a href="https://fontawesome.com/icons" target="_blank" 
                            class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors duration-200 text-sm font-medium">
                             <i class="fas fa-external-link-alt mr-2"></i>ดูไอคอน
@@ -260,4 +274,7 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+<script src="../includes/icon-picker.js"></script>
+
+
 

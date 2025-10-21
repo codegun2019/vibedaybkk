@@ -7,6 +7,12 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+// Permission check
+require_permission('menus', 'view');
+$can_create = has_permission('menus', 'create');
+$can_edit = has_permission('menus', 'edit');
+$can_delete = has_permission('menus', 'delete');
+
 $page_title = 'จัดการเมนู';
 $current_page = 'menus';
 
@@ -28,7 +34,12 @@ $sql = "SELECT m.*,
 $menus = db_get_rows($conn, $sql);
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
 ?>
+
+<?php if (!$can_create && !$can_edit && !$can_delete): ?>
+    <?php show_readonly_notice('เมนู'); ?>
+<?php endif; ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
@@ -60,6 +71,9 @@ include '../includes/header.php';
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                <i class="fas fa-grip-vertical mr-2"></i>เรียง
+                            </th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ไอคอน</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ชื่อเมนู</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">URL</th>
@@ -70,9 +84,12 @@ include '../includes/header.php';
                             <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">การกระทำ</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody id="sortable-menu" class="divide-y divide-gray-200">
                         <?php foreach ($menus as $menu): ?>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 cursor-move transition-all duration-200" data-id="<?php echo $menu['id']; ?>" data-parent="<?php echo $menu['parent_id'] ?: '0'; ?>">
+                            <td class="px-4 py-3">
+                                <i class="fas fa-grip-vertical text-gray-400 text-xl cursor-grab active:cursor-grabbing"></i>
+                            </td>
                             <td class="px-4 py-3">
                                 <?php if ($menu['icon']): ?>
                                 <i class="fas <?php echo $menu['icon']; ?> text-lg text-gray-600"></i>
@@ -145,4 +162,235 @@ include '../includes/header.php';
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
+<!-- SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableElement = document.getElementById('sortable-menu');
+    
+    if (sortableElement) {
+        const sortable = new Sortable(sortableElement, {
+            animation: 350,
+            easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
+            handle: '.fa-grip-vertical',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            chosenClass: 'sortable-chosen',
+            forceFallback: false,
+            fallbackTolerance: 3,
+            scrollSensitivity: 60,
+            scrollSpeed: 15,
+            bubbleScroll: true,
+            
+            onStart: function(evt) {
+                document.body.style.overflow = 'hidden';
+                evt.item.classList.add('dragging-item');
+            },
+            
+            onEnd: function(evt) {
+                document.body.style.overflow = '';
+                evt.item.classList.remove('dragging-item');
+                
+                // Get new order - send only IDs in order
+                const items = Array.from(sortableElement.querySelectorAll('tr[data-id]'));
+                const newOrder = items.map(item => parseInt(item.dataset.id));
+                
+                console.log('Sending order:', newOrder); // Debug
+                
+                // Show loading
+                Swal.fire({
+                    title: 'กำลังบันทึก...',
+                    html: '<div class="flex justify-center"><i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+                
+                // Send AJAX request
+                fetch('update-order.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order: newOrder
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success notification
+                        Swal.fire({
+                            icon: 'success',
+                            title: '✅ บันทึกลำดับสำเร็จ!',
+                            html: `
+                                <div class="text-center py-3">
+                                    <div class="mb-3">
+                                        <i class="fas fa-check-circle text-green-600 text-5xl"></i>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">ลำดับเมนูได้รับการอัพเดทแล้ว</p>
+                                    <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 text-left">
+                                        <div class="flex items-center text-sm text-green-800">
+                                            <i class="fas fa-info-circle mr-2"></i>
+                                            <span>เมนูจะแสดงตามลำดับใหม่ในหน้าเว็บ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonText: '<i class="fas fa-check mr-2"></i>เข้าใจแล้ว',
+                            confirmButtonColor: '#DC2626',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            showClass: {
+                                popup: 'animate__animated animate__bounceIn animate__faster'
+                            },
+                            customClass: {
+                                popup: 'rounded-2xl shadow-2xl',
+                                title: 'text-2xl font-bold',
+                                confirmButton: 'px-6 py-3 rounded-xl font-semibold'
+                            }
+                        }).then(() => {
+                            // Reload page to show new order
+                            location.reload();
+                        });
+                    } else {
+                        // Error notification
+                        Swal.fire({
+                            icon: 'error',
+                            title: '❌ เกิดข้อผิดพลาด',
+                            html: `
+                                <div class="text-center py-3">
+                                    <div class="mb-3">
+                                        <i class="fas fa-exclamation-circle text-red-600 text-5xl"></i>
+                                    </div>
+                                    <p class="text-gray-700 mb-3">${data.message || 'ไม่สามารถบันทึกลำดับได้'}</p>
+                                    <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-3 text-left">
+                                        <div class="flex items-center text-sm text-red-800">
+                                            <i class="fas fa-info-circle mr-2"></i>
+                                            <span>กรุณาลองใหม่อีกครั้ง</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonText: '<i class="fas fa-redo mr-2"></i>ลองใหม่',
+                            confirmButtonColor: '#DC2626',
+                            customClass: {
+                                popup: 'rounded-2xl shadow-2xl',
+                                title: 'text-2xl font-bold',
+                                confirmButton: 'px-6 py-3 rounded-xl font-semibold'
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: '🔌 เกิดข้อผิดพลาด',
+                        text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#DC2626'
+                    });
+                });
+            }
+        });
+    }
+});
+</script>
+
+<style>
+/* Cursor styles */
+.cursor-grab {
+    cursor: grab;
+}
+
+.cursor-grab:active {
+    cursor: grabbing;
+}
+
+/* Sortable states */
+.sortable-ghost {
+    opacity: 0.4;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.sortable-drag {
+    opacity: 0;
+}
+
+.sortable-chosen {
+    background: #EBF5FF !important;
+    box-shadow: 0 0 0 2px #3B82F6;
+}
+
+.dragging-item {
+    opacity: 1 !important;
+    background: white !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+    transform: rotate(2deg) scale(1.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 9999 !important;
+}
+
+/* Row hover effect */
+#sortable-menu tr[data-id] {
+    transition: all 0.2s ease;
+}
+
+#sortable-menu tr[data-id]:hover {
+    background: #F0F9FF;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Grip icon hover */
+.fa-grip-vertical {
+    transition: all 0.2s ease;
+}
+
+.fa-grip-vertical:hover {
+    color: #3B82F6 !important;
+    transform: scale(1.2);
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar during drag */
+body.dragging {
+    overflow: hidden !important;
+}
+
+/* Table wrapper */
+.overflow-x-auto {
+    overflow-x: visible !important;
+}
+
+/* Animation for row movement */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#sortable-menu tr[data-id] {
+    animation: slideIn 0.3s ease;
+}
+</style>
+
+
 

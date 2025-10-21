@@ -7,6 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+
+// Permission check
+require_permission('categories', 'edit');
 $page_title = 'แก้ไขหมวดหมู่';
 $current_page = 'categories';
 
@@ -54,15 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Check duplicate code
         if (!empty($data['code'])) {
-            $stmt = $pdo->prepare("SELECT id FROM categories WHERE code = ? AND id != ?");
-            $stmt->execute([$data['code'], $category_id]);
+            $stmt = $conn->prepare("SELECT id FROM categories WHERE code = ? AND id != ?");
+            $stmt->bind_param('si', $data['code'], $category_id);
+            $stmt->execute();
             if ($stmt->fetch()) {
                 $errors[] = 'รหัสหมวดหมู่นี้มีอยู่แล้ว';
             }
         }
         
         if (empty($errors)) {
-            if (db_update($pdo, 'categories', $data, 'id = :id', ['id' => $category_id])) {
+            if (db_update($conn, 'categories', $data, 'id = :id', ['id' => $category_id])) {
                 
                 // Update requirements
                 $conn->query("DELETE FROM model_requirements WHERE category_id = {$category_id}");
@@ -77,12 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'requirement' => $req,
                                 'sort_order' => $sort++
                             ];
-                            db_insert($pdo, 'model_requirements', $req_data);
+                            db_insert($conn, 'model_requirements', $req_data);
                         }
                     }
                 }
                 
-                log_activity($pdo, $_SESSION['user_id'], 'update', 'categories', $category_id, $category, $data);
+                log_activity($conn, $_SESSION['user_id'], 'update', 'categories', $category_id, $category, $data);
                 
                 $success = true;
                 // Refresh data
@@ -195,15 +199,23 @@ include '../includes/header.php';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">ไอคอน Font Awesome</label>
-                    <input type="text" name="icon" placeholder="fa-female" value="<?php echo htmlspecialchars($category['icon']); ?>" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
-                    <p class="text-sm text-gray-500 mt-2">เช่น: fa-female, fa-male, fa-camera, fa-star</p>
-                    <div class="mt-3">
-                        <a href="https://fontawesome.com/icons" target="_blank" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors duration-200 text-sm font-medium">
-                            <i class="fas fa-external-link-alt mr-2"></i>ดูไอคอน
-                        </a>
+                    <div class="flex items-center space-x-3">
+                        <input type="text" name="icon" id="icon-input" placeholder="fa-female" value="<?php echo htmlspecialchars($category['icon']); ?>" 
+                               class="icon-picker-input flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <div id="icon-input_preview" class="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-purple-300">
+                            <?php if ($category['icon']): ?>
+                            <i class="fas <?php echo htmlspecialchars($category['icon']); ?> text-3xl text-purple-600"></i>
+                            <?php else: ?>
+                            <i class="fas fa-question text-3xl text-gray-400"></i>
+                            <?php endif; ?>
+                        </div>
+                        <button type="button" class="icon-picker-btn px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
+                            <i class="fas fa-icons mr-2"></i>เลือกไอคอน
+                        </button>
                     </div>
+                    <p class="text-sm text-gray-500 mt-2">
+                        คลิก "เลือกไอคอน" หรือพิมพ์ชื่อไอคอนเอง เช่น: fa-female, fa-male, fa-camera
+                    </p>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">สี Gradient (Tailwind)</label>
@@ -286,3 +298,6 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+<script src="../includes/icon-picker.js"></script>
+
+

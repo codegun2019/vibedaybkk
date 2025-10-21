@@ -7,6 +7,12 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+// Permission check
+require_permission('articles', 'view');
+$can_create = has_permission('articles', 'create');
+$can_edit = has_permission('articles', 'edit');
+$can_delete = has_permission('articles', 'delete');
+
 $page_title = 'จัดการบทความ';
 $current_page = 'articles';
 
@@ -36,9 +42,20 @@ $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
 // Count total
 $count_sql = "SELECT COUNT(*) as total FROM articles {$where_sql}";
-$stmt = $pdo->prepare($count_sql);
-$stmt->execute($params);
-$total_articles = $stmt->fetch()['total'];
+if (!empty($params)) {
+    $stmt = $conn->prepare($count_sql);
+    $types = str_repeat('s', count($params));
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total_articles = $row['total'];
+    $stmt->close();
+} else {
+    $result = $conn->query($count_sql);
+    $row = $result->fetch_assoc();
+    $total_articles = $row['total'];
+}
 $total_pages = ceil($total_articles / $per_page);
 
 // Get articles
@@ -49,27 +66,49 @@ $sql = "SELECT a.*, u.full_name as author_name
         ORDER BY a.created_at DESC
         LIMIT ? OFFSET ?";
 
-$params[] = $per_page;
-$params[] = $offset;
+$all_params = array_merge($params, [$per_page, $offset]);
+$articles = [];
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$articles = $stmt->fetchAll();
+$stmt = $conn->prepare($sql);
+$types = str_repeat('s', count($params)) . 'ii'; // params + per_page (int) + offset (int)
+$stmt->bind_param($types, ...$all_params);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $articles[] = $row;
+}
+$stmt->close();
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
 ?>
+
+<?php if (!$can_create && !$can_edit && !$can_delete): ?>
+    <?php show_readonly_notice('บทความ'); ?>
+<?php endif; ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
     <div>
         <h2 class="text-3xl font-bold text-gray-900 flex items-center">
             <i class="fas fa-newspaper mr-3 text-red-600"></i>จัดการบทความ
+            <?php if (!$can_edit && !$can_delete): ?>
+            <span class="ml-3 text-lg text-yellow-600">
+                <i class="fas fa-eye"></i> ดูอย่างเดียว
+            </span>
+            <?php endif; ?>
         </h2>
         <p class="text-gray-600 mt-1">จำนวนบทความทั้งหมด: <?php echo $total_articles; ?> บทความ</p>
     </div>
     <div class="mt-4 sm:mt-0">
+        <?php if ($can_create): ?>
         <a href="add.php" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
             <i class="fas fa-plus-circle mr-2"></i>เพิ่มบทความใหม่
         </a>
+        <?php else: ?>
+        <button disabled class="inline-flex items-center px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-60">
+            <i class="fas fa-lock mr-2"></i>ไม่มีสิทธิ์เพิ่ม
+        </button>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -204,4 +243,6 @@ include '../includes/header.php';
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
+
 

@@ -6,7 +6,8 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
-require_admin();
+// Permission check
+require_permission('users', 'create');
 
 $page_title = 'เพิ่มผู้ใช้ใหม่';
 $current_page = 'users';
@@ -28,8 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strlen($password) < 6) $errors[] = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
         
         // Check duplicate username
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->execute([$username]);
+        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->bind_param('s', $username);
+            $stmt->execute();
         if ($stmt->fetch()) {
             $errors[] = 'ชื่อผู้ใช้นี้มีอยู่แล้ว';
         }
@@ -44,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'status' => $_POST['status']
             ];
             
-            if (db_insert($pdo, 'users', $data)) {
-                $user_id = $pdo->lastInsertId();
-                log_activity($pdo, $_SESSION['user_id'], 'create', 'users', $user_id);
+            if (db_insert($conn, 'users', $data)) {
+                $user_id = $conn->insert_id;
+                log_activity($conn, $_SESSION['user_id'], 'create', 'users', $user_id);
                 set_message('success', 'เพิ่มผู้ใช้สำเร็จ');
                 redirect(ADMIN_URL . '/users/');
             } else {
@@ -136,8 +138,14 @@ include '../includes/header.php';
                     <label class="block text-sm font-semibold text-gray-700 mb-2">บทบาท</label>
                     <select name="role" 
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        <option value="editor">ผู้แก้ไข (Editor)</option>
-                        <option value="admin">ผู้ดูแลระบบ (Admin)</option>
+                        <?php
+                        $available_roles = get_available_roles();
+                        foreach ($available_roles as $role_key => $role_info):
+                        ?>
+                        <option value="<?php echo $role_key; ?>">
+                            <?php echo $role_info['display_name']; ?> (<?php echo ucfirst($role_key); ?>)
+                        </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
@@ -165,3 +173,5 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+
+

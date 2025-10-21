@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($upload_result['success']) {
                 $sql = "INSERT INTO homepage_gallery (section_id, image_path, title, description, link_url, sort_order) 
                         VALUES (?, ?, ?, ?, ?, ?)";
-                $params = [$section_id, $upload_result['path'], $title, $description, $link_url, $sort_order];
+                $params = [$section_id, $upload_result['file_path'], $title, $description, $link_url, $sort_order];
                 
                 if (db_execute($conn, $sql, $params)) {
                     $success = true;
@@ -247,4 +247,8 @@ if (galleryGrid) {
     });
 }
 </script>
+
+
+
+
 

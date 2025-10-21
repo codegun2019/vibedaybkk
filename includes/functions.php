@@ -13,15 +13,25 @@ if (!defined('VIBEDAYBKK_ADMIN')) {
  * Security Functions
  */
 
-// Clean input data
+// Clean input data for database storage (NO HTML encoding)
 function clean_input($data) {
+    if (is_array($data)) {
+        return array_map('clean_input', $data);
+    }
     $data = trim($data);
     $data = stripslashes($data);
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     return $data;
 }
 
-// Sanitize for database
+// Escape for safe HTML output
+function escape_html($data) {
+    if (is_array($data)) {
+        return array_map('escape_html', $data);
+    }
+    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+}
+
+// Sanitize for database (for raw queries)
 function sanitize_db($conn, $data) {
     return $conn->real_escape_string(trim($data));
 }
@@ -55,7 +65,142 @@ function is_logged_in() {
 
 // Check if user is admin
 function is_admin() {
-    return is_logged_in() && $_SESSION['user_role'] === 'admin';
+    return is_logged_in() && in_array($_SESSION['user_role'], ['admin', 'programmer']);
+}
+
+// Check if user is programmer
+function is_programmer() {
+    return is_logged_in() && $_SESSION['user_role'] === 'programmer';
+}
+
+// Check if user is editor
+function is_editor() {
+    return is_logged_in() && in_array($_SESSION['user_role'], ['editor', 'admin', 'programmer']);
+}
+
+// Check if user is viewer or higher
+function is_viewer() {
+    return is_logged_in();
+}
+
+// Get user role level
+function get_user_role_level() {
+    if (!is_logged_in()) {
+        return 0;
+    }
+    
+    $role_levels = [
+        'programmer' => 100,
+        'admin' => 80,
+        'editor' => 50,
+        'viewer' => 10
+    ];
+    
+    return $role_levels[$_SESSION['user_role']] ?? 0;
+}
+
+// Check if user has permission for a feature
+function has_permission($feature, $action = 'view') {
+    global $conn;
+    
+    if (!is_logged_in()) {
+        return false;
+    }
+    
+    // Programmer has all permissions
+    if ($_SESSION['user_role'] === 'programmer') {
+        return true;
+    }
+    
+    $role_key = $_SESSION['user_role'];
+    
+    // Check in permissions table
+    $stmt = $conn->prepare("SELECT can_view, can_create, can_edit, can_delete, can_export FROM permissions WHERE role_key = ? AND feature = ?");
+    $stmt->bind_param('ss', $role_key, $feature);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $perm = $result->fetch_assoc();
+    $stmt->close();
+    
+    if (!$perm) {
+        return false;
+    }
+    
+    switch ($action) {
+        case 'view':
+            return $perm['can_view'] == 1;
+        case 'create':
+        case 'add':
+            return $perm['can_create'] == 1;
+        case 'edit':
+        case 'update':
+            return $perm['can_edit'] == 1;
+        case 'delete':
+            return $perm['can_delete'] == 1;
+        case 'export':
+            return $perm['can_export'] == 1;
+        default:
+            return false;
+    }
+}
+
+// Require specific permission (soft check - allow view but lock actions)
+function require_permission($feature, $action = 'view') {
+    // Always allow view permission to show locked UI
+    if ($action === 'view') {
+        return true;
+    }
+    
+    // For create/edit/delete, redirect if no permission
+    if (!has_permission($feature, $action)) {
+        set_message('error', 'คุณไม่มีสิทธิ์ทำการนี้ - กรุณาอัพเกรดบทบาท');
+        redirect(ADMIN_URL . '/index.php');
+    }
+}
+
+// Get user's role info
+function get_user_role_info($role_key = null) {
+    global $conn;
+    
+    // ถ้าไม่ส่ง role_key มา ให้ใช้ของ current user
+    if ($role_key === null) {
+        if (!is_logged_in()) {
+            return null;
+        }
+        $role_key = $_SESSION['user_role'];
+    }
+    
+    $stmt = $conn->prepare("SELECT * FROM roles WHERE role_key = ?");
+    $stmt->bind_param('s', $role_key);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $role = $result->fetch_assoc();
+    $stmt->close();
+    
+    // ถ้าไม่เจอใน database ให้คืนค่า default
+    if (!$role) {
+        return [
+            'role_key' => $role_key,
+            'display_name' => ucfirst($role_key),
+            'icon' => 'fas fa-user',
+            'color' => 'gray'
+        ];
+    }
+    
+    return $role;
+}
+
+// Get all available roles
+function get_available_roles() {
+    global $conn;
+    
+    $roles = [];
+    $result = $conn->query("SELECT * FROM roles WHERE is_active = 1 ORDER BY level DESC");
+    while ($row = $result->fetch_assoc()) {
+        $roles[$row['role_key']] = $row;
+    }
+    
+    return $roles;
 }
 
 // Require login
@@ -93,24 +238,15 @@ function db_query($conn, $sql) {
 // Get single row (supports prepared statements)
 function db_get_row($conn, $sql, $params = []) {
     if (!empty($params)) {
-        // Use prepared statement
-        global $pdo;
-        if (!isset($pdo)) {
-            // If PDO not available, use mysqli
-            $stmt = $conn->prepare($sql);
-            if (!$stmt) return null;
-            
-            $types = str_repeat('s', count($params));
-            $stmt->bind_param($types, ...$params);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            return $result ? $result->fetch_assoc() : null;
-        } else {
-            // Use PDO
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-        }
+        // Use prepared statement with mysqli
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) return null;
+        
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result ? $result->fetch_assoc() : null;
     } else {
         // Regular query
         $result = db_query($conn, $sql);
@@ -124,30 +260,21 @@ function db_get_row($conn, $sql, $params = []) {
 // Get all rows (supports prepared statements)
 function db_get_rows($conn, $sql, $params = []) {
     if (!empty($params)) {
-        // Use prepared statement
-        global $pdo;
-        if (!isset($pdo)) {
-            // If PDO not available, use mysqli
-            $stmt = $conn->prepare($sql);
-            if (!$stmt) return [];
-            
-            $types = str_repeat('s', count($params));
-            $stmt->bind_param($types, ...$params);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $rows = [];
-            if ($result) {
-                while ($row = $result->fetch_assoc()) {
-                    $rows[] = $row;
-                }
+        // Use prepared statement with mysqli
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) return [];
+        
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rows = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = $row;
             }
-            return $rows;
-        } else {
-            // Use PDO
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         }
+        return $rows;
     } else {
         // Regular query
         $result = db_query($conn, $sql);
@@ -161,51 +288,161 @@ function db_get_rows($conn, $sql, $params = []) {
     }
 }
 
-// Insert with prepared statement (PDO)
-function db_insert($pdo, $table, $data) {
+// Insert with prepared statement (MySQLi)
+function db_insert($conn, $table, $data) {
     $keys = array_keys($data);
     $fields = implode(', ', $keys);
-    $placeholders = ':' . implode(', :', $keys);
+    $placeholders = str_repeat('?,', count($data) - 1) . '?';
     
     $sql = "INSERT INTO {$table} ({$fields}) VALUES ({$placeholders})";
     
     try {
-        $stmt = $pdo->prepare($sql);
-        return $stmt->execute($data);
-    } catch (PDOException $e) {
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        $types = '';
+        $values = [];
+        foreach ($data as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $values[] = $value;
+        }
+        
+        $stmt->bind_param($types, ...$values);
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    } catch (Exception $e) {
         error_log("Insert Error: " . $e->getMessage());
         return false;
     }
 }
 
-// Update with prepared statement (PDO)
-function db_update($pdo, $table, $data, $where, $whereParams = []) {
+// Update with prepared statement (MySQLi)
+function db_update($conn, $table, $data, $where, $whereParams = []) {
     $setParts = [];
     foreach (array_keys($data) as $key) {
-        $setParts[] = "{$key} = :{$key}";
+        $setParts[] = "{$key} = ?";
     }
     $setString = implode(', ', $setParts);
     
     $sql = "UPDATE {$table} SET {$setString} WHERE {$where}";
     
     try {
-        $stmt = $pdo->prepare($sql);
-        $params = array_merge($data, $whereParams);
-        return $stmt->execute($params);
-    } catch (PDOException $e) {
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        $types = '';
+        $values = [];
+        
+        // Add data values
+        foreach ($data as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $values[] = $value;
+        }
+        
+        // Add where params
+        foreach ($whereParams as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $values[] = $value;
+        }
+        
+        $stmt->bind_param($types, ...$values);
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    } catch (Exception $e) {
         error_log("Update Error: " . $e->getMessage());
         return false;
     }
 }
 
-// Delete with prepared statement (PDO)
-function db_delete($pdo, $table, $where, $whereParams = []) {
+// Execute query with prepared statement (MySQLi)
+function db_execute($conn, $sql, $params = []) {
+    try {
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        if (!empty($params)) {
+            $types = '';
+            foreach ($params as $value) {
+                if (is_int($value)) {
+                    $types .= 'i';
+                } elseif (is_double($value)) {
+                    $types .= 'd';
+                } else {
+                    $types .= 's';
+                }
+            }
+            
+            $stmt->bind_param($types, ...$params);
+        }
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    } catch (Exception $e) {
+        error_log("Execute Error: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Delete with prepared statement (MySQLi)
+function db_delete($conn, $table, $where, $whereParams = []) {
     $sql = "DELETE FROM {$table} WHERE {$where}";
     
     try {
-        $stmt = $pdo->prepare($sql);
-        return $stmt->execute($whereParams);
-    } catch (PDOException $e) {
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        if (!empty($whereParams)) {
+            $types = '';
+            foreach ($whereParams as $value) {
+                if (is_int($value)) {
+                    $types .= 'i';
+                } elseif (is_double($value)) {
+                    $types .= 'd';
+                } else {
+                    $types .= 's';
+                }
+            }
+            
+            $stmt->bind_param($types, ...$whereParams);
+        }
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    } catch (Exception $e) {
         error_log("Delete Error: " . $e->getMessage());
         return false;
     }
@@ -216,53 +453,180 @@ function db_delete($pdo, $table, $where, $whereParams = []) {
  */
 
 // Upload image
-function upload_image($file, $folder = 'general') {
-    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
-        return ['success' => false, 'message' => 'ไม่มีไฟล์หรือเกิดข้อผิดพลาดในการอัพโหลด'];
-    }
-    
-    // Check file size
-    if ($file['size'] > MAX_FILE_SIZE) {
-        return ['success' => false, 'message' => 'ไฟล์มีขนาดใหญ่เกินไป (สูงสุด ' . (MAX_FILE_SIZE / 1024 / 1024) . ' MB)'];
-    }
-    
-    // Check file type
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-    
-    if (!in_array($mimeType, ALLOWED_IMAGE_TYPES)) {
-        return ['success' => false, 'message' => 'ประเภทไฟล์ไม่ถูกต้อง'];
-    }
-    
-    // Get file extension
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, ALLOWED_IMAGE_EXT)) {
-        return ['success' => false, 'message' => 'นามสกุลไฟล์ไม่ถูกต้อง'];
-    }
-    
-    // Create upload directory if not exists
-    $uploadDir = UPLOADS_PATH . '/' . $folder;
-    if (!file_exists($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-    
-    // Generate unique filename
-    $newFilename = uniqid() . '_' . time() . '.' . $ext;
-    $uploadPath = $uploadDir . '/' . $newFilename;
-    
-    // Move uploaded file
-    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-        $relativePath = $folder . '/' . $newFilename;
+function upload_image($file, $folder = 'general', $createThumbnail = true) {
+    try {
+        // Validate file
+        if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            return ['success' => false, 'error' => 'ไม่มีไฟล์หรือเกิดข้อผิดพลาดในการอัพโหลด (Error: ' . ($file['error'] ?? 'unknown') . ')'];
+        }
+        
+        // Check file size
+        if ($file['size'] > MAX_FILE_SIZE) {
+            return ['success' => false, 'error' => 'ไฟล์มีขนาดใหญ่เกินไป (สูงสุด ' . (MAX_FILE_SIZE / 1024 / 1024) . ' MB)'];
+        }
+        
+        // Check file extension
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ALLOWED_IMAGE_EXT)) {
+            return ['success' => false, 'error' => 'นามสกุลไฟล์ไม่ถูกต้อง (รองรับเฉพาะ: ' . implode(', ', ALLOWED_IMAGE_EXT) . ')'];
+        }
+        
+        // Verify it's an image and get dimensions
+        if (!function_exists('getimagesize')) {
+            return ['success' => false, 'error' => 'ฟังก์ชัน getimagesize ไม่พร้อมใช้งาน'];
+        }
+        
+        $imageInfo = @getimagesize($file['tmp_name']);
+        if ($imageInfo === false) {
+            return ['success' => false, 'error' => 'ไฟล์ไม่ใช่รูปภาพที่ถูกต้อง'];
+        }
+        
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+        
+        // Create upload directory if not exists
+        $uploadDir = ROOT_PATH . '/uploads/' . $folder;
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                return ['success' => false, 'error' => 'ไม่สามารถสร้างโฟลเดอร์ได้'];
+            }
+        }
+        
+        // Generate unique filename
+        $newFilename = uniqid() . '_' . time() . '.' . $ext;
+        $uploadPath = $uploadDir . '/' . $newFilename;
+        
+        // Move uploaded file
+        if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            return ['success' => false, 'error' => 'ไม่สามารถย้ายไฟล์ได้'];
+        }
+        
+        $relativePath = 'uploads/' . $folder . '/' . $newFilename;
+        
+        // Create thumbnail if requested and GD is available
+        $thumbnailPath = null;
+        if ($createThumbnail && function_exists('imagecreatefromjpeg') && function_exists('imagecreatetruecolor')) {
+            try {
+                $thumbDir = $uploadDir . '/thumbs';
+                if (!file_exists($thumbDir)) {
+                    mkdir($thumbDir, 0755, true);
+                }
+                
+                $thumbFilename = 'thumb_' . $newFilename;
+                $thumbPath = $thumbDir . '/' . $thumbFilename;
+                
+                // Create thumbnail (300x300)
+                if (create_thumbnail($uploadPath, $thumbPath, 300, 300)) {
+                    $thumbnailPath = 'uploads/' . $folder . '/thumbs/' . $thumbFilename;
+                }
+            } catch (Exception $e) {
+                // Thumbnail creation failed, but upload succeeded
+                error_log('Thumbnail creation failed: ' . $e->getMessage());
+            }
+        }
+        
         return [
             'success' => true,
             'filename' => $newFilename,
-            'path' => $relativePath,
-            'url' => UPLOADS_URL . '/' . $relativePath
+            'file_path' => $relativePath,
+            'thumbnail_path' => $thumbnailPath,
+            'url' => BASE_URL . '/' . $relativePath,
+            'width' => $width,
+            'height' => $height,
+            'mime_type' => $mimeType
         ];
+        
+    } catch (Exception $e) {
+        error_log('Upload error: ' . $e->getMessage());
+        return ['success' => false, 'error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()];
     }
-    
-    return ['success' => false, 'message' => 'เกิดข้อผิดพลาดในการย้ายไฟล์'];
+}
+
+// Create thumbnail
+function create_thumbnail($source, $destination, $maxWidth, $maxHeight) {
+    try {
+        $imageInfo = getimagesize($source);
+        if (!$imageInfo) return false;
+        
+        $srcWidth = $imageInfo[0];
+        $srcHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+        
+        // Calculate new dimensions
+        $ratio = min($maxWidth / $srcWidth, $maxHeight / $srcHeight);
+        $newWidth = round($srcWidth * $ratio);
+        $newHeight = round($srcHeight * $ratio);
+        
+        // Create source image
+        switch ($mimeType) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $srcImage = imagecreatefromjpeg($source);
+                break;
+            case 'image/png':
+                $srcImage = imagecreatefrompng($source);
+                break;
+            case 'image/gif':
+                $srcImage = imagecreatefromgif($source);
+                break;
+            case 'image/webp':
+                if (function_exists('imagecreatefromwebp')) {
+                    $srcImage = imagecreatefromwebp($source);
+                } else {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+        }
+        
+        if (!$srcImage) return false;
+        
+        // Create thumbnail
+        $thumb = imagecreatetruecolor($newWidth, $newHeight);
+        
+        // Preserve transparency for PNG and GIF
+        if ($mimeType == 'image/png' || $mimeType == 'image/gif') {
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
+            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+        
+        // Resize
+        imagecopyresampled($thumb, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+        
+        // Save thumbnail
+        $result = false;
+        switch ($mimeType) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $result = imagejpeg($thumb, $destination, 85);
+                break;
+            case 'image/png':
+                $result = imagepng($thumb, $destination, 8);
+                break;
+            case 'image/gif':
+                $result = imagegif($thumb, $destination);
+                break;
+            case 'image/webp':
+                if (function_exists('imagewebp')) {
+                    $result = imagewebp($thumb, $destination, 85);
+                }
+                break;
+        }
+        
+        // Clean up
+        imagedestroy($srcImage);
+        imagedestroy($thumb);
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log('Thumbnail creation error: ' . $e->getMessage());
+        return false;
+    }
 }
 
 // Delete image
@@ -438,25 +802,30 @@ function get_client_ip() {
         return $_SERVER['HTTP_CLIENT_IP'];
     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         return $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
+    } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
         return $_SERVER['REMOTE_ADDR'];
+    } else {
+        return '127.0.0.1'; // Fallback for CLI
     }
 }
 
 // Log activity
-function log_activity($pdo, $userId, $action, $tableName = null, $recordId = null, $oldValues = null, $newValues = null) {
+function log_activity($conn, $userId, $action, $tableName = null, $recordId = null, $description = null) {
+    // Convert description to new_values for compatibility
+    $newValues = $description;
+    
     $data = [
         'user_id' => $userId,
         'action' => $action,
         'table_name' => $tableName,
         'record_id' => $recordId,
-        'old_values' => $oldValues ? json_encode($oldValues) : null,
-        'new_values' => $newValues ? json_encode($newValues) : null,
+        'old_values' => null,
+        'new_values' => $newValues,
         'ip_address' => get_client_ip(),
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
     ];
     
-    return db_insert($pdo, 'activity_logs', $data);
+    return db_insert($conn, 'activity_logs', $data);
 }
 
 /**
@@ -606,5 +975,6 @@ function get_status_badge($status) {
     ];
     return $badges[$status] ?? '<span class="badge badge-secondary">' . $status . '</span>';
 }
-?>
+
+
 

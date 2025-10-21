@@ -17,13 +17,19 @@ if (!$image_id || !$model_id) {
 
 try {
     // Remove primary from all images of this model
-    $conn->query("UPDATE model_images SET is_primary = 0 WHERE model_id = {$model_id}");
+    $stmt = $conn->prepare("UPDATE model_images SET is_primary = 0 WHERE model_id = ?");
+    $stmt->bind_param('i', $model_id);
+    $stmt->execute();
+    $stmt->close();
     
     // Set new primary
-    $conn->query("UPDATE model_images SET is_primary = 1 WHERE id = {$image_id}");
+    $stmt = $conn->prepare("UPDATE model_images SET is_primary = 1 WHERE id = ?");
+    $stmt->bind_param('i', $image_id);
+    $stmt->execute();
+    $stmt->close();
     
     // Log activity
-    log_activity($pdo, $_SESSION['user_id'], 'set_primary_image', 'model_images', $image_id);
+    log_activity($conn, $_SESSION['user_id'], 'set_primary_image', 'model_images', $image_id);
     
     set_message('success', 'ตั้งรูปหลักสำเร็จ');
 } catch (Exception $e) {
@@ -32,4 +38,7 @@ try {
 
 redirect(ADMIN_URL . '/models/edit.php?id=' . $model_id);
 ?>
+
+
+
 

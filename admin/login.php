@@ -24,9 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
     } else {
         // ค้นหา user
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND status = 'active'");
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
+        $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND status = 'active'");
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $stmt->close();
         
         if ($user && password_verify($password, $user['password'])) {
             // Login success
@@ -37,11 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['logged_in_at'] = time();
             
             // Update last login
-            $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-            $stmt->execute([$user['id']]);
+            $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $stmt->bind_param('i', $user['id']);
+            $stmt->execute();
+            $stmt->close();
             
             // Log activity
-            log_activity($pdo, $user['id'], 'login', 'users', $user['id']);
+            log_activity($conn, $user['id'], 'login', 'users', $user['id']);
             
             // Remember me
             if ($remember) {
@@ -165,4 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </body>
 </html>
+
+
 

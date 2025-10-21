@@ -1,39 +1,39 @@
 <?php
 /**
  * VIBEDAYBKK Admin - Delete Article
- * ลบบทความ
  */
 
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+require_permission('articles', 'delete');
+
 $article_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (!$article_id) {
-    set_message('error', 'ไม่พบข้อมูลบทความ');
-    redirect(ADMIN_URL . '/articles/');
-}
-
-$stmt = $pdo->prepare("SELECT * FROM articles WHERE id = ?");
-$stmt->execute([$article_id]);
-$article = $stmt->fetch();
-
-if (!$article) {
-    set_message('error', 'ไม่พบข้อมูลบทความ');
-    redirect(ADMIN_URL . '/articles/');
-}
-
-// Delete featured image
-if ($article['featured_image']) {
-    delete_image($article['featured_image']);
-}
-
-// Delete article
-if (db_delete($pdo, 'articles', 'id = :id', ['id' => $article_id])) {
-    log_activity($pdo, $_SESSION['user_id'], 'delete', 'articles', $article_id, $article);
-    set_message('success', 'ลบบทความ "' . $article['title'] . '" สำเร็จ');
+if ($article_id > 0) {
+    $stmt = $conn->prepare("SELECT * FROM articles WHERE id = ?");
+    $stmt->bind_param('i', $article_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $article = $result->fetch_assoc();
+    $stmt->close();
+    
+    if ($article) {
+        // Delete featured image
+        if (!empty($article['featured_image']) && file_exists(ROOT_PATH . '/' . $article['featured_image'])) {
+            @unlink(ROOT_PATH . '/' . $article['featured_image']);
+        }
+        
+        db_delete($conn, 'articles', 'id = ?', [$article_id]);
+        
+        log_activity($conn, $_SESSION['user_id'], 'delete', 'articles', $article_id, json_encode($article), null);
+        
+        set_message('success', 'ลบบทความสำเร็จ');
+    } else {
+        set_message('error', 'ไม่พบข้อมูลบทความ');
+    }
 } else {
-    set_message('error', 'เกิดข้อผิดพลาด');
+    set_message('error', 'ข้อมูลไม่ถูกต้อง');
 }
 
 redirect(ADMIN_URL . '/articles/');

@@ -16,9 +16,12 @@ if (!$image_id || !$model_id) {
 }
 
 // Get image data
-$stmt = $pdo->prepare("SELECT * FROM model_images WHERE id = ? AND model_id = ?");
-$stmt->execute([$image_id, $model_id]);
-$image = $stmt->fetch();
+$stmt = $conn->prepare("SELECT * FROM model_images WHERE id = ? AND model_id = ?");
+$stmt->bind_param('ii', $image_id, $model_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$image = $result->fetch_assoc();
+$stmt->close();
 
 if (!$image) {
     set_message('error', 'ไม่พบรูปภาพ');
@@ -29,14 +32,17 @@ if (!$image) {
 delete_image($image['image_path']);
 
 // Delete from database
-if (db_delete($pdo, 'model_images', 'id = :id', ['id' => $image_id])) {
+if (db_delete($conn, 'model_images', 'id = ?', [$image_id])) {
     // If deleted primary image, set another image as primary
     if ($image['is_primary']) {
-        $conn->query("UPDATE model_images SET is_primary = 1 WHERE model_id = {$model_id} ORDER BY sort_order ASC LIMIT 1");
+        $stmt = $conn->prepare("UPDATE model_images SET is_primary = 1 WHERE model_id = ? ORDER BY sort_order ASC LIMIT 1");
+        $stmt->bind_param('i', $model_id);
+        $stmt->execute();
+        $stmt->close();
     }
     
     // Log activity
-    log_activity($pdo, $_SESSION['user_id'], 'delete_image', 'model_images', $image_id, $image);
+    log_activity($conn, $_SESSION['user_id'], 'delete_image', 'model_images', $image_id, $image);
     
     set_message('success', 'ลบรูปภาพสำเร็จ');
 } else {
@@ -45,4 +51,7 @@ if (db_delete($pdo, 'model_images', 'id = :id', ['id' => $image_id])) {
 
 redirect(ADMIN_URL . '/models/edit.php?id=' . $model_id);
 ?>
+
+
+
 

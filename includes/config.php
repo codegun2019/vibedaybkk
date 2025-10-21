@@ -26,6 +26,7 @@ define('DB_CHARSET', 'utf8mb4');
 // Site Configuration
 define('SITE_NAME', 'VIBEDAYBKK');
 define('SITE_URL', 'http://localhost/vibedaybkk');
+define('BASE_URL', SITE_URL); // Alias for SITE_URL
 define('ADMIN_URL', SITE_URL . '/admin');
 
 // Path Configuration
@@ -42,7 +43,7 @@ define('ALLOWED_IMAGE_EXT', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
 // Pagination
 define('ITEMS_PER_PAGE', 12);
-define('ADMIN_ITEMS_PER_PAGE', 20);
+define('ADMIN_ITEMS_PER_PAGE', 10);
 
 // Security
 define('SESSION_LIFETIME', 3600); // 1 hour
@@ -50,12 +51,10 @@ define('CSRF_TOKEN_NAME', 'csrf_token');
 define('REMEMBER_ME_DAYS', 30);
 
 // Session Configuration
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
-
-// Start Session
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
     session_start();
 }
 
@@ -76,9 +75,11 @@ try {
     die('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล: ' . $e->getMessage());
 }
 
-// PDO Connection (สำหรับใช้งาน prepared statements)
+// PDO Connection (สำหรับใช้งาน prepared statements) - Optional
+// Commented out because PDO driver might not be available
+/*
 try {
-    $pdo = new PDO(
+    $conn = new PDO(
         "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET,
         DB_USER,
         DB_PASS,
@@ -91,6 +92,7 @@ try {
 } catch (PDOException $e) {
     die('เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล (PDO): ' . $e->getMessage());
 }
+*/
 
 // Auto-load functions
 require_once INCLUDES_PATH . '/functions.php';
@@ -100,4 +102,6 @@ if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
     $_SESSION[CSRF_TOKEN_NAME] = bin2hex(random_bytes(32));
 }
 ?>
+
+
 

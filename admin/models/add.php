@@ -7,6 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+
+// Permission check
+require_permission('models', 'create');
 $page_title = 'เพิ่มโมเดลใหม่';
 $current_page = 'models';
 
@@ -60,8 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Check duplicate code
         if (!empty($data['code'])) {
-            $stmt = $pdo->prepare("SELECT id FROM models WHERE code = ?");
-            $stmt->execute([$data['code']]);
+            $stmt = $conn->prepare("SELECT id FROM models WHERE code = ?");
+            $stmt->bind_param('s', $data['code']);
+            $stmt->execute();
             if ($stmt->fetch()) {
                 $errors[] = 'รหัสโมเดลนี้มีอยู่แล้ว';
             }
@@ -69,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // If no errors, insert
         if (empty($errors)) {
-            if (db_insert($pdo, 'models', $data)) {
-                $model_id = $pdo->lastInsertId();
+            if (db_insert($conn, 'models', $data)) {
+                $model_id = $conn->insert_id;
                 
                 // Handle image upload
                 if (!empty($_FILES['images']['name'][0])) {
@@ -93,14 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     'is_primary' => $key == 0 ? 1 : 0,
                                     'sort_order' => $key
                                 ];
-                                db_insert($pdo, 'model_images', $image_data);
+                                db_insert($conn, 'model_images', $image_data);
                             }
                         }
                     }
                 }
                 
                 // Log activity
-                log_activity($pdo, $_SESSION['user_id'], 'create', 'models', $model_id, null, $data);
+                log_activity($conn, $_SESSION['user_id'], 'create', 'models', $model_id, null, $data);
                 
                 set_message('success', 'เพิ่มโมเดลสำเร็จ');
                 redirect(ADMIN_URL . '/models/edit.php?id=' . $model_id);
@@ -317,12 +321,15 @@ include '../includes/header.php';
             </div>
             
             <div class="mt-6">
-                <label class="flex items-center">
-                    <input type="checkbox" name="featured" id="featured" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-                    <span class="ml-2 text-sm text-gray-700">
+                <div class="flex items-center space-x-3">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="featured" id="featured">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="text-sm text-gray-700">
                         <i class="fas fa-star text-yellow-500 mr-1"></i>โมเดลแนะนำ (Featured)
                     </span>
-                </label>
+                </div>
             </div>
         </div>
     </div>
@@ -339,4 +346,6 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+
+
 

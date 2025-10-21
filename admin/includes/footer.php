@@ -72,6 +72,7 @@
     </aside>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="<?php echo ADMIN_URL; ?>/includes/toast.js"></script>
     <script>
         // Mobile sidebar toggle
         const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -144,3 +145,5 @@
     <?php endif; ?>
 </body>
 </html>
+
+

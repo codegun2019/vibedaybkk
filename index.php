@@ -3,28 +3,67 @@
  * VIBEDAYBKK - Homepage
  * หน้าแรกของเว็บไซต์
  */
-define('VIBEDAYBKK_ADMIN', true);
 require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
 // ดึงข้อมูลจาก settings
-$settings = [];
+$global_settings = [];
 $result = db_get_rows($conn, "SELECT * FROM settings");
 foreach ($result as $row) {
-    $settings[$row['setting_key']] = $row['setting_value'];
+    $global_settings[$row['setting_key']] = $row['setting_value'];
 }
 
-// ดึงจำนวนโมเดลแต่ละเพศ
-$female_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categories c ON m.category_id = c.id WHERE c.gender = 'female' AND m.status = 'available'")->fetch_assoc()['c'];
-$male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categories c ON m.category_id = c.id WHERE c.gender = 'male' AND m.status = 'available'")->fetch_assoc()['c'];
+// ดึงข้อมูลเมนู
+$main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
+
+// ดึงข้อมูลโซเชียลมีเดีย
+$social_platforms = [
+    'facebook' => ['color' => 'bg-blue-600 hover:bg-blue-700', 'icon' => 'fa-facebook-f', 'title' => 'Facebook'],
+    'instagram' => ['color' => 'bg-pink-500 hover:bg-pink-600', 'icon' => 'fa-instagram', 'title' => 'Instagram'],
+    'twitter' => ['color' => 'bg-black hover:bg-gray-800', 'icon' => 'fa-x-twitter', 'title' => 'X (Twitter)'],
+    'line' => ['color' => 'bg-green-500 hover:bg-green-600', 'icon' => 'fa-line', 'title' => 'Line']
+];
+
+$active_socials = [];
+foreach ($social_platforms as $platform => $data) {
+    $enabled = $global_settings["social_{$platform}_enabled"] ?? '0';
+    if ($enabled == '1') {
+        $active_socials[$platform] = [
+            'url' => $global_settings["social_{$platform}_url"] ?? '#',
+            'color' => $data['color'],
+            'icon' => $global_settings["social_{$platform}_icon"] ?? $data['icon'],
+            'title' => $data['title']
+        ];
+    }
+}
+
+// ดึงข้อมูล categories สำหรับ Services Section
+$categories = db_get_rows($conn, "SELECT * FROM categories WHERE status = 'active' ORDER BY sort_order ASC");
+
+// ดึงข้อมูล reviews
+$reviews = db_get_rows($conn, "SELECT * FROM customer_reviews WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 6");
+
+// ดึงข้อมูลติดต่อ
+$contact_info = [
+    'phone' => $global_settings['contact_phone'] ?? '02-123-4567',
+    'email' => $global_settings['contact_email'] ?? 'info@vibedaybkk.com',
+    'line_id' => $global_settings['contact_line'] ?? '@vibedaybkk',
+    'address' => $global_settings['contact_address'] ?? '123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110'
+];
+
+// Go to Top settings
+$go_to_top_enabled = $global_settings['go_to_top_enabled'] ?? '1';
+$go_to_top_icon = $global_settings['go_to_top_icon'] ?? 'fa-arrow-up';
 ?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $settings['site_name'] ?? 'VIBEDAYBKK'; ?> - บริการโมเดลและนางแบบมืออาชีพ</title>
-    <?php echo get_favicon($settings); ?>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title><?php echo $global_settings['site_title'] ?? 'VIBEDAYBKK'; ?> - บริการโมเดลและนางแบบมืออาชีพ</title>
+    <meta name="description" content="<?php echo $global_settings['site_description'] ?? 'บริการโมเดลและนางแบบมืออาชีพ'; ?>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -32,7 +71,7 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             theme: {
                 extend: {
                     fontFamily: {
-                        'kanit': ['Kanit', 'sans-serif'],
+                        'noto': ['Noto Sans Thai', 'sans-serif'],
                     },
                     colors: {
                         'dark': '#0a0a0a',
@@ -57,8 +96,14 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
         }
         
         body {
+            font-family: 'Noto Sans Thai', sans-serif;
             box-sizing: border-box;
             overflow-x: hidden;
+        }
+        
+        /* Keep Font Awesome icons */
+        i, .fa, .fas, .far, .fal, .fab {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands' !important;
         }
         
         /* Preloader Styles */
@@ -231,7 +276,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
         }
         
-        /* Enhanced Button Styles */
         button, .btn {
             cursor: pointer;
             user-select: none;
@@ -278,7 +322,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 font-size: 1rem;
             }
             
-            /* Hero section mobile adjustments */
             #home h1 {
                 font-size: 2.5rem;
             }
@@ -287,15 +330,9 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 font-size: 1.5rem;
             }
             
-            /* Mobile menu overlay */
             .mobile-menu {
                 backdrop-filter: blur(10px);
                 background-color: rgba(26, 26, 26, 0.98);
-            }
-            
-            /* Service cards mobile */
-            .service-card-mobile {
-                padding: 1.5rem;
             }
         }
         
@@ -313,12 +350,10 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             }
         }
         
-        /* Smooth transitions for all interactive elements */
         a, button {
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Enhanced card shadows */
         .card-shadow {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -327,14 +362,13 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2);
         }
 
-        /* Active menu state */
         .nav-link.active {
             color: #DC2626 !important;
             font-weight: 600;
         }
     </style>
 </head>
-<body class="bg-dark text-white font-kanit">
+<body class="bg-dark text-white font-noto">
     <!-- Preloader -->
     <div id="preloader">
         <div class="loader-content">
@@ -352,18 +386,22 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="index.php" class="text-2xl font-bold text-red-primary">
-                        <?php echo get_logo($settings); ?>
+                    <a href="<?php echo BASE_URL; ?>" class="text-2xl font-bold text-red-primary">
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
                     </a>
                 </div>
                 
                 <!-- Desktop Menu -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="index.php" class="nav-link active text-white hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
+                        <a href="<?php echo BASE_URL; ?>" class="nav-link active text-white hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
                         <a href="#about" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
-                        <a href="services.php" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
-                        <a href="articles.php" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บทความ</a>
+                        <a href="#services" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                        <?php foreach ($main_menus as $menu): ?>
+                        <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">
+                            <?php echo htmlspecialchars($menu['title']); ?>
+                        </a>
+                        <?php endforeach; ?>
                         <a href="#contact" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
                     </div>
                 </div>
@@ -378,16 +416,20 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
         </div>
         
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-dark-light shadow-lg md:hidden">
+        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-dark-light shadow-lg md:hidden z-50">
             <div class="p-6">
                 <button id="close-menu" class="float-right text-gray-300 hover:text-white mb-8">
                     <i class="fas fa-times text-xl"></i>
                 </button>
                 <div class="clear-both space-y-6">
-                    <a href="index.php" class="block text-red-primary font-semibold transition-colors duration-300">หน้าแรก</a>
+                    <a href="<?php echo BASE_URL; ?>" class="block text-red-primary font-semibold transition-colors duration-300">หน้าแรก</a>
                     <a href="#about" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
-                    <a href="services.php" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
-                    <a href="articles.php" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บทความ</a>
+                    <a href="#services" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บริการ</a>
+                    <?php foreach ($main_menus as $menu): ?>
+                    <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">
+                        <?php echo htmlspecialchars($menu['title']); ?>
+                    </a>
+                    <?php endforeach; ?>
                     <a href="#contact" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
                 </div>
             </div>
@@ -395,22 +437,22 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
     </nav>
 
     <!-- Social Sidebar -->
+    <?php if (!empty($active_socials)): ?>
     <div class="social-sidebar hidden lg:flex">
-        <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white" title="Facebook">
-            <i class="fab fa-facebook-f text-lg"></i>
+        <?php foreach ($active_socials as $platform => $social): ?>
+        <a href="<?php echo htmlspecialchars($social['url']); ?>" class="<?php echo $social['color']; ?> text-white" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
         </a>
-        <a href="#" class="bg-black hover:bg-gray-800 text-white" title="X (Twitter)">
-            <i class="fab fa-x-twitter text-lg"></i>
-        </a>
-        <a href="#" class="bg-green-500 hover:bg-green-600 text-white" title="Line">
-            <i class="fab fa-line text-lg"></i>
-        </a>
+        <?php endforeach; ?>
     </div>
+    <?php endif; ?>
 
     <!-- Go to Top Button -->
+    <?php if ($go_to_top_enabled == '1'): ?>
     <button id="go-to-top" class="go-to-top bg-red-primary hover:bg-red-light text-white" title="กลับขึ้นด้านบน">
-        <i class="fas fa-arrow-up text-lg"></i>
+        <i class="fas <?php echo $go_to_top_icon; ?> text-lg"></i>
     </button>
+    <?php endif; ?>
 
     <!-- Hero Section -->
     <section id="home" class="hero-gradient min-h-screen flex items-center pt-16">
@@ -514,71 +556,62 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 <p class="text-gray-400 text-lg">เลือกบริการที่เหมาะสมกับความต้องการของคุณ</p>
             </div>
             
+            <?php if (!empty($categories)): ?>
+            <?php 
+            // แบ่งหมวดหมู่เป็นหญิงและชาย
+            $female_categories = array_filter($categories, function($cat) {
+                return stripos($cat['name'], 'หญิง') !== false || stripos($cat['name'], 'นางแบบ') !== false;
+            });
+            $male_categories = array_filter($categories, function($cat) {
+                return stripos($cat['name'], 'ชาย') !== false || stripos($cat['name'], 'ผู้ชาย') !== false;
+            });
+            $other_categories = array_filter($categories, function($cat) use ($female_categories, $male_categories) {
+                return !in_array($cat, $female_categories) && !in_array($cat, $male_categories);
+            });
+            ?>
+            
+            <?php if (!empty($female_categories)): ?>
             <!-- Female Models -->
             <div class="mb-16">
                 <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">บริการโมเดลหญิง</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php foreach ($female_categories as $category): ?>
                     <div class="bg-dark-light rounded-lg p-6 hover-scale">
                         <div class="bg-gradient-to-br from-pink-500 to-red-primary h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-female text-4xl text-white"></i>
+                            <i class="fas <?php echo $category['icon'] ?? 'fa-female'; ?> text-4xl text-white"></i>
                         </div>
-                        <h4 class="text-xl font-semibold mb-2">โมเดลแฟชั่น</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานถ่ายแฟชั่น แคตตาล็อก</p>
-                        <p class="text-2xl font-bold text-red-primary">฿3,000-5,000/วัน</p>
+                        <h4 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($category['name']); ?></h4>
+                        <p class="text-gray-400 mb-4"><?php echo htmlspecialchars($category['description'] ?? ''); ?></p>
+                        <?php if (!empty($category['price_range'])): ?>
+                        <p class="text-2xl font-bold text-red-primary"><?php echo htmlspecialchars($category['price_range']); ?></p>
+                        <?php endif; ?>
                     </div>
-                    
-                    <div class="bg-dark-light rounded-lg p-6 hover-scale">
-                        <div class="bg-gradient-to-br from-purple-500 to-pink-500 h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-camera text-4xl text-white"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">โมเดลถ่ายภาพ</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานถ่ายภาพโฆษณา</p>
-                        <p class="text-2xl font-bold text-red-primary">฿2,500-4,000/วัน</p>
-                    </div>
-                    
-                    <div class="bg-dark-light rounded-lg p-6 hover-scale">
-                        <div class="bg-gradient-to-br from-red-primary to-red-light h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-star text-4xl text-white"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">นางแบบอีเวนต์</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานแสดงสินค้า งานอีเวนต์</p>
-                        <p class="text-2xl font-bold text-red-primary">฿2,000-3,500/วัน</p>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <?php endif; ?>
             
+            <?php if (!empty($male_categories)): ?>
             <!-- Male Models -->
             <div>
                 <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">บริการโมเดลชาย</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php foreach ($male_categories as $category): ?>
                     <div class="bg-dark-light rounded-lg p-6 hover-scale">
                         <div class="bg-gradient-to-br from-blue-500 to-indigo-600 h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-male text-4xl text-white"></i>
+                            <i class="fas <?php echo $category['icon'] ?? 'fa-male'; ?> text-4xl text-white"></i>
                         </div>
-                        <h4 class="text-xl font-semibold mb-2">โมเดลแฟชั่น</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานถ่ายแฟชั่นผู้ชาย</p>
-                        <p class="text-2xl font-bold text-red-primary">฿3,500-6,000/วัน</p>
+                        <h4 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($category['name']); ?></h4>
+                        <p class="text-gray-400 mb-4"><?php echo htmlspecialchars($category['description'] ?? ''); ?></p>
+                        <?php if (!empty($category['price_range'])): ?>
+                        <p class="text-2xl font-bold text-red-primary"><?php echo htmlspecialchars($category['price_range']); ?></p>
+                        <?php endif; ?>
                     </div>
-                    
-                    <div class="bg-dark-light rounded-lg p-6 hover-scale">
-                        <div class="bg-gradient-to-br from-green-500 to-teal-600 h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-dumbbell text-4xl text-white"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">โมเดลฟิตเนส</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานถ่ายโฆษณาฟิตเนส</p>
-                        <p class="text-2xl font-bold text-red-primary">฿3,000-5,000/วัน</p>
-                    </div>
-                    
-                    <div class="bg-dark-light rounded-lg p-6 hover-scale">
-                        <div class="bg-gradient-to-br from-orange-500 to-red-500 h-48 rounded-lg mb-4 flex items-center justify-center">
-                            <i class="fas fa-briefcase text-4xl text-white"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-2">โมเดลธุรกิจ</h4>
-                        <p class="text-gray-400 mb-4">สำหรับงานถ่ายโฆษณาธุรกิจ</p>
-                        <p class="text-2xl font-bold text-red-primary">฿2,500-4,500/วัน</p>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <?php endif; ?>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -640,6 +673,7 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
     </section>
 
     <!-- Reviews Carousel -->
+    <?php if (!empty($reviews)): ?>
     <section class="py-20 bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
@@ -651,137 +685,38 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             
             <div class="carousel-container relative">
                 <div id="carousel-track" class="carousel-track">
-                    <!-- Review 1 -->
+                    <?php 
+                    $colors = ['green-500', 'blue-500', 'purple-500', 'red-500', 'orange-500', 'teal-500'];
+                    foreach ($reviews as $index => $review): 
+                        $color = $colors[$index % count($colors)];
+                    ?>
+                    <!-- Review <?php echo $index + 1; ?> -->
                     <div class="carousel-slide px-4">
                         <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-green-500 h-64 rounded-lg mb-4 flex items-center justify-center">
+                            <?php if (!empty($review['image'])): ?>
+                            <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 overflow-hidden">
+                                <img src="<?php echo BASE_URL . '/' . $review['image']; ?>" alt="<?php echo htmlspecialchars($review['customer_name']); ?>" class="w-full h-full object-cover">
+                            </div>
+                            <?php else: ?>
+                            <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 flex items-center justify-center">
                                 <div class="text-center text-white">
                                     <i class="fab fa-line text-4xl mb-2"></i>
                                     <p class="text-sm">Line Chat Review</p>
                                 </div>
                             </div>
+                            <?php endif; ?>
                             <div class="text-center">
                                 <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <?php for ($i = 0; $i < 5; $i++): ?>
+                                    <i class="fas fa-star <?php echo $i < $review['rating'] ? 'text-yellow-400' : 'text-gray-600'; ?>"></i>
+                                    <?php endfor; ?>
                                 </div>
-                                <p class="text-gray-400 text-sm">บริการดีมาก โมเดลสวย มืออาชีพ</p>
+                                <p class="text-gray-400 text-sm mb-2"><?php echo htmlspecialchars($review['content']); ?></p>
+                                <p class="text-gray-500 text-xs">- <?php echo htmlspecialchars($review['customer_name']); ?></p>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Review 2 -->
-                    <div class="carousel-slide px-4">
-                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-blue-500 h-64 rounded-lg mb-4 flex items-center justify-center">
-                                <div class="text-center text-white">
-                                    <i class="fab fa-line text-4xl mb-2"></i>
-                                    <p class="text-sm">Line Chat Review</p>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                </div>
-                                <p class="text-gray-400 text-sm">ราคาเหมาะสม ทีมงานใส่ใจ</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Review 3 -->
-                    <div class="carousel-slide px-4">
-                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-purple-500 h-64 rounded-lg mb-4 flex items-center justify-center">
-                                <div class="text-center text-white">
-                                    <i class="fab fa-line text-4xl mb-2"></i>
-                                    <p class="text-sm">Line Chat Review</p>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                </div>
-                                <p class="text-gray-400 text-sm">จะใช้บริการอีกแน่นอน</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Review 4 -->
-                    <div class="carousel-slide px-4">
-                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-red-500 h-64 rounded-lg mb-4 flex items-center justify-center">
-                                <div class="text-center text-white">
-                                    <i class="fab fa-line text-4xl mb-2"></i>
-                                    <p class="text-sm">Line Chat Review</p>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                </div>
-                                <p class="text-gray-400 text-sm">โมเดลตรงเวลา ทำงานเป็นมืออาชีพ</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Review 5 -->
-                    <div class="carousel-slide px-4">
-                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-orange-500 h-64 rounded-lg mb-4 flex items-center justify-center">
-                                <div class="text-center text-white">
-                                    <i class="fab fa-line text-4xl mb-2"></i>
-                                    <p class="text-sm">Line Chat Review</p>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                </div>
-                                <p class="text-gray-400 text-sm">ประทับใจมาก แนะนำเลย</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Review 6 -->
-                    <div class="carousel-slide px-4">
-                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <div class="bg-teal-500 h-64 rounded-lg mb-4 flex items-center justify-center">
-                                <div class="text-center text-white">
-                                    <i class="fab fa-line text-4xl mb-2"></i>
-                                    <p class="text-sm">Line Chat Review</p>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex justify-center mb-2">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                </div>
-                                <p class="text-gray-400 text-sm">คุณภาพเกินราคา บริการดีเยี่ยม</p>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
                 
                 <!-- Navigation Buttons -->
@@ -799,6 +734,7 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Contact Section -->
     <section id="contact" class="py-20 bg-dark-light">
@@ -813,7 +749,8 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <!-- Contact Form -->
                 <div>
-                    <form id="contact-form" class="space-y-6">
+                    <form id="contact-form" method="POST" action="<?php echo BASE_URL; ?>/contact-submit.php" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                         <div>
                             <label class="block text-sm font-medium mb-2">ชื่อ-นามสกุล</label>
                             <input type="text" name="name" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
@@ -854,19 +791,19 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                         <div class="space-y-4">
                             <div class="flex items-center">
                                 <i class="fas fa-phone text-red-primary mr-4"></i>
-                                <span><?php echo $settings['site_phone'] ?? '02-123-4567'; ?></span>
+                                <span><?php echo htmlspecialchars($contact_info['phone']); ?></span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fas fa-envelope text-red-primary mr-4"></i>
-                                <span><?php echo $settings['site_email'] ?? 'info@vibedaybkk.com'; ?></span>
+                                <span><?php echo htmlspecialchars($contact_info['email']); ?></span>
                             </div>
                             <div class="flex items-center">
                                 <i class="fab fa-line text-red-primary mr-4"></i>
-                                <span><?php echo $settings['site_line'] ?? '@vibedaybkk'; ?></span>
+                                <span><?php echo htmlspecialchars($contact_info['line_id']); ?></span>
                             </div>
                             <div class="flex items-start">
                                 <i class="fas fa-map-marker-alt text-red-primary mr-4 mt-1"></i>
-                                <span><?php echo $settings['site_address'] ?? '123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110'; ?></span>
+                                <span><?php echo htmlspecialchars($contact_info['address']); ?></span>
                             </div>
                         </div>
                     </div>
@@ -879,23 +816,18 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                         </div>
                     </div>
                     
+                    <?php if (!empty($active_socials)): ?>
                     <div>
                         <h4 class="text-xl font-semibold mb-4">ติดตามเรา</h4>
                         <div class="flex space-x-3">
-                            <a href="#" class="bg-blue-600 hover:bg-blue-700 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" title="Facebook">
-                                <i class="fab fa-facebook-f text-lg"></i>
+                            <?php foreach ($active_socials as $platform => $social): ?>
+                            <a href="<?php echo htmlspecialchars($social['url']); ?>" class="<?php echo $social['color']; ?> w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+                                <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
                             </a>
-                            <a href="#" class="bg-pink-500 hover:bg-pink-600 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" title="Instagram">
-                                <i class="fab fa-instagram text-lg"></i>
-                            </a>
-                            <a href="#" class="bg-black hover:bg-gray-800 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" title="X (Twitter)">
-                                <i class="fab fa-x-twitter text-lg"></i>
-                            </a>
-                            <a href="#" class="bg-green-500 hover:bg-green-600 w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" title="Line">
-                                <i class="fab fa-line text-lg"></i>
-                            </a>
+                            <?php endforeach; ?>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -907,32 +839,29 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <div class="text-2xl font-bold text-red-primary mb-4">
-                        <?php echo get_logo($settings); ?>
+                        <i class="fas fa-star mr-2"></i>VIBEDAYBKK
                     </div>
                     <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <?php if (!empty($active_socials)): ?>
                     <div class="flex space-x-3">
-                        <a href="#" class="bg-gray-800 hover:bg-blue-600 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Facebook">
-                            <i class="fab fa-facebook-f"></i>
+                        <?php foreach ($active_socials as $platform => $social): ?>
+                        <a href="<?php echo htmlspecialchars($social['url']); ?>" class="bg-gray-800 <?php echo str_replace('bg-', 'hover:bg-', explode(' ', $social['color'])[0]); ?> w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+                            <i class="fab <?php echo $social['icon']; ?>"></i>
                         </a>
-                        <a href="#" class="bg-gray-800 hover:bg-pink-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="bg-gray-800 hover:bg-red-primary w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="X (Twitter)">
-                            <i class="fab fa-x-twitter"></i>
-                        </a>
-                        <a href="#" class="bg-gray-800 hover:bg-green-500 w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="Line">
-                            <i class="fab fa-line"></i>
-                        </a>
+                        <?php endforeach; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
                 
                 <div>
                     <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
                     <ul class="space-y-2">
-                        <li><a href="index.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
                         <li><a href="#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
-                        <li><a href="services.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
-                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <?php foreach ($main_menus as $menu): ?>
+                        <li><a href="<?php echo htmlspecialchars($menu['url']); ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($menu['title']); ?></a></li>
+                        <?php endforeach; ?>
                         <li><a href="#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
                     </ul>
                 </div>
@@ -940,25 +869,27 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 <div>
                     <h4 class="text-lg font-semibold mb-4">บริการของเรา</h4>
                     <ul class="space-y-2">
-                        <li><a href="services-detail.php?category=female-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นหญิง</a></li>
-                        <li><a href="services-detail.php?category=female-photography" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลถ่ายภาพหญิง</a></li>
-                        <li><a href="services-detail.php?category=male-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นชาย</a></li>
-                        <li><a href="services-detail.php?category=male-fitness" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลฟิตเนส</a></li>
+                        <?php 
+                        $service_categories = array_slice($categories, 0, 4);
+                        foreach ($service_categories as $category): 
+                        ?>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($category['name']); ?></a></li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
                 
                 <div>
                     <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
                     <ul class="space-y-2 text-gray-400">
-                        <li><i class="fas fa-phone mr-2"></i><?php echo $settings['site_phone'] ?? '02-123-4567'; ?></li>
-                        <li><i class="fas fa-envelope mr-2"></i><?php echo $settings['site_email'] ?? 'info@vibedaybkk.com'; ?></li>
-                        <li><i class="fab fa-line mr-2"></i><?php echo $settings['site_line'] ?? '@vibedaybkk'; ?></li>
+                        <li><i class="fas fa-phone mr-2"></i><?php echo htmlspecialchars($contact_info['phone']); ?></li>
+                        <li><i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($contact_info['email']); ?></li>
+                        <li><i class="fab fa-line mr-2"></i><?php echo htmlspecialchars($contact_info['line_id']); ?></li>
                     </ul>
                 </div>
             </div>
             
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
+                <p>&copy; <?php echo date('Y'); ?> VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
             </div>
         </div>
     </footer>
@@ -969,11 +900,10 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             const preloader = document.getElementById('preloader');
             setTimeout(() => {
                 preloader.classList.add('hidden');
-                // Remove preloader from DOM after animation
                 setTimeout(() => {
                     preloader.remove();
                 }, 500);
-            }, 1000); // Show preloader for at least 1 second
+            }, 1000);
         });
 
         // Mobile Menu Toggle
@@ -989,7 +919,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             mobileMenu.classList.remove('open');
         });
 
-        // Close mobile menu when clicking on links
         const mobileMenuLinks = mobileMenu.querySelectorAll('a');
         mobileMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
@@ -998,6 +927,7 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
         });
 
         // Go to Top Button
+        <?php if ($go_to_top_enabled == '1'): ?>
         const goToTopBtn = document.getElementById('go-to-top');
 
         window.addEventListener('scroll', () => {
@@ -1014,8 +944,9 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 behavior: 'smooth'
             });
         });
+        <?php endif; ?>
 
-        // Smooth Scrolling for Navigation Links
+        // Smooth Scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1030,6 +961,7 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
         });
 
         // Reviews Carousel
+        <?php if (!empty($reviews)): ?>
         class ReviewsCarousel {
             constructor() {
                 this.track = document.getElementById('carousel-track');
@@ -1054,7 +986,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             }
             
             createDots() {
-                const dotsCount = this.maxIndex + 1;
                 this.dotsContainer.innerHTML = '';
                 
                 for (let i = 0; i <= this.maxIndex; i++) {
@@ -1069,7 +1000,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                 const translateX = -(this.currentIndex * (100 / this.slidesToShow));
                 this.track.style.transform = `translateX(${translateX}%)`;
                 
-                // Update dots
                 const dots = this.dotsContainer.querySelectorAll('button');
                 dots.forEach((dot, index) => {
                     dot.className = `w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${index === this.currentIndex ? 'bg-red-primary scale-125' : 'bg-gray-600'}`;
@@ -1102,7 +1032,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                     this.resetAutoPlay();
                 });
                 
-                // Touch/Swipe support
                 let startX = 0;
                 let endX = 0;
                 
@@ -1124,7 +1053,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
                     }
                 });
                 
-                // Resize handler
                 window.addEventListener('resize', () => {
                     const newSlidesToShow = window.innerWidth >= 768 ? 3 : 1;
                     if (newSlidesToShow !== this.slidesToShow) {
@@ -1149,54 +1077,20 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             }
         }
 
-        // Initialize carousel when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             new ReviewsCarousel();
         });
+        <?php endif; ?>
 
-        // Contact Form - ส่งข้อมูลเข้า Database จริง
+        // Contact Form
         document.getElementById('contact-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
+            // Form will submit naturally to contact-submit.php
             const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            
             submitBtn.textContent = 'กำลังส่ง...';
             submitBtn.disabled = true;
-            
-            // ส่งข้อมูลไปยัง process-contact.php
-            fetch('process-contact.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    submitBtn.textContent = 'ส่งสำเร็จ!';
-                    submitBtn.className = 'w-full bg-green-500 py-3 rounded-lg font-medium';
-                    
-                    setTimeout(() => {
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                        submitBtn.className = 'w-full bg-red-primary hover:bg-red-light py-3 rounded-lg font-medium transition-colors duration-300';
-                        this.reset();
-                    }, 2000);
-                } else {
-                    alert('เกิดข้อผิดพลาด: ' + data.message);
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
         });
 
-        // Add scroll animations
+        // Scroll animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -1210,7 +1104,6 @@ $male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categ
             });
         }, observerOptions);
 
-        // Observe all sections
         document.querySelectorAll('section').forEach(section => {
             observer.observe(section);
         });

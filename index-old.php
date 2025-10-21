@@ -1,0 +1,2845 @@
+<?php
+/**
+ * VIBEDAYBKK - Homepage
+ * หน้าแรกของเว็บไซต์
+ */
+define('VIBEDAYBKK_ADMIN', true);
+require_once 'includes/config.php';
+require_once 'includes/homepage-functions.php';
+
+// ดึงข้อมูลจาก settings (global settings)
+$global_settings = [];
+$result = db_get_rows($conn, "SELECT * FROM settings");
+foreach ($result as $row) {
+    $global_settings[$row['setting_key']] = $row['setting_value'];
+}
+
+// ดึงข้อมูล homepage sections จาก database
+$homepage_sections = [];
+$sections_result = $conn->query("SELECT * FROM homepage_sections WHERE is_active = 1 ORDER BY sort_order");
+while ($row = $sections_result->fetch_assoc()) {
+    $homepage_sections[$row['section_key']] = $row;
+}
+
+// ดึงจำนวนโมเดลแต่ละเพศ
+$female_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categories c ON m.category_id = c.id WHERE c.gender = 'female' AND m.status = 'available'")->fetch_assoc()['c'];
+$male_models_count = $conn->query("SELECT COUNT(*) as c FROM models m JOIN categories c ON m.category_id = c.id WHERE c.gender = 'male' AND m.status = 'available'")->fetch_assoc()['c'];
+
+// Helper function สำหรับ background image URL
+function get_background_url($image_path) {
+    if (empty($image_path)) return '';
+    // ถ้า path มี uploads/ อยู่แล้ว ใช้ BASE_URL
+    return (strpos($image_path, 'uploads/') === 0) ? BASE_URL . '/' . $image_path : UPLOADS_URL . '/' . $image_path;
+}
+
+// ดึงเมนูจาก database
+$main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
+$sub_menus = [];
+foreach ($main_menus as $menu) {
+    $subs = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id = {$menu['id']} AND status = 'active' ORDER BY sort_order ASC");
+    if (!empty($subs)) {
+        $sub_menus[$menu['id']] = $subs;
+    }
+}
+
+// ดึงข้อมูลโซเชียลมีเดีย
+$social_platforms = [
+    'facebook' => ['color' => 'bg-blue-600 hover:bg-blue-700', 'hover_color' => 'hover:bg-blue-600'],
+    'instagram' => ['color' => 'bg-pink-500 hover:bg-pink-600', 'hover_color' => 'hover:bg-pink-500'],
+    'twitter' => ['color' => 'bg-black hover:bg-gray-800', 'hover_color' => 'hover:bg-red-primary'],
+    'line' => ['color' => 'bg-green-500 hover:bg-green-600', 'hover_color' => 'hover:bg-green-500'],
+    'youtube' => ['color' => 'bg-red-600 hover:bg-red-700', 'hover_color' => 'hover:bg-red-600'],
+    'tiktok' => ['color' => 'bg-gray-900 hover:bg-black', 'hover_color' => 'hover:bg-gray-900']
+];
+
+$active_socials = [];
+foreach ($social_platforms as $platform => $colors) {
+    $enabled = $global_settings["social_{$platform}_enabled"] ?? '0';
+    if ($enabled == '1') {
+        $active_socials[$platform] = [
+            'url' => $global_settings["social_{$platform}_url"] ?? '#',
+            'icon' => $global_settings["social_{$platform}_icon"] ?? "fa-{$platform}",
+            'color' => $colors['color'],
+            'hover_color' => $colors['hover_color'],
+            'name' => ucfirst($platform)
+        ];
+    }
+}
+
+// ดึงข้อมูล Go to Top
+$gototop_enabled = $global_settings['gototop_enabled'] ?? '1';
+$gototop_icon = $global_settings['gototop_icon'] ?? 'fa-arrow-up';
+$gototop_bg_color = $global_settings['gototop_bg_color'] ?? 'bg-red-primary';
+$gototop_text_color = $global_settings['gototop_text_color'] ?? 'text-white';
+$gototop_position = $global_settings['gototop_position'] ?? 'right';
+?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $global_settings['site_name'] ?? 'VIBEDAYBKK'; ?> - บริการโมเดลและนางแบบมืออาชีพ</title>
+    <?php echo get_favicon($global_settings); ?>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hover-scale { transition: transform 0.3s ease; }
+        .hover-scale:hover { transform: scale(1.05); }
+        .bg-dark-light { background-color: #1a1a1a; }
+        .text-red-primary { color: #dc2626; }
+        .bg-red-primary { background-color: #dc2626; }
+        .hover\:bg-red-primary:hover { background-color: #dc2626; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'kanit': ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark': '#0a0a0a',
+                        'dark-light': '#1a1a1a',
+                        'red-primary': '#DC2626',
+                        'red-light': '#EF4444',
+                        'accent': '#FBBF24',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        
+        /* Preloader Styles */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #DC2626;
+            margin-bottom: 2rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a1a1a;
+            border-top: 4px solid #DC2626;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .loader-text {
+            color: #DC2626;
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            animation: fadeInOut 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+        
+        .carousel-container {
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .carousel-slide {
+            min-width: 100%;
+            flex-shrink: 0;
+        }
+        
+        @media (min-width: 768px) {
+            .carousel-slide {
+                min-width: 33.333%;
+            }
+        }
+        
+        .social-sidebar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .social-sidebar a {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .social-sidebar a:hover {
+            transform: translateX(-5px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+        }
+        
+        .go-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .go-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .go-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.5);
+        }
+        
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+        }
+        
+        /* Enhanced Button Styles */
+        button, .btn {
+            cursor: pointer;
+            user-select: none;
+            outline: none;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .social-sidebar {
+                right: 15px;
+            }
+            
+            .social-sidebar a {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .loader-logo {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .social-sidebar {
+                display: none;
+            }
+            
+            .go-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+            
+            .loader-logo {
+                font-size: 2rem;
+            }
+            
+            .loader-text {
+                    <a href="index.php" class="text-2xl font-bold text-red-primary">
+                        <?php echo get_logo($global_settings); ?>
+                    </a>
+            /* Hero section mobile adjustments */
+            #home h1 {
+                <?php include 'includes/menu.php'; ?>
+            </div>
+        </div>
+        
+        <?php include 'includes/mobile-menu.php'; ?>ton {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+    <?php if (!empty($active_socials)): ?>
+        /* Enhanced card shadows */
+        <?php foreach ($active_socials as $platform => $social): ?>
+        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+           class="<?php echo $social['color']; ?> text-white" 
+           title="<?php echo $social['name']; ?>"
+           target="_blank"
+           rel="noopener noreferrer">
+            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+        }
+        <?php endforeach; ?>ctive menu state */
+        .nav-link.active {
+    <?php endif; ?>
+            color: #DC2626 !important;
+            font-weight: 600;
+    <?php if ($gototop_enabled == '1'): ?>
+    <button id="go-to-top" 
+            class="go-to-top <?php echo $gototop_bg_color; ?> hover:opacity-90 <?php echo $gototop_text_color; ?> <?php echo $gototop_position == 'left' ? 'left-6' : 'right-6'; ?>" 
+            title="กลับขึ้นด้านบน">
+        <i class="fas <?php echo $gototop_icon; ?> text-lg"></i>
+</head>
+    <?php endif; ?>
+<body class="bg-dark text-white font-kanit">
+    <!-- Preloader -->
+    <?php 
+    $hero = $homepage_sections['hero'] ?? null;
+    if ($hero && $hero['is_active'] == 1):
+    
+    // ตรวจสอบประเภทพื้นหลัง
+    $background_type = $hero['background_type'] ?? 'color';
+    $show_content = ($background_type === 'color');
+    
+    $hero_style = '';
+    if ($background_type === 'image' && $hero && $hero['background_image']) {
+        // ใช้รูปภาพ
+        $bg_url = get_background_url($hero['background_image']);
+        $hero_style = "background-image: url('" . $bg_url . "'); background-position: " . ($hero['background_position'] ?? 'center') . "; background-size: " . ($hero['background_size'] ?? 'cover') . "; background-repeat: " . ($hero['background_repeat'] ?? 'no-repeat') . "; background-attachment: " . ($hero['background_attachment'] ?? 'scroll') . "; min-height: 100vh;";
+    } elseif ($background_type === 'color' && $hero && $hero['background_color']) {
+        // ใช้สี
+        $hero_style = "background-color: " . $hero['background_color'] . ";";
+    } else {
+        // ค่าเริ่มต้น
+        $hero_style = "background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);";
+    }
+    ?>
+    <?php 
+    $hero_settings = json_decode($hero['settings'] ?? '{}', true);
+    $hero_padding = $hero_settings['padding_top'] ?? '';
+    $hero_animation = $hero_settings['animation_class'] ?? '';
+    $hero_id = !empty($hero_settings['section_id']) ? $hero_settings['section_id'] : 'home';
+    $hero_class = !empty($hero_settings['section_class']) ? $hero_settings['section_class'] : 'hero-gradient min-h-screen flex items-center pt-16';
+    
+    // รวมคลาสทั้งหมด
+    $hero_classes = trim($hero_class . ' ' . $hero_padding . ' ' . $hero_animation . ' relative');
+    ?>
+    <section id="<?php echo $hero_id; ?>" class="<?php echo $hero_classes; ?>" style="<?php echo $hero_style; ?>">
+        <?php if (!empty($hero_settings['custom_css'])): ?>
+        <style><?php echo $hero_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($hero && $hero['overlay_color'] && $hero['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($hero['overlay_color'], $hero['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <?php if ($show_content): ?>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="loader-logo">
+                <i class="fas fa-star"></i> VIBEDAYBKK
+            </div>
+            <div class="loader-spinner"></div>
+                        <?php if ($hero && $hero['title']): ?>
+                            <?php 
+                            // แปลง title ให้มีสีแบบที่ตั้งค่าไว้ใน admin
+                            $title = htmlspecialchars($hero['title']);
+                            $hero_settings = json_decode($hero['settings'], true) ?: [];
+                            $vibe_color = $hero_settings['title_colors']['vibe'] ?? '#DC2626';
+                            $day_color = $hero_settings['title_colors']['day'] ?? '#FFFFFF';
+                            $bkk_color = $hero_settings['title_colors']['bkk'] ?? '#DC2626';
+                            
+                            if (stripos($title, 'VIBE') !== false) {
+                                $title = preg_replace('/VIBE/i', '<span style="color: ' . $vibe_color . ';">VIBE</span>', $title);
+                            }
+                            if (stripos($title, 'DAY') !== false) {
+                                $title = preg_replace('/DAY/i', '<span style="color: ' . $day_color . ';">DAY</span>', $title);
+                            }
+                            if (stripos($title, 'BKK') !== false) {
+                                $title = preg_replace('/BKK/i', '<span style="color: ' . $bkk_color . ';">BKK</span>', $title);
+                            }
+                            echo $title;
+                            ?>
+                        <?php else: ?>
+                            <?php
+                            // ใช้สีเริ่มต้น
+                            $hero_settings = json_decode($hero['settings'] ?? '{}', true);
+                            $vibe_color = $hero_settings['title_colors']['vibe'] ?? '#DC2626';
+                            $day_color = $hero_settings['title_colors']['day'] ?? '#FFFFFF';
+                            $bkk_color = $hero_settings['title_colors']['bkk'] ?? '#DC2626';
+                            ?>
+                            <span style="color: <?php echo $vibe_color; ?>;">VIBE</span>
+                            <span style="color: <?php echo $day_color; ?>;">DAY</span>
+                            <span style="color: <?php echo $bkk_color; ?>;">BKK</span>
+                        <?php endif; ?>
+        </div>
+    </div>
+                        <?php echo htmlspecialchars($hero['subtitle'] ?? 'บริการโมเดลและนางแบบมืออาชีพ'); ?>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-dark/95 backdrop-blur-sm z-50 border-b border-gray-800">
+                        <?php echo htmlspecialchars($hero['description'] ?? 'เราคือผู้เชี่ยวชาญด้านบริการโมเดลและนางแบบคุณภาพสูง'); ?>
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                        <?php if ($hero && $hero['button_text'] && $hero['button_link']): ?>
+                        <a href="<?php echo htmlspecialchars($hero['button_link']); ?>" class="bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale text-center shadow-lg">
+                            <i class="fas fa-calendar-check mr-2"></i><?php echo htmlspecialchars($hero['button_text']); ?>
+                        </a>
+                        <?php else: ?>
+                <div class="flex items-center">
+                    <a href="index.php" class="text-2xl font-bold text-red-primary">
+                        <?php echo get_logo($global_settings); ?>
+                        <?php endif; ?>
+                    </a>
+                </div>
+                
+                <?php include 'includes/menu.php'; ?>
+            </div>
+        </div>
+        
+        <?php include 'includes/mobile-menu.php'; ?>
+    </nav>
+
+    <!-- Social Sidebar -->
+    <?php if (!empty($active_socials)): ?>
+    <div class="social-sidebar hidden lg:flex">
+        <?php foreach ($active_socials as $platform => $social): ?>
+        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+           class="<?php echo $social['color']; ?> text-white" 
+           title="<?php echo $social['name']; ?>"
+           target="_blank"
+           rel="noopener noreferrer">
+            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+        <?php endif; // End show_content ?>
+    <?php if ($gototop_enabled == '1'): ?>
+    <?php endif; // End Hero Section ?>
+    <button id="go-to-top" 
+            class="go-to-top <?php echo $gototop_bg_color; ?> hover:opacity-90 <?php echo $gototop_text_color; ?> <?php echo $gototop_position == 'left' ? 'left-6' : 'right-6'; ?>" 
+    <?php 
+    $about = $homepage_sections['about'] ?? null;
+    if ($about && $about['is_active'] == 1):
+    
+    // ตรวจสอบประเภทพื้นหลัง
+    $about_background_type = $about['background_type'] ?? 'color';
+    $show_about_content = ($about_background_type === 'color');
+    
+    $about_style = '';
+    if ($about_background_type === 'image' && $about && $about['background_image']) {
+        // ใช้รูปภาพ - เต็มความสูงหน้าจอ
+        $bg_url = get_background_url($about['background_image']);
+        $about_style = "background-image: url('" . $bg_url . "'); background-position: " . ($about['background_position'] ?? 'center') . "; background-size: " . ($about['background_size'] ?? 'cover') . "; background-repeat: " . ($about['background_repeat'] ?? 'no-repeat') . "; background-attachment: " . ($about['background_attachment'] ?? 'scroll') . "; min-height: 100vh;";
+    } elseif ($about_background_type === 'color' && $about && $about['background_color']) {
+        // ใช้สี
+        $about_style = "background-color: " . $about['background_color'] . ";";
+    } else {
+        // ค่าเริ่มต้น
+        $about_style = "background-color: #1a1a1a;";
+    }
+    ?>
+    <?php 
+    $about_settings = json_decode($about['settings'] ?? '{}', true);
+    $about_id = !empty($about_settings['section_id']) ? $about_settings['section_id'] : 'about';
+    $about_class = !empty($about_settings['section_class']) ? $about_settings['section_class'] : 'py-20 bg-dark-light';
+    $about_animation = $about_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $about_classes = trim($about_class . ' ' . $about_animation . ' relative');
+    ?>
+    <section id="<?php echo $about_id; ?>" class="<?php echo $about_classes; ?>" style="<?php echo $about_style; ?>">
+        <?php if (!empty($about_settings['custom_css'])): ?>
+        <style><?php echo $about_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($about && $about['overlay_color'] && $about['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($about['overlay_color'], $about['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <?php if ($show_about_content): ?>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left - Uploaded Image -->
+                <?php
+                // Get left image size settings (from database columns or JSON fallback)
+                $left_size_desktop = $about['left_image_size_desktop'] ?? $about_settings['left_image_size_desktop'] ?? 'w-80 h-80';
+                $left_size_mobile = $about['left_image_size_mobile'] ?? $about_settings['left_image_size_mobile'] ?? 'w-64 h-64';
+                $left_position = $about['left_image_position'] ?? $about_settings['left_image_position'] ?? 'left';
+                ?>
+                <div class="flex justify-center">
+                    <?php if ($about && !empty($about['left_image'])): ?>
+                    <div class="<?php echo $left_size_mobile; ?> lg:<?php echo $left_size_desktop; ?> rounded-3xl overflow-hidden shadow-2xl hover-scale">
+                        <?php 
+                        $left_image_url = get_background_url($about['left_image']);
+                        ?>
+                        <img src="<?php echo $left_image_url; ?>" 
+                             alt="About Image" 
+                             class="w-full h-full object-cover">
+                    </div>
+                    <?php else: ?>
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 <?php echo $left_size_mobile; ?> lg:<?php echo $left_size_desktop; ?> rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
+                        <div class="text-center">
+                            <i class="fas fa-image text-6xl text-red-primary mb-4"></i>
+                            <p class="text-gray-400">อัปโหลดรูปภาพ</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Right - Service Details -->
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6" style="color: <?php echo $about['text_color'] ?? '#ffffff'; ?>;">
+                        <?php if ($about && $about['title']): ?>
+                            <?php echo htmlspecialchars($about['title']); ?>
+                        <?php else: ?>
+                            เกี่ยวกับ <span class="text-red-primary">VIBEDAYBKK</span>
+                        <?php endif; ?>
+                    </h2>
+                    <?php if ($about && $about['subtitle']): ?>
+                    <h3 class="text-xl mb-4 text-gray-300"><?php echo htmlspecialchars($about['subtitle']); ?></h3>
+                    <?php endif; ?>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        <?php echo htmlspecialchars($about['description'] ?? 'VIBEDAYBKK เป็นบริษัทชั้นนำด้านบริการโมเดลและนางแบบในกรุงเทพฯ'); ?>
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-red-primary mr-3"></i>
+                            <span>โมเดลมืออาชีพที่ผ่านการคัดสรร</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-red-primary mr-3"></i>
+                            <span>บริการครบวงจรในราคาที่เหมาะสม</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-red-primary mr-3"></i>
+                            <span>ทีมงานมืออาชีพพร้อมให้คำปรึกษา</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-red-primary mr-3"></i>
+                            <span>รองรับงานทุกประเภทและขนาด</span>
+                        </div>
+                    </div>
+                    <?php if ($about && $about['button_text'] && $about['button_link']): ?>
+                    <div class="mt-8">
+                        <a href="<?php echo htmlspecialchars($about['button_link']); ?>" class="inline-block bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale shadow-lg">
+                            <?php echo htmlspecialchars($about['button_text']); ?>
+                        </a>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; // End show_about_content ?>
+    </section>
+    <?php endif; // End About Section ?>
+
+    <!-- Services Section -->
+    <?php 
+    $services = $homepage_sections['services'] ?? null;
+    if ($services && $services['is_active'] == 1):
+    $services_style = '';
+    if ($services && $services['background_color']) {
+        $services_style = "background-color: " . $services['background_color'] . ";";
+    } elseif ($services && $services['background_image']) {
+        $bg_url = get_background_url($services['background_image']);
+        $services_style = "background-image: url('" . $bg_url . "'); background-position: " . $services['background_position'] . "; background-size: " . $services['background_size'] . ";";
+    } else {
+        $services_style = "background-color: #0a0a0a;";
+    }
+    ?>
+    <?php 
+    $services_settings = json_decode($services['settings'] ?? '{}', true);
+    $services_id = !empty($services_settings['section_id']) ? $services_settings['section_id'] : 'services';
+    $services_class = !empty($services_settings['section_class']) ? $services_settings['section_class'] : 'py-20 bg-dark';
+    $services_animation = $services_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $services_classes = trim($services_class . ' ' . $services_animation . ' relative');
+    ?>
+    <section id="<?php echo $services_id; ?>" class="<?php echo $services_classes; ?>" style="<?php echo $services_style; ?>">
+        <?php if (!empty($services_settings['custom_css'])): ?>
+        <style><?php echo $services_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($services && $services['overlay_color'] && $services['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($services['overlay_color'], $services['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $services['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($services['title'] ?? 'บริการของเรา'); ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($services['subtitle'] ?? 'เลือกบริการที่เหมาะสมกับความต้องการของคุณ'); ?>
+                </p>
+                <?php if ($services && $services['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($services['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <?php
+            // ดึงตัวโมเดลจริงจากฐานข้อมูล
+            // ใช้ setting จากหลังบ้าน (ตั้งค่าระบบ) แทน
+            $show_price = ($global_settings['show_model_price'] ?? '1') == '1';
+            $show_details = ($global_settings['show_model_details'] ?? '1') == '1';
+            
+            // Debug: แสดงค่าตัวแปร (ลบออกหลังจากแก้ไขเสร็จ)
+            if (isset($_GET['debug'])) {
+                echo "<!-- DEBUG: show_model_price = '" . ($global_settings['show_model_price'] ?? 'ไม่มี') . "' -->";
+                echo "<!-- DEBUG: show_price = " . ($show_price ? 'true' : 'false') . " -->";
+                echo "<!-- DEBUG: show_model_details = '" . ($global_settings['show_model_details'] ?? 'ไม่มี') . "' -->";
+                echo "<!-- DEBUG: show_details = " . ($show_details ? 'true' : 'false') . " -->";
+            }
+            
+            // Female models
+            $female_models = $conn->query("
+                SELECT 
+                    m.*,
+                    c.name as category_name,
+                    c.icon as category_icon,
+                    mi.image_path,
+                    mi.image_type
+                FROM models m
+                LEFT JOIN categories c ON m.category_id = c.id
+                LEFT JOIN model_images mi ON m.id = mi.model_id AND mi.is_primary = 1
+                WHERE c.gender = 'female' AND m.status = 'available'
+                ORDER BY m.featured DESC, m.sort_order ASC
+                LIMIT 6
+            ");
+            
+            // Male models
+            $male_models = $conn->query("
+                SELECT 
+                    m.*,
+                    c.name as category_name,
+                    c.icon as category_icon,
+                    mi.image_path,
+                    mi.image_type
+                FROM models m
+                LEFT JOIN categories c ON m.category_id = c.id
+                LEFT JOIN model_images mi ON m.id = mi.model_id AND mi.is_primary = 1
+                WHERE c.gender = 'male' AND m.status = 'available'
+                ORDER BY m.featured DESC, m.sort_order ASC
+                LIMIT 6
+            ");
+            
+            // Gradient colors for cards
+            $gradient_colors = [
+                ['from-pink-500', 'to-red-primary'],
+                ['from-purple-500', 'to-pink-500'],
+                ['from-red-primary', 'to-red-light'],
+                ['from-blue-500', 'to-indigo-600'],
+                ['from-green-500', 'to-teal-600'],
+                ['from-orange-500', 'to-red-500'],
+                ['from-yellow-500', 'to-orange-500'],
+                ['from-indigo-500', 'to-purple-600']
+            ];
+            ?>
+            
+            <!-- Female Models -->
+            <?php if ($female_models && $female_models->num_rows > 0): ?>
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">โมเดลหญิง</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php 
+                    $color_index = 0;
+                    while ($model = $female_models->fetch_assoc()): 
+                        $colors = $gradient_colors[$color_index % count($gradient_colors)];
+                    ?>
+                    <a href="model-detail.php?id=<?php echo $model['id']; ?>" class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
+                        <div class="relative h-64 overflow-hidden">
+                            <?php if (!empty($model['image_path'])): ?>
+                            <img src="<?php echo UPLOADS_URL . '/' . $model['image_path']; ?>" 
+                                 alt="<?php echo htmlspecialchars($model['name']); ?>"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br <?php echo $colors[0] . ' ' . $colors[1]; ?> h-full flex items-center justify-center">
+                                <i class="fas fa-user text-6xl text-white"></i>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($model['featured']): ?>
+                            <div class="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                <i class="fas fa-star mr-1"></i>Featured
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="p-6">
+                            <h4 class="text-xl font-semibold mb-2 text-white"><?php echo htmlspecialchars($model['name']); ?></h4>
+                            
+                            <div class="flex items-center text-sm text-gray-400 mb-3">
+                                <i class="fas fa-briefcase mr-2"></i>
+                                <span><?php echo htmlspecialchars($model['category_name'] ?? 'Model'); ?></span>
+                            </div>
+                            
+                            <?php if (!empty($model['description'])): ?>
+                            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                                <?php 
+                                $desc = $model['description'];
+                                $max_length = 80;
+                                if (mb_strlen($desc, 'UTF-8') > $max_length) {
+                                    echo htmlspecialchars(mb_substr($desc, 0, $max_length, 'UTF-8')) . '...';
+                                } else {
+                                    echo htmlspecialchars($desc);
+                                }
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                            
+                            <?php if ($show_details): ?>
+                            <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                                <?php if ($model['height']): ?>
+                                <div><i class="fas fa-ruler-vertical mr-1"></i><?php echo $model['height']; ?> cm</div>
+                                <?php endif; ?>
+                                <?php if ($model['age']): ?>
+                                <div><i class="fas fa-birthday-cake mr-1"></i><?php echo $model['age']; ?> ปี</div>
+                                <?php endif; ?>
+                                <?php if ($model['experience_years']): ?>
+                                <div><i class="fas fa-award mr-1"></i><?php echo $model['experience_years']; ?> ปี</div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($show_price && (!empty($model['price_min']) || !empty($model['price_max']))): ?>
+                            <div class="pt-4 border-t border-gray-700">
+                                <p class="text-2xl font-bold text-red-primary">
+                                    ฿<?php echo number_format($model['price_min'] ?? 0); ?>
+                                    <?php if (!empty($model['price_max']) && $model['price_max'] != $model['price_min']): ?>
+                                    -<?php echo number_format($model['price_max']); ?>
+                                    <?php endif; ?>/วัน
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                    <?php 
+                        $color_index++;
+                    endwhile; 
+                    ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Male Models -->
+            <?php if ($male_models && $male_models->num_rows > 0): ?>
+            <div>
+                <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">โมเดลชาย</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php 
+                    $color_index = 0;
+                    while ($model = $male_models->fetch_assoc()): 
+                        $colors = $gradient_colors[$color_index % count($gradient_colors)];
+                    ?>
+                    <a href="model-detail.php?id=<?php echo $model['id']; ?>" class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
+                        <div class="relative h-64 overflow-hidden">
+                            <?php if (!empty($model['image_path'])): ?>
+                            <img src="<?php echo UPLOADS_URL . '/' . $model['image_path']; ?>" 
+                                 alt="<?php echo htmlspecialchars($model['name']); ?>"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br <?php echo $colors[0] . ' ' . $colors[1]; ?> h-full flex items-center justify-center">
+                                <i class="fas fa-user text-6xl text-white"></i>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($model['featured']): ?>
+                            <div class="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                <i class="fas fa-star mr-1"></i>Featured
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="p-6">
+                            <h4 class="text-xl font-semibold mb-2 text-white"><?php echo htmlspecialchars($model['name']); ?></h4>
+                            
+                            <div class="flex items-center text-sm text-gray-400 mb-3">
+                                <i class="fas fa-briefcase mr-2"></i>
+                                <span><?php echo htmlspecialchars($model['category_name'] ?? 'Model'); ?></span>
+                            </div>
+                            
+                            <?php if (!empty($model['description'])): ?>
+                            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                                <?php 
+                                $desc = $model['description'];
+                                $max_length = 80;
+                                if (mb_strlen($desc, 'UTF-8') > $max_length) {
+                                    echo htmlspecialchars(mb_substr($desc, 0, $max_length, 'UTF-8')) . '...';
+                                } else {
+                                    echo htmlspecialchars($desc);
+                                }
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                            
+                            <?php if ($show_details): ?>
+                            <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                                <?php if ($model['height']): ?>
+                                <div><i class="fas fa-ruler-vertical mr-1"></i><?php echo $model['height']; ?> cm</div>
+                                <?php endif; ?>
+                                <?php if ($model['age']): ?>
+                                <div><i class="fas fa-birthday-cake mr-1"></i><?php echo $model['age']; ?> ปี</div>
+                                <?php endif; ?>
+                                <?php if ($model['experience_years']): ?>
+                                <div><i class="fas fa-award mr-1"></i><?php echo $model['experience_years']; ?> ปี</div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($show_price && (!empty($model['price_min']) || !empty($model['price_max']))): ?>
+                            <div class="pt-4 border-t border-gray-700">
+                                <p class="text-2xl font-bold text-red-primary">
+                                    ฿<?php echo number_format($model['price_min'] ?? 0); ?>
+                                    <?php if (!empty($model['price_max']) && $model['price_max'] != $model['price_min']): ?>
+                                    -<?php echo number_format($model['price_max']); ?>
+                                    <?php endif; ?>/วัน
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                    <?php 
+                        $color_index++;
+                    endwhile; 
+                    ?>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php endif; // End Services Section ?>
+
+    <!-- How to Book Section -->
+    <?php 
+    $how_to_book = $homepage_sections['how_to_book'] ?? null;
+    if ($how_to_book && $how_to_book['is_active'] == 1):
+    $how_to_book_style = '';
+    if ($how_to_book && $how_to_book['background_color']) {
+        $how_to_book_style = "background-color: " . $how_to_book['background_color'] . ";";
+    } elseif ($how_to_book && $how_to_book['background_image']) {
+        $bg_url = get_background_url($how_to_book['background_image']);
+        $how_to_book_style = "background-image: url('" . $bg_url . "'); background-position: " . $how_to_book['background_position'] . "; background-size: " . $how_to_book['background_size'] . ";";
+    } else {
+        $how_to_book_style = "background-color: #1a1a1a;";
+    }
+    ?>
+    <?php 
+    $how_to_book_settings = json_decode($how_to_book['settings'] ?? '{}', true);
+    $how_to_book_id = !empty($how_to_book_settings['section_id']) ? $how_to_book_settings['section_id'] : 'how-to-book';
+    $how_to_book_class = !empty($how_to_book_settings['section_class']) ? $how_to_book_settings['section_class'] : 'py-20 bg-dark-light';
+    $how_to_book_animation = $how_to_book_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $how_to_book_classes = trim($how_to_book_class . ' ' . $how_to_book_animation . ' relative');
+    ?>
+    <section <?php echo $how_to_book_id ? 'id="' . $how_to_book_id . '"' : ''; ?> class="<?php echo $how_to_book_classes; ?>" style="<?php echo $how_to_book_style; ?>">
+        <?php if (!empty($how_to_book_settings['custom_css'])): ?>
+        <style><?php echo $how_to_book_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($how_to_book && $how_to_book['overlay_color'] && $how_to_book['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($how_to_book['overlay_color'], $how_to_book['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left - Steps -->
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-8" style="color: <?php echo $how_to_book['text_color'] ?? '#ffffff'; ?>;">
+                        <?php if ($how_to_book && $how_to_book['title']): ?>
+                            <?php echo htmlspecialchars($how_to_book['title']); ?>
+                        <?php else: ?>
+                            วิธีการจอง<span class="text-red-primary">บริการ</span>
+                        <?php endif; ?>
+                    </h2>
+                    <?php if ($how_to_book && $how_to_book['subtitle']): ?>
+                    <h3 class="text-xl mb-6 text-gray-300"><?php echo htmlspecialchars($how_to_book['subtitle']); ?></h3>
+                    <?php endif; ?>
+                    <?php if ($how_to_book && $how_to_book['description']): ?>
+                    <p class="text-gray-400 mb-6 leading-relaxed"><?php echo htmlspecialchars($how_to_book['description']); ?></p>
+                    <?php endif; ?>
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">1</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">เลือกบริการ</h4>
+                                <p class="text-gray-400">เลือกประเภทโมเดลและบริการที่ต้องการ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">2</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">ติดต่อเรา</h4>
+                                <p class="text-gray-400">ติดต่อผ่าน Line หรือโทรศัพท์เพื่อปรึกษารายละเอียด</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">3</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">ยืนยันการจอง</h4>
+                                <p class="text-gray-400">ยืนยันรายละเอียดและชำระเงินมัดจำ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">4</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">เริ่มงาน</h4>
+                                <p class="text-gray-400">โมเดลจะมาถึงสถานที่ตามเวลาที่กำหนด</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right - Phone Image -->
+                <div class="flex justify-center">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-80 h-80 rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
+                            เกี่ยวกับ <span class="text-red-primary">VIBEDAYBKK</span>
+                        <?php endif; ?>
+                    </h2>
+                    <?php if ($about && $about['subtitle']): ?>
+                    <h3 class="text-xl mb-4 text-gray-300"><?php echo htmlspecialchars($about['subtitle']); ?></h3>
+                    <?php endif; ?>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        <?php echo htmlspecialchars($about['description'] ?? 'VIBEDAYBKK เป็นบริษัทชั้นนำด้านบริการโมเดลและนางแบบในกรุงเทพฯ'); ?>
+                    </p>
+    <?php endif; // End How to Book Section ?>
+                    <div class="space-y-4">
+    <!-- Gallery Section -->
+    <?php 
+    $gallery = $homepage_sections['gallery'] ?? null;
+    if ($gallery && $gallery['is_active'] == 1):
+    $gallery_style = '';
+    if ($gallery && $gallery['background_color']) {
+        $gallery_style = "background-color: " . $gallery['background_color'] . ";";
+    } elseif ($gallery && $gallery['background_image']) {
+        $bg_url = get_background_url($gallery['background_image']);
+        $gallery_style = "background-image: url('" . $bg_url . "'); background-position: " . $gallery['background_position'] . "; background-size: " . $gallery['background_size'] . ";";
+    } else {
+        $gallery_style = "background-color: #0a0a0a;";
+    }
+    
+    $gallery_settings = json_decode($gallery['settings'] ?? '{}', true);
+    $gallery_id = !empty($gallery_settings['section_id']) ? $gallery_settings['section_id'] : 'gallery';
+    $gallery_class = !empty($gallery_settings['section_class']) ? $gallery_settings['section_class'] : 'py-20 bg-dark';
+    $gallery_animation = $gallery_settings['animation_class'] ?? '';
+    $gallery_classes = trim($gallery_class . ' ' . $gallery_animation . ' relative');
+    ?>
+    <section id="<?php echo $gallery_id; ?>" class="<?php echo $gallery_classes; ?>" style="<?php echo $gallery_style; ?>">
+        <?php if (!empty($gallery_settings['custom_css'])): ?>
+        <style><?php echo $gallery_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($gallery && $gallery['overlay_color'] && $gallery['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($gallery['overlay_color'], $gallery['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">สรร</span>
+                        </div>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $gallery['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($gallery['title'] ?? 'ผลงานของเรา'); ?>ry mr-3"></i>
+                            <span>บริการครบวงจรในราคาที่เหมาะสม</span>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($gallery['subtitle'] ?? 'ชมผลงานและแกลเลอรี่ของเรา'); ?>
+                </p>
+                <?php if ($gallery && $gallery['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($gallery['description']); ?></p>
+                <?php endif; ?>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-red-primary mr-3"></i>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <?php for ($i = 1; $i <= 8; $i++): ?>
+                <div class="bg-gradient-to-br from-gray-800 to-gray-900 aspect-square rounded-lg flex items-center justify-center hover-scale">
+                    <i class="fas fa-image text-4xl text-gray-600"></i>
+                </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End Gallery Section ?>
+
+    <!-- Statistics Section -->
+    <?php 
+    $stats = $homepage_sections['stats'] ?? null;
+    if ($stats && $stats['is_active'] == 1):
+    $stats_style = '';
+    if ($stats && $stats['background_color']) {
+        $stats_style = "background-color: " . $stats['background_color'] . ";";
+    } elseif ($stats && $stats['background_image']) {
+        $bg_url = get_background_url($stats['background_image']);
+        $stats_style = "background-image: url('" . $bg_url . "'); background-position: " . $stats['background_position'] . "; background-size: " . $stats['background_size'] . ";";
+    } else {
+        $stats_style = "background-color: #1a1a1a;";
+    }
+    
+    $stats_settings = json_decode($stats['settings'] ?? '{}', true);
+    $stats_id = !empty($stats_settings['section_id']) ? $stats_settings['section_id'] : 'stats';
+    $stats_class = !empty($stats_settings['section_class']) ? $stats_settings['section_class'] : 'py-20 bg-dark-light';
+    $stats_animation = $stats_settings['animation_class'] ?? '';
+    $stats_classes = trim($stats_class . ' ' . $stats_animation . ' relative');
+    ?>
+    <section id="<?php echo $stats_id; ?>" class="<?php echo $stats_classes; ?>" style="<?php echo $stats_style; ?>">
+        <?php if (!empty($stats_settings['custom_css'])): ?>
+        <style><?php echo $stats_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($stats && $stats['overlay_color'] && $stats['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($stats['overlay_color'], $stats['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $stats['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($stats['title'] ?? 'ตัวเลขที่น่าสนใจ'); ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($stats['subtitle'] ?? 'ความสำเร็จของเราในตัวเลข'); ?>
+                </p>
+                <?php if ($stats && $stats['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($stats['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">500+</div>
+                    <p class="text-gray-400">โมเดล</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">1000+</div>
+                    <p class="text-gray-400">โปรเจค</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">800+</div>
+                    <p class="text-gray-400">ลูกค้า</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">5+</div>
+                    <p class="text-gray-400">ปีประสบการณ์</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End Statistics Section ?>
+
+    <!-- Reviews Carousel -->
+    <?php 
+    $reviews_section = $homepage_sections['testimonials'] ?? $homepage_sections['reviews'] ?? null;
+    if ($reviews_section && $reviews_section['is_active'] == 1):
+    $reviews_style = '';
+    if ($reviews_section && $reviews_section['background_color']) {
+        $reviews_style = "background-color: " . $reviews_section['background_color'] . ";";
+    } elseif ($reviews_section && $reviews_section['background_image']) {
+        $bg_url = get_background_url($reviews_section['background_image']);
+        $reviews_style = "background-image: url('" . $bg_url . "'); background-position: " . $reviews_section['background_position'] . "; background-size: " . $reviews_section['background_size'] . ";";
+    } else {
+        $reviews_style = "background-color: #0a0a0a;";
+    }
+    ?>
+    <?php 
+    $reviews_settings = json_decode($reviews_section['settings'] ?? '{}', true);
+    $reviews_id = !empty($reviews_settings['section_id']) ? $reviews_settings['section_id'] : 'reviews';
+    $reviews_class = !empty($reviews_settings['section_class']) ? $reviews_settings['section_class'] : 'py-20 bg-dark';
+    $reviews_animation = $reviews_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $reviews_classes = trim($reviews_class . ' ' . $reviews_animation . ' relative');
+    ?>
+    <section <?php echo $reviews_id ? 'id="' . $reviews_id . '"' : ''; ?> class="<?php echo $reviews_classes; ?>" style="<?php echo $reviews_style; ?>">
+        <?php if (!empty($reviews_settings['custom_css'])): ?>
+        <style><?php echo $reviews_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($reviews_section && $reviews_section['overlay_color'] && $reviews_section['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($reviews_section['overlay_color'], $reviews_section['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $reviews_section['text_color'] ?? '#ffffff'; ?>;">
+                    <?php if ($reviews_section && $reviews_section['title']): ?>
+                        <?php echo htmlspecialchars($reviews_section['title']); ?>
+                    <?php else: ?>
+                        รีวิวจาก<span class="text-red-primary">ลูกค้า</span>
+                    <?php endif; ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($reviews_section['subtitle'] ?? 'ความพึงพอใจของลูกค้าคือสิ่งสำคัญที่สุดสำหรับเรา'); ?>
+                </p>
+                <?php if ($reviews_section && $reviews_section['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($reviews_section['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="carousel-container relative">
+                <div id="carousel-track" class="carousel-track">
+                    <?php
+                    // ดึงรีวิวจากฐานข้อมูล
+                    $reviews_query = $conn->query("SELECT * FROM customer_reviews WHERE is_active = 1 ORDER BY sort_order ASC, created_at DESC");
+                    $has_reviews = false;services_settings['custom_css'])): ?>
+        <style><?php echo $services_settings['custom_css']; ?></style>
+                    if ($reviews_query && $reviews_query->num_rows > 0):
+                        $has_reviews = true;
+                        while ($customer_review = $reviews_query->fetch_assoc()):
+                    ?>
+        <?php if ($services && $services['overlay_color'] && $services['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($services['overlay_color'], $services['overlay_opacity']); ?>;"></div>
+                            <?php if ($customer_review['customer_image']): ?>
+                            <div class="h-64 rounded-lg mb-4 overflow-hidden">
+                                <img src="<?php echo UPLOADS_URL . '/' . $customer_review['customer_image']; ?>" 
+                                     alt="<?php echo htmlspecialchars($customer_review['customer_name']); ?>"
+                                     class="w-full h-full object-cover">
+                            </div>
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br from-red-500 to-red-700 h-64 rounded-lg mb-4 flex items-center justify-center">
+        
+                                    <i class="fas fa-user-circle text-6xl mb-2"></i>
+                                    <p class="text-sm font-semibold"><?php echo htmlspecialchars($customer_review['customer_name']); ?></p>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $services['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($services['title'] ?? 'บริการของเรา'); ?>
+                            <?php endif; ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <i class="fas fa-star <?php echo $i <= $customer_review['rating'] ? 'text-yellow-400' : 'text-gray-600'; ?>"></i>
+                                    <?php endfor; ?>
+            </div>
+                                <p class="text-white font-semibold mb-2"><?php echo htmlspecialchars($customer_review['customer_name']); ?></p>
+                                <?php if ($customer_review['service_type']): ?>
+                                <p class="text-gray-500 text-xs mb-2"><?php echo htmlspecialchars($customer_review['service_type']); ?></p>
+                                <?php endif; ?>
+                                <p class="text-gray-400 text-sm"><?php echo htmlspecialchars($customer_review['review_text']); ?></p>
+            <?php
+            // ดึงตัวโมเดลจริงจากฐานข้อมูล
+            // ใช้ setting จากหลังบ้าน (ตั้งค่าระบบ) แทน
+                    <?php 
+                        endwhile;
+                    endif;
+            $show_price = ($global_settings['show_model_price'] ?? '1') == '1';
+                    // ถ้าไม่มีรีวิวจากฐานข้อมูล แสดงรีวิวตัวอย่าง
+                    if (!$has_reviews):
+                    ?>
+                    <!-- Review 1 -->settings['show_model_details'] ?? '1') == '1';
+            
+            // Debug: แสดงค่าตัวแปร (ลบออกหลังจากแก้ไขเสร็จ)
+                            <div class="bg-green-500 h-64 rounded-lg mb-4 flex items-center justify-center">
+                echo "<!-- DEBUG: show_model_price = '" . ($global_settings['show_model_price'] ?? 'ไม่มี') . "' -->";
+                echo "<!-- DEBUG: show_price = " . ($show_price ? 'true' : 'false') . " -->";
+                echo "<!-- DEBUG: show_model_details = '" . ($global_settings['show_model_details'] ?? 'ไม่มี') . "' -->";
+                echo "<!-- DEBUG: show_details = " . ($show_details ? 'true' : 'false') . " -->";
+            }
+            
+            // Female models
+            $female_models = $conn->query("
+                SELECT 
+                    m.*,
+                    c.name as category_name,
+                    c.icon as category_icon,
+                    mi.image_path,
+                    mi.image_type
+                FROM models m
+                LEFT JOIN categories c ON m.category_id = c.id
+                LEFT JOIN model_images mi ON m.id = mi.model_id AND mi.is_primary = 1
+                WHERE c.gender = 'female' AND m.status = 'available'
+                ORDER BY m.featured DESC, m.sort_order ASC
+                LIMIT 6
+            ");
+            
+            // Male models
+            $male_models = $conn->query("
+                SELECT 
+                    m.*,
+                    c.name as category_name,
+                    c.icon as category_icon,
+                    mi.image_path,
+                    mi.image_type
+                FROM models m
+                LEFT JOIN categories c ON m.category_id = c.id
+                LEFT JOIN model_images mi ON m.id = mi.model_id AND mi.is_primary = 1
+                WHERE c.gender = 'male' AND m.status = 'available'
+                ORDER BY m.featured DESC, m.sort_order ASC
+                LIMIT 6
+            ");
+            
+            // Gradient colors for cards
+            $gradient_colors = [
+                ['from-pink-500', 'to-red-primary'],
+                ['from-purple-500', 'to-pink-500'],
+                ['from-red-primary', 'to-red-light'],
+                ['from-blue-500', 'to-indigo-600'],
+                ['from-green-500', 'to-teal-600'],
+                ['from-orange-500', 'to-red-500'],
+                ['from-yellow-500', 'to-orange-500'],
+                ['from-indigo-500', 'to-purple-600']
+            ];
+            ?>
+            
+            <!-- Female Models -->
+            <?php if ($female_models && $female_models->num_rows > 0): ?>
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">โมเดลหญิง</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php 
+                    $color_index = 0;
+                    while ($model = $female_models->fetch_assoc()): 
+                        $colors = $gradient_colors[$color_index % count($gradient_colors)];
+                    ?>
+                    <?php endif; // End if no reviews ?>
+                    <a href="model-detail.php?id=<?php echo $model['id']; ?>" class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
+                        <div class="relative h-64 overflow-hidden">
+                            <?php if (!empty($model['image_path'])): ?>
+                            <img src="<?php echo UPLOADS_URL . '/' . $model['image_path']; ?>" 
+                                 alt="<?php echo htmlspecialchars($model['name']); ?>"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br <?php echo $colors[0] . ' ' . $colors[1]; ?> h-full flex items-center justify-center">
+                                <i class="fas fa-user text-6xl text-white"></i>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($model['featured']): ?>
+                            <div class="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                <i class="fas fa-star mr-1"></i>Featured
+                            </div>
+                            <?php endif; ?>
+    <?php endif; // End Reviews Section ?>
+
+    <!-- Call to Action Section -->
+    <?php 
+    $cta = $homepage_sections['cta'] ?? null;
+    if ($cta && $cta['is_active'] == 1):
+    $cta_style = '';
+    if ($cta && $cta['background_color']) {
+        $cta_style = "background-color: " . $cta['background_color'] . ";";
+    } elseif ($cta && $cta['background_image']) {
+        $bg_url = get_background_url($cta['background_image']);
+        $cta_style = "background-image: url('" . $bg_url . "'); background-position: " . $cta['background_position'] . "; background-size: " . $cta['background_size'] . ";";
+    } else {
+        $cta_style = "background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);";
+    }
+    
+    $cta_settings = json_decode($cta['settings'] ?? '{}', true);
+    $cta_id = !empty($cta_settings['section_id']) ? $cta_settings['section_id'] : 'cta';
+    $cta_class = !empty($cta_settings['section_class']) ? $cta_settings['section_class'] : 'py-20';
+    $cta_animation = $cta_settings['animation_class'] ?? '';
+    $cta_classes = trim($cta_class . ' ' . $cta_animation . ' relative');
+    ?>
+    <section id="<?php echo $cta_id; ?>" class="<?php echo $cta_classes; ?>" style="<?php echo $cta_style; ?>">
+        <?php if (!empty($cta_settings['custom_css'])): ?>
+        <style><?php echo $cta_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($cta && $cta['overlay_color'] && $cta['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($cta['overlay_color'], $cta['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($cta['title'] ?? 'พร้อมเริ่มต้นแล้วหรือยัง?'); ?>
+                </h2>
+                <p class="text-lg md:text-xl mb-8" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>; opacity: 0.9;">
+                    <?php echo htmlspecialchars($cta['subtitle'] ?? 'ติดต่อเราวันนี้เพื่อรับคำปรึกษาฟรี'); ?>
+                </p>
+                <?php if ($cta && $cta['description']): ?>
+                <p class="text-base mb-8" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>; opacity: 0.8;">
+                    <?php echo htmlspecialchars($cta['description']); ?>
+                </p>
+                <?php endif; ?>
+                <?php if ($cta && $cta['button_text'] && $cta['button_link']): ?>
+                <a href="<?php echo htmlspecialchars($cta['button_link']); ?>" class="inline-block bg-white hover:bg-gray-100 text-red-primary px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover-scale shadow-xl">
+                    <?php echo htmlspecialchars($cta['button_text']); ?>
+                </a>
+                <?php else: ?>
+                <a href="#contact" class="inline-block bg-white hover:bg-gray-100 text-red-primary px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover-scale shadow-xl">
+                    <i class="fas fa-phone mr-2"></i>ติดต่อเราตอนนี้
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End CTA Section ?>
+                        </div>
+                        
+    <?php 
+    $contact = $homepage_sections['contact'] ?? null;
+    if ($contact && $contact['is_active'] == 1):
+    $contact_style = '';
+    if ($contact && $contact['background_color']) {
+        $contact_style = "background-color: " . $contact['background_color'] . ";";
+    } elseif ($contact && $contact['background_image']) {
+        $bg_url = get_background_url($contact['background_image']);
+        $contact_style = "background-image: url('" . $bg_url . "'); background-position: " . $contact['background_position'] . "; background-size: " . $contact['background_size'] . ";";
+    } else {
+        $contact_style = "background-color: #1a1a1a;";
+    }
+    ?>
+    <?php 
+    $contact_settings = json_decode($contact['settings'] ?? '{}', true);
+    $contact_id = !empty($contact_settings['section_id']) ? $contact_settings['section_id'] : 'contact';
+    $contact_class = !empty($contact_settings['section_class']) ? $contact_settings['section_class'] : 'py-20 bg-dark-light';
+    $contact_animation = $contact_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $contact_classes = trim($contact_class . ' ' . $contact_animation . ' relative');
+    ?>
+    <section id="<?php echo $contact_id; ?>" class="<?php echo $contact_classes; ?>" style="<?php echo $contact_style; ?>">
+        <?php if (!empty($contact_settings['custom_css'])): ?>
+        <style><?php echo $contact_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($contact && $contact['overlay_color'] && $contact['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($contact['overlay_color'], $contact['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"> mb-2 text-white"><?php echo htmlspecialchars($model['name']); ?></h4>
+                            
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $contact['text_color'] ?? '#ffffff'; ?>;">
+                    <?php if ($contact && $contact['title']): ?>
+                        <?php echo htmlspecialchars($contact['title']); ?>
+                    <?php else: ?>
+                        ติดต่อเรา
+                    <?php endif; ?>   <i class="fas fa-briefcase mr-2"></i>
+                                <span><?php echo htmlspecialchars($model['category_name'] ?? 'Model'); ?></span>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($contact['subtitle'] ?? 'พร้อมให้คำปรึกษาและรับจองบริการ'); ?>
+                </p>
+                <?php if ($contact && $contact['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($contact['description']); ?></p>
+                <?php endif; ?>
+                            
+                            <?php if (!empty($model['description'])): ?>
+                            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                                <?php 
+                                $desc = $model['description'];
+                                $max_length = 80;
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                                if (mb_strlen($desc, 'UTF-8') > $max_length) {
+                            <label class="block text-sm font-medium mb-2">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                                    echo htmlspecialchars($desc);
+                                }
+                            <label class="block text-sm font-medium mb-2">อีเมล <span class="text-red-500">*</span></label>
+                            <input type="email" name="email" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                            <?php endif; ?>
+                            
+                            <label class="block text-sm font-medium mb-2">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                            <input type="tel" name="phone" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                                <?php if ($model['height']): ?>
+                                <div><i class="fas fa-ruler-vertical mr-1"></i><?php echo $model['height']; ?> cm</div>
+                            <label class="block text-sm font-medium mb-2">หัวข้อ</label>
+                            <input type="text" name="subject" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" placeholder="เช่น สอบถามราคา, จองโมเดล">if; ?>
+                            
+                            <?php if ($show_price && (!empty($model['price_min']) || !empty($model['price_max']))): ?>
+                            <label class="block text-sm font-medium mb-2">รายละเอียดงาน <span class="text-red-500">*</span></label>
+                            <textarea name="message" rows="4" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" placeholder="กรุณาระบุรายละเอียดงาน วันที่ เวลา และสถานที่" required></textarea>
+                                    ฿<?php echo number_format($model['price_min'] ?? 0); ?>
+                        <button type="submit" id="contact-submit-btn" class="w-full bg-red-primary hover:bg-red-light py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span id="btn-text">ส่งข้อความ</span>
+                            <i class="fas fa-spinner fa-spin ml-2 hidden" id="btn-loading"></i>ax']); ?>
+                                    <?php endif; ?>/วัน
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                    <?php 
+                        $color_index++;
+                    endwhile; 
+                    ?>
+                </div>
+                                <span><?php echo $global_settings['site_phone'] ?? '02-123-4567'; ?></span>
+            <?php endif; ?>
+            
+            <!-- Male Models -->
+                                <span><?php echo $global_settings['site_email'] ?? 'info@vibedaybkk.com'; ?></span>): ?>
+            <div>
+                <h3 class="text-2xl font-bold mb-8 text-center text-red-primary">โมเดลชาย</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <span><?php echo $global_settings['site_line'] ?? '@vibedaybkk'; ?></span>
+                    $color_index = 0;
+                    while ($model = $male_models->fetch_assoc()): 
+                        $colors = $gradient_colors[$color_index % count($gradient_colors)];
+                                <span><?php echo $global_settings['site_address'] ?? '123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110'; ?></span>
+                    <a href="model-detail.php?id=<?php echo $model['id']; ?>" class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
+                        <div class="relative h-64 overflow-hidden">
+                            <?php if (!empty($model['image_path'])): ?>
+                            <img src="<?php echo UPLOADS_URL . '/' . $model['image_path']; ?>" 
+                                 alt="<?php echo htmlspecialchars($model['name']); ?>"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br <?php echo $colors[0] . ' ' . $colors[1]; ?> h-full flex items-center justify-center">
+                                <i class="fas fa-user text-6xl text-white"></i>
+                            </div>
+                            <?php endif; ?>
+                            
+                    <?php if (!empty($active_socials)): ?>
+                            <?php if ($model['featured']): ?>
+                            <div class="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                <i class="fas fa-star mr-1"></i>Featured
+                            <?php foreach ($active_socials as $platform => $social): ?>
+                            <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+                               class="<?php echo $social['color']; ?> w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" 
+                               title="<?php echo $social['name']; ?>"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+                        </div>
+                            <?php endforeach; ?>
+                            <?php if (!empty($model['description'])): ?>
+                            <p class="text-gray-400 text-sm mb-4 line-clamp-2">
+                    <?php endif; ?>
+                                <?php 
+                                $desc = $model['description'];
+                                $max_length = 80;
+                                if (mb_strlen($desc, 'UTF-8') > $max_length) {
+    <?php endif; // End Contact Section ?>
+                                    echo htmlspecialchars(mb_substr($desc, 0, $max_length, 'UTF-8')) . '...';
+                                } else {
+                                    echo htmlspecialchars($desc);
+                                }
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                        <?php echo get_logo($global_settings); ?>
+                            <?php if ($show_details): ?>
+                            <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                    <?php if (!empty($active_socials)): ?>
+                                <?php if ($model['height']): ?>
+                        <?php foreach ($active_socials as $platform => $social): ?>
+                        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+                           class="bg-gray-800 <?php echo $social['hover_color']; ?> w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" 
+                           title="<?php echo $social['name']; ?>"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fab <?php echo $social['icon']; ?>"></i>
+                                <?php if ($model['age']): ?>
+                        <?php endforeach; ?><?php if ($show_price && (!empty($model['price_min']) || !empty($model['price_max']))): ?>
+                            <div class="pt-4 border-t border-gray-700">
+                    <?php endif; ?>
+                                <p class="text-2xl font-bold text-red-primary">
+                                    ฿<?php echo number_format($model['price_min'] ?? 0); ?>
+                                    <?php if (!empty($model['price_max']) && $model['price_max'] != $model['price_min']): ?>
+                                    -<?php echo number_format($model['price_max']); ?>
+                                    <?php endif; ?>/วัน
+                        <li><a href="index.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                            </div>
+                        <li><a href="services.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
+                    </a>
+                    <?php 
+                        $color_index++;
+                    endwhile; 
+                    ?>
+                </div>
+            </div>
+                        <li><a href="services-detail.php?category=female-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นหญิง</a></li>
+                        <li><a href="services-detail.php?category=female-photography" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลถ่ายภาพหญิง</a></li>
+                        <li><a href="services-detail.php?category=male-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นชาย</a></li>
+                        <li><a href="services-detail.php?category=male-fitness" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลฟิตเนส</a></li>
+
+    <!-- How to Book Section -->
+    <?php 
+    $how_to_book = $homepage_sections['how_to_book'] ?? null;
+    if ($how_to_book && $how_to_book['is_active'] == 1):
+    $how_to_book_style = '';
+                        <li><i class="fas fa-phone mr-2"></i><?php echo $global_settings['site_phone'] ?? '02-123-4567'; ?></li>
+                        <li><i class="fas fa-envelope mr-2"></i><?php echo $global_settings['site_email'] ?? 'info@vibedaybkk.com'; ?></li>
+                        <li><i class="fab fa-line mr-2"></i><?php echo $global_settings['site_line'] ?? '@vibedaybkk'; ?></li>
+        $bg_url = get_background_url($how_to_book['background_image']);
+        $how_to_book_style = "background-image: url('" . $bg_url . "'); background-position: " . $how_to_book['background_position'] . "; background-size: " . $how_to_book['background_size'] . ";";
+    } else {
+        $how_to_book_style = "background-color: #1a1a1a;";
+    }
+    ?>
+    <?php 
+    $how_to_book_settings = json_decode($how_to_book['settings'] ?? '{}', true);
+    $how_to_book_id = !empty($how_to_book_settings['section_id']) ? $how_to_book_settings['section_id'] : 'how-to-book';
+    $how_to_book_class = !empty($how_to_book_settings['section_class']) ? $how_to_book_settings['section_class'] : 'py-20 bg-dark-light';
+    $how_to_book_animation = $how_to_book_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $how_to_book_classes = trim($how_to_book_class . ' ' . $how_to_book_animation . ' relative');
+    ?>
+    <section <?php echo $how_to_book_id ? 'id="' . $how_to_book_id . '"' : ''; ?> class="<?php echo $how_to_book_classes; ?>" style="<?php echo $how_to_book_style; ?>">
+        <?php if (!empty($how_to_book_settings['custom_css'])): ?>
+        <style><?php echo $how_to_book_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($how_to_book && $how_to_book['overlay_color'] && $how_to_book['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($how_to_book['overlay_color'], $how_to_book['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left - Steps -->
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-8" style="color: <?php echo $how_to_book['text_color'] ?? '#ffffff'; ?>;">
+                        <?php if ($how_to_book && $how_to_book['title']): ?>
+                            <?php echo htmlspecialchars($how_to_book['title']); ?>
+                        <?php else: ?>
+                            วิธีการจอง<span class="text-red-primary">บริการ</span>
+                        <?php endif; ?>
+                    </h2>
+                    <?php if ($how_to_book && $how_to_book['subtitle']): ?>
+                    <h3 class="text-xl mb-6 text-gray-300"><?php echo htmlspecialchars($how_to_book['subtitle']); ?></h3>
+                    <?php endif; ?>
+                    <?php if ($how_to_book && $how_to_book['description']): ?>
+                    <p class="text-gray-400 mb-6 leading-relaxed"><?php echo htmlspecialchars($how_to_book['description']); ?></p>
+                    <?php endif; ?>
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">1</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">เลือกบริการ</h4>
+                                <p class="text-gray-400">เลือกประเภทโมเดลและบริการที่ต้องการ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">2</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">ติดต่อเรา</h4>
+                                <p class="text-gray-400">ติดต่อผ่าน Line หรือโทรศัพท์เพื่อปรึกษารายละเอียด</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">3</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">ยืนยันการจอง</h4>
+                                <p class="text-gray-400">ยืนยันรายละเอียดและชำระเงินมัดจำ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">4</div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-2">เริ่มงาน</h4>
+                                <p class="text-gray-400">โมเดลจะมาถึงสถานที่ตามเวลาที่กำหนด</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right - Phone Image -->
+                <div class="flex justify-center">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-64 h-96 rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
+                        <div class="text-center">
+                            <i class="fas fa-calendar-check text-6xl text-red-primary mb-4"></i>
+                            <p class="text-gray-400">จองง่าย รวดเร็ว</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End How to Book Section ?>
+
+    <!-- Gallery Section -->
+    <?php 
+    $gallery = $homepage_sections['gallery'] ?? null;
+    if ($gallery && $gallery['is_active'] == 1):
+    $gallery_style = '';
+    if ($gallery && $gallery['background_color']) {
+        $gallery_style = "background-color: " . $gallery['background_color'] . ";";
+    } elseif ($gallery && $gallery['background_image']) {
+        $bg_url = get_background_url($gallery['background_image']);
+        $gallery_style = "background-image: url('" . $bg_url . "'); background-position: " . $gallery['background_position'] . "; background-size: " . $gallery['background_size'] . ";";
+    } else {
+        $gallery_style = "background-color: #0a0a0a;";
+    }
+    
+    $gallery_settings = json_decode($gallery['settings'] ?? '{}', true);
+    $gallery_id = !empty($gallery_settings['section_id']) ? $gallery_settings['section_id'] : 'gallery';
+    $gallery_class = !empty($gallery_settings['section_class']) ? $gallery_settings['section_class'] : 'py-20 bg-dark';
+    $gallery_animation = $gallery_settings['animation_class'] ?? '';
+    $gallery_classes = trim($gallery_class . ' ' . $gallery_animation . ' relative');
+    ?>
+    <section id="<?php echo $gallery_id; ?>" class="<?php echo $gallery_classes; ?>" style="<?php echo $gallery_style; ?>">
+        <?php if (!empty($gallery_settings['custom_css'])): ?>
+        <style><?php echo $gallery_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($gallery && $gallery['overlay_color'] && $gallery['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($gallery['overlay_color'], $gallery['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $gallery['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($gallery['title'] ?? 'ผลงานของเรา'); ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($gallery['subtitle'] ?? 'ชมผลงานและแกลเลอรี่ของเรา'); ?>
+                </p>
+                <?php if ($gallery && $gallery['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($gallery['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <?php for ($i = 1; $i <= 8; $i++): ?>
+                <div class="bg-gradient-to-br from-gray-800 to-gray-900 aspect-square rounded-lg flex items-center justify-center hover-scale">
+                    <i class="fas fa-image text-4xl text-gray-600"></i>
+                </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End Gallery Section ?>
+
+    <!-- Statistics Section -->
+    <?php 
+    $stats = $homepage_sections['stats'] ?? null;
+    if ($stats && $stats['is_active'] == 1):
+    $stats_style = '';
+    if ($stats && $stats['background_color']) {
+        $stats_style = "background-color: " . $stats['background_color'] . ";";
+    } elseif ($stats && $stats['background_image']) {
+        $bg_url = get_background_url($stats['background_image']);
+        $stats_style = "background-image: url('" . $bg_url . "'); background-position: " . $stats['background_position'] . "; background-size: " . $stats['background_size'] . ";";
+    } else {
+        $stats_style = "background-color: #1a1a1a;";
+    }
+    
+    $stats_settings = json_decode($stats['settings'] ?? '{}', true);
+    $stats_id = !empty($stats_settings['section_id']) ? $stats_settings['section_id'] : 'stats';
+    $stats_class = !empty($stats_settings['section_class']) ? $stats_settings['section_class'] : 'py-20 bg-dark-light';
+    $stats_animation = $stats_settings['animation_class'] ?? '';
+    $stats_classes = trim($stats_class . ' ' . $stats_animation . ' relative');
+    ?>
+    <section id="<?php echo $stats_id; ?>" class="<?php echo $stats_classes; ?>" style="<?php echo $stats_style; ?>">
+        <?php if (!empty($stats_settings['custom_css'])): ?>
+        <style><?php echo $stats_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($stats && $stats['overlay_color'] && $stats['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($stats['overlay_color'], $stats['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $stats['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($stats['title'] ?? 'ตัวเลขที่น่าสนใจ'); ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($stats['subtitle'] ?? 'ความสำเร็จของเราในตัวเลข'); ?>
+                </p>
+                <?php if ($stats && $stats['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($stats['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">500+</div>
+                    <p class="text-gray-400">โมเดล</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">1000+</div>
+                    <p class="text-gray-400">โปรเจค</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">800+</div>
+                    <p class="text-gray-400">ลูกค้า</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl md:text-5xl font-bold text-red-primary mb-2">5+</div>
+                    <p class="text-gray-400">ปีประสบการณ์</p>
+                </div>
+            </div>
+        </div>
+        // Contact Form - ส่งข้อมูลเข้า Database จริง
+    <?php endif; // End Statistics Section ?>
+
+    <!-- Reviews Carousel -->
+    $reviews_section = $homepage_sections['testimonials'] ?? $homepage_sections['reviews'] ?? null;
+    if ($reviews_section && $reviews_section['is_active'] == 1):
+    $reviews_style = '';
+    if ($reviews_section && $reviews_section['background_color']) {
+        $reviews_style = "background-color: " . $reviews_section['background_color'] . ";";
+    } elseif ($reviews_section && $reviews_section['background_image']) {
+        $bg_url = get_background_url($reviews_section['background_image']);
+            // ส่งข้อมูลไปยัง process-contact.php
+            fetch('process-contact.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    submitBtn.textContent = 'ส่งสำเร็จ!';
+                    submitBtn.className = 'w-full bg-green-500 py-3 rounded-lg font-medium';
+                    
+                    setTimeout(() => {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        submitBtn.className = 'w-full bg-red-primary hover:bg-red-light py-3 rounded-lg font-medium transition-colors duration-300';
+                        this.reset();
+                    }, 2000);
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+    $reviews_classes = trim($reviews_class . ' ' . $reviews_animation . ' relative');
+    ?>
+    <section <?php echo $reviews_id ? 'id="' . $reviews_id . '"' : ''; ?> class="<?php echo $reviews_classes; ?>" style="<?php echo $reviews_style; ?>">
+        <?php if (!empty($reviews_settings['custom_css'])): ?>
+        <style><?php echo $reviews_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($reviews_section && $reviews_section['overlay_color'] && $reviews_section['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($reviews_section['overlay_color'], $reviews_section['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $reviews_section['text_color'] ?? '#ffffff'; ?>;">
+                    <?php if ($reviews_section && $reviews_section['title']): ?>
+                        <?php echo htmlspecialchars($reviews_section['title']); ?>
+                    <?php else: ?>
+                        รีวิวจาก<span class="text-red-primary">ลูกค้า</span>
+                    <?php endif; ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($reviews_section['subtitle'] ?? 'ความพึงพอใจของลูกค้าคือสิ่งสำคัญที่สุดสำหรับเรา'); ?>
+
+    <!-- SweetAlert2 for Toast Notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Contact Form AJAX -->
+    <script>
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const submitBtn = document.getElementById('contact-submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoading = document.getElementById('btn-loading');
+        const formData = new FormData(form);
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        btnText.textContent = 'กำลังส่ง...';
+        btnLoading.classList.remove('hidden');
+        
+        try {
+            const response = await fetch('contact-submit.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Success Alert with Animation
+                Swal.fire({
+                    icon: 'success',
+                    title: '🎉 ส่งข้อความสำเร็จ!',
+                    html: `
+                        <div class="text-center py-4">
+                            <div class="mb-4">
+                                <div class="inline-block p-4 bg-green-100 rounded-full mb-3">
+                                    <i class="fas fa-check-circle text-green-600 text-5xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-lg text-gray-700 mb-4 font-medium">${data.message}</p>
+                            <div class="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 rounded-lg p-4 text-left">
+                                <div class="flex items-start mb-3">
+                                    <i class="fas fa-envelope-open-text text-green-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">เราได้รับข้อความของคุณแล้ว</p>
+                                        <p class="text-xs text-gray-600 mt-1">ข้อความถูกบันทึกในระบบเรียบร้อย</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start mb-3">
+                                    <i class="fas fa-user-headset text-blue-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</p>
+                                        <p class="text-xs text-gray-600 mt-1">ผ่านทางอีเมลหรือเบอร์โทรที่ระบุไว้</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-phone-alt text-red-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">ติดต่อด่วน: ${formData.get('phone') || '02-XXX-XXXX'}</p>
+                                        <p class="text-xs text-gray-600 mt-1">หรือโทรสอบถามได้ทันที</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                หมายเลขอ้างอิง: #${data.contact_id || 'XXXX'}
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-check mr-2"></i>เข้าใจแล้ว',
+                    confirmButtonColor: '#DC2626',
+                    width: '600px',
+                    padding: '2rem',
+                    backdrop: `
+                        rgba(0,0,0,0.8)
+                        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext y='50' font-size='50' fill='%23ffffff' opacity='0.1'%3E🎉%3C/text%3E%3C/svg%3E")
+                        left top
+                        no-repeat
+                    `,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInDown animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutUp animate__faster'
+                    },
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl',
+                        title: 'text-3xl font-bold text-gray-800',
+                        htmlContainer: 'text-base',
+                        confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                    }
+                });
+                
+                // Reset form
+                form.reset();
+                
+            } else {
+                // Error Alert
+                let errorList = '';
+                if (data.errors && data.errors.length > 0) {
+                    data.errors.forEach(error => {
+                        errorList += `
+                            <div class="flex items-start mb-2 text-left">
+                                <i class="fas fa-times-circle text-red-500 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">${error}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    errorList = `
+                        <div class="flex items-start text-left">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-1"></i>
+                            <span class="text-sm text-gray-700">${data.message}</span>
+                        </div>
+                    `;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ กรุณาตรวจสอบข้อมูล',
+                    html: `
+                        <div class="py-4">
+                            <div class="mb-4">
+                                <div class="inline-block p-4 bg-red-100 rounded-full mb-3">
+                                    <i class="fas fa-exclamation-circle text-red-600 text-5xl"></i>
+                                </div>
+                            </div>
+                            <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+                                ${errorList}
+                            </div>
+                            <p class="text-sm text-gray-600 mt-4">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                กรุณาแก้ไขข้อมูลและลองส่งอีกครั้ง
+                            </p>
+                        </div>
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-redo mr-2"></i>ลองใหม่',
+                    confirmButtonColor: '#DC2626',
+                    width: '500px',
+                    showClass: {
+                        popup: 'animate__animated animate__shakeX'
+                    },
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl',
+                        title: 'text-2xl font-bold text-gray-800',
+                        confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            
+            Swal.fire({
+                icon: 'error',
+                title: '🔌 เกิดข้อผิดพลาด',
+                html: `
+                    <div class="py-4">
+                        <div class="mb-4">
+                            <div class="inline-block p-4 bg-orange-100 rounded-full mb-3">
+                                <i class="fas fa-wifi-slash text-orange-600 text-5xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 mb-4">ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้</p>
+                        <div class="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 text-left">
+                            <div class="flex items-start mb-2">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</span>
+                            </div>
+                            <div class="flex items-start mb-2">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">รีเฟรชหน้าเว็บและลองใหม่</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">หรือติดต่อเราโดยตรงที่ ${formData.get('phone') || '02-XXX-XXXX'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: '<i class="fas fa-sync-alt mr-2"></i>ลองอีกครั้ง',
+                confirmButtonColor: '#DC2626',
+                width: '500px',
+                showClass: {
+                    popup: 'animate__animated animate__fadeIn'
+                },
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl',
+                    title: 'text-2xl font-bold text-gray-800',
+                    confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                }
+            });
+            
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            btnText.textContent = 'ส่งข้อความ';
+            btnLoading.classList.add('hidden');
+        }
+    });
+    </script>
+                </p>
+                <?php if ($reviews_section && $reviews_section['description']): ?>
+                <?php endif; ?>
+            </div>
+            
+            <div class="carousel-container relative">
+                <div id="carousel-track" class="carousel-track">
+                    <?php
+                    // ดึงรีวิวจากฐานข้อมูล
+                    $reviews_query = $conn->query("SELECT * FROM customer_reviews WHERE is_active = 1 ORDER BY sort_order ASC, created_at DESC");
+                    $has_reviews = false;
+                    
+                    if ($reviews_query && $reviews_query->num_rows > 0):
+                        $has_reviews = true;
+                        while ($customer_review = $reviews_query->fetch_assoc()):
+                    ?>
+                    <div class="carousel-slide px-4">
+                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
+                            <?php if ($customer_review['customer_image']): ?>
+                            <div class="h-64 rounded-lg mb-4 overflow-hidden">
+                                <img src="<?php echo UPLOADS_URL . '/' . $customer_review['customer_image']; ?>" 
+                                     alt="<?php echo htmlspecialchars($customer_review['customer_name']); ?>"
+                                     class="w-full h-full object-cover">
+                            </div>
+                            <?php else: ?>
+                            <div class="bg-gradient-to-br from-red-500 to-red-700 h-64 rounded-lg mb-4 flex items-center justify-center">
+                                <div class="text-center text-white">
+                                    <i class="fas fa-user-circle text-6xl mb-2"></i>
+                                    <p class="text-sm font-semibold"><?php echo htmlspecialchars($customer_review['customer_name']); ?></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <div class="text-center">
+                                <div class="flex justify-center mb-2">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <i class="fas fa-star <?php echo $i <= $customer_review['rating'] ? 'text-yellow-400' : 'text-gray-600'; ?>"></i>
+                                    <?php endfor; ?>
+                                </div>
+                                <p class="text-white font-semibold mb-2"><?php echo htmlspecialchars($customer_review['customer_name']); ?></p>
+                                <?php if ($customer_review['service_type']): ?>
+                                <p class="text-gray-500 text-xs mb-2"><?php echo htmlspecialchars($customer_review['service_type']); ?></p>
+                                <?php endif; ?>
+                                <p class="text-gray-400 text-sm"><?php echo htmlspecialchars($customer_review['review_text']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <?php 
+                        endwhile;
+                    endif;
+                    
+                    // ถ้าไม่มีรีวิวจากฐานข้อมูล แสดงรีวิวตัวอย่าง
+                    if (!$has_reviews):
+                    ?>
+                    <!-- Review 1 -->
+                    <div class="carousel-slide px-4">
+                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
+                            <div class="bg-green-500 h-64 rounded-lg mb-4 flex items-center justify-center">
+                                <div class="text-center text-white">
+                                    <i class="fab fa-line text-4xl mb-2"></i>
+                                    <p class="text-sm">Line Chat Review</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="flex justify-center mb-2">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                </div>
+                                <p class="text-gray-400 text-sm">โมเดลตรงเวลา ทำงานเป็นมืออาชีพ</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Review 5 -->
+                    <div class="carousel-slide px-4">
+                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
+                            <div class="bg-orange-500 h-64 rounded-lg mb-4 flex items-center justify-center">
+                                <div class="text-center text-white">
+                                    <i class="fab fa-line text-4xl mb-2"></i>
+                                    <p class="text-sm">Line Chat Review</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="flex justify-center mb-2">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                </div>
+                                <p class="text-gray-400 text-sm">ประทับใจมาก แนะนำเลย</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Review 6 -->
+                    <div class="carousel-slide px-4">
+                        <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
+                            <div class="bg-teal-500 h-64 rounded-lg mb-4 flex items-center justify-center">
+                                <div class="text-center text-white">
+                                    <i class="fab fa-line text-4xl mb-2"></i>
+                                    <p class="text-sm">Line Chat Review</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="flex justify-center mb-2">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                </div>
+                                <p class="text-gray-400 text-sm">คุณภาพเกินราคา บริการดีเยี่ยม</p>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; // End if no reviews ?>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <button id="prev-btn" class="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-red-primary hover:bg-red-light w-12 h-12 rounded-full text-white transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center z-10">
+                    <i class="fas fa-chevron-left text-lg"></i>
+                </button>
+                <button id="next-btn" class="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-red-primary hover:bg-red-light w-12 h-12 rounded-full text-white transition-all duration-300 shadow-lg hover:scale-110 flex items-center justify-center z-10">
+                    <i class="fas fa-chevron-right text-lg"></i>
+                </button>
+                
+                <!-- Dots Indicator -->
+                <div id="dots-container" class="flex justify-center mt-8 space-x-2">
+                    <!-- Dots will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End Reviews Section ?>
+
+    <!-- Call to Action Section -->
+    <?php 
+    $cta = $homepage_sections['cta'] ?? null;
+    if ($cta && $cta['is_active'] == 1):
+    $cta_style = '';
+    if ($cta && $cta['background_color']) {
+        $cta_style = "background-color: " . $cta['background_color'] . ";";
+    } elseif ($cta && $cta['background_image']) {
+        $bg_url = get_background_url($cta['background_image']);
+        $cta_style = "background-image: url('" . $bg_url . "'); background-position: " . $cta['background_position'] . "; background-size: " . $cta['background_size'] . ";";
+    } else {
+        $cta_style = "background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);";
+    }
+    
+    $cta_settings = json_decode($cta['settings'] ?? '{}', true);
+    $cta_id = !empty($cta_settings['section_id']) ? $cta_settings['section_id'] : 'cta';
+    $cta_class = !empty($cta_settings['section_class']) ? $cta_settings['section_class'] : 'py-20';
+    $cta_animation = $cta_settings['animation_class'] ?? '';
+    $cta_classes = trim($cta_class . ' ' . $cta_animation . ' relative');
+    ?>
+    <section id="<?php echo $cta_id; ?>" class="<?php echo $cta_classes; ?>" style="<?php echo $cta_style; ?>">
+        <?php if (!empty($cta_settings['custom_css'])): ?>
+        <style><?php echo $cta_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($cta && $cta['overlay_color'] && $cta['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($cta['overlay_color'], $cta['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>;">
+                    <?php echo htmlspecialchars($cta['title'] ?? 'พร้อมเริ่มต้นแล้วหรือยัง?'); ?>
+                </h2>
+                <p class="text-lg md:text-xl mb-8" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>; opacity: 0.9;">
+                    <?php echo htmlspecialchars($cta['subtitle'] ?? 'ติดต่อเราวันนี้เพื่อรับคำปรึกษาฟรี'); ?>
+                </p>
+                <?php if ($cta && $cta['description']): ?>
+                <p class="text-base mb-8" style="color: <?php echo $cta['text_color'] ?? '#ffffff'; ?>; opacity: 0.8;">
+                    <?php echo htmlspecialchars($cta['description']); ?>
+                </p>
+                <?php endif; ?>
+                <?php if ($cta && $cta['button_text'] && $cta['button_link']): ?>
+                <a href="<?php echo htmlspecialchars($cta['button_link']); ?>" class="inline-block bg-white hover:bg-gray-100 text-red-primary px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover-scale shadow-xl">
+                    <?php echo htmlspecialchars($cta['button_text']); ?>
+                </a>
+                <?php else: ?>
+                <a href="#contact" class="inline-block bg-white hover:bg-gray-100 text-red-primary px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover-scale shadow-xl">
+                    <i class="fas fa-phone mr-2"></i>ติดต่อเราตอนนี้
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End CTA Section ?>
+
+    <!-- Contact Section -->
+    <?php 
+    $contact = $homepage_sections['contact'] ?? null;
+    if ($contact && $contact['is_active'] == 1):
+    $contact_style = '';
+    if ($contact && $contact['background_color']) {
+        $contact_style = "background-color: " . $contact['background_color'] . ";";
+    } elseif ($contact && $contact['background_image']) {
+        $bg_url = get_background_url($contact['background_image']);
+        $contact_style = "background-image: url('" . $bg_url . "'); background-position: " . $contact['background_position'] . "; background-size: " . $contact['background_size'] . ";";
+    } else {
+        $contact_style = "background-color: #1a1a1a;";
+    }
+    ?>
+    <?php 
+    $contact_settings = json_decode($contact['settings'] ?? '{}', true);
+    $contact_id = !empty($contact_settings['section_id']) ? $contact_settings['section_id'] : 'contact';
+    $contact_class = !empty($contact_settings['section_class']) ? $contact_settings['section_class'] : 'py-20 bg-dark-light';
+    $contact_animation = $contact_settings['animation_class'] ?? '';
+    
+    // รวมคลาสทั้งหมด
+    $contact_classes = trim($contact_class . ' ' . $contact_animation . ' relative');
+    ?>
+    <section id="<?php echo $contact_id; ?>" class="<?php echo $contact_classes; ?>" style="<?php echo $contact_style; ?>">
+        <?php if (!empty($contact_settings['custom_css'])): ?>
+        <style><?php echo $contact_settings['custom_css']; ?></style>
+        <?php endif; ?>
+        <?php if ($contact && $contact['overlay_color'] && $contact['overlay_opacity'] > 0): ?>
+        <div class="absolute inset-0 z-0" style="background-color: <?php echo hex_to_rgba($contact['overlay_color'], $contact['overlay_opacity']); ?>;"></div>
+        <?php endif; ?>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: <?php echo $contact['text_color'] ?? '#ffffff'; ?>;">
+                    <?php if ($contact && $contact['title']): ?>
+                        <?php echo htmlspecialchars($contact['title']); ?>
+                    <?php else: ?>
+                        ติดต่อเรา
+                    <?php endif; ?>
+                </h2>
+                <p class="text-gray-400 text-lg">
+                    <?php echo htmlspecialchars($contact['subtitle'] ?? 'พร้อมให้คำปรึกษาและรับจองบริการ'); ?>
+                </p>
+                <?php if ($contact && $contact['description']): ?>
+                <p class="text-gray-500 mt-2"><?php echo htmlspecialchars($contact['description']); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Contact Form -->
+                <div>
+                    <form id="contact-form" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">อีเมล <span class="text-red-500">*</span></label>
+                            <input type="email" name="email" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                            <input type="tel" name="phone" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">หัวข้อ</label>
+                            <input type="text" name="subject" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" placeholder="เช่น สอบถามราคา, จองโมเดล">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">รายละเอียดงาน <span class="text-red-500">*</span></label>
+                            <textarea name="message" rows="4" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" placeholder="กรุณาระบุรายละเอียดงาน วันที่ เวลา และสถานที่" required></textarea>
+                        </div>
+                        <button type="submit" id="contact-submit-btn" class="w-full bg-red-primary hover:bg-red-light py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span id="btn-text">ส่งข้อความ</span>
+                            <i class="fas fa-spinner fa-spin ml-2 hidden" id="btn-loading"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6">ข้อมูลการติดต่อ</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-red-primary mr-4"></i>
+                                <span><?php echo $global_settings['site_phone'] ?? '02-123-4567'; ?></span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-red-primary mr-4"></i>
+                                <span><?php echo $global_settings['site_email'] ?? 'info@vibedaybkk.com'; ?></span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fab fa-line text-red-primary mr-4"></i>
+                                <span><?php echo $global_settings['site_line'] ?? '@vibedaybkk'; ?></span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-map-marker-alt text-red-primary mr-4 mt-1"></i>
+                                <span><?php echo $global_settings['site_address'] ?? '123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110'; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4">เวลาทำการ</h4>
+                        <div class="space-y-2 text-gray-400">
+                            <p>จันทร์ - ศุกร์: 9:00 - 18:00</p>
+                            <p>เสาร์ - อาทิตย์: 10:00 - 16:00</p>
+                        </div>
+                    </div>
+                    
+                    <?php if (!empty($active_socials)): ?>
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4">ติดตามเรา</h4>
+                        <div class="flex space-x-3">
+                            <?php foreach ($active_socials as $platform => $social): ?>
+                            <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+                               class="<?php echo $social['color']; ?> w-12 h-12 rounded-full text-white transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-110 hover:shadow-xl" 
+                               title="<?php echo $social['name']; ?>"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; // End Contact Section ?>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-2xl font-bold text-red-primary mb-4">
+                        <?php echo get_logo($global_settings); ?>
+                    </div>
+                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <?php if (!empty($active_socials)): ?>
+                    <div class="flex space-x-3">
+                        <?php foreach ($active_socials as $platform => $social): ?>
+                        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+                           class="bg-gray-800 <?php echo $social['hover_color']; ?> w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" 
+                           title="<?php echo $social['name']; ?>"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fab <?php echo $social['icon']; ?>"></i>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
+                        <li><a href="services.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">บริการของเรา</h4>
+                    <ul class="space-y-2">
+                        <li><a href="services-detail.php?category=female-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นหญิง</a></li>
+                        <li><a href="services-detail.php?category=female-photography" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลถ่ายภาพหญิง</a></li>
+                        <li><a href="services-detail.php?category=male-fashion" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลแฟชั่นชาย</a></li>
+                        <li><a href="services-detail.php?category=male-fitness" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดลฟิตเนส</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><i class="fas fa-phone mr-2"></i><?php echo $global_settings['site_phone'] ?? '02-123-4567'; ?></li>
+                        <li><i class="fas fa-envelope mr-2"></i><?php echo $global_settings['site_email'] ?? 'info@vibedaybkk.com'; ?></li>
+                        <li><i class="fab fa-line mr-2"></i><?php echo $global_settings['site_line'] ?? '@vibedaybkk'; ?></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Preloader
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                // Remove preloader from DOM after animation
+                setTimeout(() => {
+                    preloader.remove();
+                }, 500);
+            }, 1000); // Show preloader for at least 1 second
+        });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenuBtn = document.getElementById('close-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('open');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+        });
+
+        // Close mobile menu when clicking on links
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+            });
+        });
+
+        // Go to Top Button
+        const goToTopBtn = document.getElementById('go-to-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                goToTopBtn.classList.add('show');
+            } else {
+                goToTopBtn.classList.remove('show');
+            }
+        });
+
+        goToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Smooth Scrolling for Navigation Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Reviews Carousel
+        class ReviewsCarousel {
+            constructor() {
+                this.track = document.getElementById('carousel-track');
+                this.slides = this.track.querySelectorAll('.carousel-slide');
+                this.prevBtn = document.getElementById('prev-btn');
+                this.nextBtn = document.getElementById('next-btn');
+                this.dotsContainer = document.getElementById('dots-container');
+                
+                this.currentIndex = 0;
+                this.slidesToShow = window.innerWidth >= 768 ? 3 : 1;
+                this.totalSlides = this.slides.length;
+                this.maxIndex = Math.max(0, this.totalSlides - this.slidesToShow);
+                
+                this.init();
+            }
+            
+            init() {
+                this.createDots();
+                this.updateCarousel();
+                this.bindEvents();
+                this.startAutoPlay();
+            }
+            
+            createDots() {
+                const dotsCount = this.maxIndex + 1;
+                this.dotsContainer.innerHTML = '';
+                
+                for (let i = 0; i <= this.maxIndex; i++) {
+                    const dot = document.createElement('button');
+                    dot.className = `w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${i === 0 ? 'bg-red-primary scale-125' : 'bg-gray-600'}`;
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    this.dotsContainer.appendChild(dot);
+                }
+            }
+            
+            updateCarousel() {
+                const translateX = -(this.currentIndex * (100 / this.slidesToShow));
+                this.track.style.transform = `translateX(${translateX}%)`;
+                
+                // Update dots
+                const dots = this.dotsContainer.querySelectorAll('button');
+                dots.forEach((dot, index) => {
+                    dot.className = `w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${index === this.currentIndex ? 'bg-red-primary scale-125' : 'bg-gray-600'}`;
+                });
+            }
+            
+            nextSlide() {
+                this.currentIndex = this.currentIndex >= this.maxIndex ? 0 : this.currentIndex + 1;
+                this.updateCarousel();
+            }
+            
+            prevSlide() {
+                this.currentIndex = this.currentIndex <= 0 ? this.maxIndex : this.currentIndex - 1;
+                this.updateCarousel();
+            }
+            
+            goToSlide(index) {
+                this.currentIndex = index;
+                this.updateCarousel();
+            }
+            
+            bindEvents() {
+                this.nextBtn.addEventListener('click', () => {
+                    this.nextSlide();
+                    this.resetAutoPlay();
+                });
+                
+                this.prevBtn.addEventListener('click', () => {
+                    this.prevSlide();
+                    this.resetAutoPlay();
+                });
+                
+                // Touch/Swipe support
+                let startX = 0;
+                let endX = 0;
+                
+                this.track.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                });
+                
+                this.track.addEventListener('touchend', (e) => {
+                    endX = e.changedTouches[0].clientX;
+                    const diff = startX - endX;
+                    
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) {
+                            this.nextSlide();
+                        } else {
+                            this.prevSlide();
+                        }
+                        this.resetAutoPlay();
+                    }
+                });
+                
+                // Resize handler
+                window.addEventListener('resize', () => {
+                    const newSlidesToShow = window.innerWidth >= 768 ? 3 : 1;
+                    if (newSlidesToShow !== this.slidesToShow) {
+                        this.slidesToShow = newSlidesToShow;
+                        this.maxIndex = Math.max(0, this.totalSlides - this.slidesToShow);
+                        this.currentIndex = Math.min(this.currentIndex, this.maxIndex);
+                        this.createDots();
+                        this.updateCarousel();
+                    }
+                });
+            }
+            
+            startAutoPlay() {
+                this.autoPlayInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 3000);
+            }
+            
+            resetAutoPlay() {
+                clearInterval(this.autoPlayInterval);
+                this.startAutoPlay();
+            }
+        }
+
+        // Initialize carousel when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new ReviewsCarousel();
+        });
+
+        // Contact Form - ส่งข้อมูลเข้า Database จริง
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'กำลังส่ง...';
+            submitBtn.disabled = true;
+            
+            // ส่งข้อมูลไปยัง process-contact.php
+            fetch('process-contact.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    submitBtn.textContent = 'ส่งสำเร็จ!';
+                    submitBtn.className = 'w-full bg-green-500 py-3 rounded-lg font-medium';
+                    
+                    setTimeout(() => {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        submitBtn.className = 'w-full bg-red-primary hover:bg-red-light py-3 rounded-lg font-medium transition-colors duration-300';
+                        this.reset();
+                    }, 2000);
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <!-- SweetAlert2 for Toast Notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Contact Form AJAX -->
+    <script>
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const submitBtn = document.getElementById('contact-submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoading = document.getElementById('btn-loading');
+        const formData = new FormData(form);
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        btnText.textContent = 'กำลังส่ง...';
+        btnLoading.classList.remove('hidden');
+        
+        try {
+            const response = await fetch('contact-submit.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Success Alert with Animation
+                Swal.fire({
+                    icon: 'success',
+                    title: '🎉 ส่งข้อความสำเร็จ!',
+                    html: `
+                        <div class="text-center py-4">
+                            <div class="mb-4">
+                                <div class="inline-block p-4 bg-green-100 rounded-full mb-3">
+                                    <i class="fas fa-check-circle text-green-600 text-5xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-lg text-gray-700 mb-4 font-medium">${data.message}</p>
+                            <div class="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 rounded-lg p-4 text-left">
+                                <div class="flex items-start mb-3">
+                                    <i class="fas fa-envelope-open-text text-green-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">เราได้รับข้อความของคุณแล้ว</p>
+                                        <p class="text-xs text-gray-600 mt-1">ข้อความถูกบันทึกในระบบเรียบร้อย</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start mb-3">
+                                    <i class="fas fa-user-headset text-blue-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง</p>
+                                        <p class="text-xs text-gray-600 mt-1">ผ่านทางอีเมลหรือเบอร์โทรที่ระบุไว้</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-phone-alt text-red-600 text-xl mr-3 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">ติดต่อด่วน: ${formData.get('phone') || '02-XXX-XXXX'}</p>
+                                        <p class="text-xs text-gray-600 mt-1">หรือโทรสอบถามได้ทันที</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                หมายเลขอ้างอิง: #${data.contact_id || 'XXXX'}
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-check mr-2"></i>เข้าใจแล้ว',
+                    confirmButtonColor: '#DC2626',
+                    width: '600px',
+                    padding: '2rem',
+                    backdrop: `
+                        rgba(0,0,0,0.8)
+                        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext y='50' font-size='50' fill='%23ffffff' opacity='0.1'%3E🎉%3C/text%3E%3C/svg%3E")
+                        left top
+                        no-repeat
+                    `,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInDown animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutUp animate__faster'
+                    },
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl',
+                        title: 'text-3xl font-bold text-gray-800',
+                        htmlContainer: 'text-base',
+                        confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                    }
+                });
+                
+                // Reset form
+                form.reset();
+                
+            } else {
+                // Error Alert
+                let errorList = '';
+                if (data.errors && data.errors.length > 0) {
+                    data.errors.forEach(error => {
+                        errorList += `
+                            <div class="flex items-start mb-2 text-left">
+                                <i class="fas fa-times-circle text-red-500 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">${error}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    errorList = `
+                        <div class="flex items-start text-left">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-1"></i>
+                            <span class="text-sm text-gray-700">${data.message}</span>
+                        </div>
+                    `;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ กรุณาตรวจสอบข้อมูล',
+                    html: `
+                        <div class="py-4">
+                            <div class="mb-4">
+                                <div class="inline-block p-4 bg-red-100 rounded-full mb-3">
+                                    <i class="fas fa-exclamation-circle text-red-600 text-5xl"></i>
+                                </div>
+                            </div>
+                            <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+                                ${errorList}
+                            </div>
+                            <p class="text-sm text-gray-600 mt-4">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                กรุณาแก้ไขข้อมูลและลองส่งอีกครั้ง
+                            </p>
+                        </div>
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-redo mr-2"></i>ลองใหม่',
+                    confirmButtonColor: '#DC2626',
+                    width: '500px',
+                    showClass: {
+                        popup: 'animate__animated animate__shakeX'
+                    },
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl',
+                        title: 'text-2xl font-bold text-gray-800',
+                        confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            
+            Swal.fire({
+                icon: 'error',
+                title: '🔌 เกิดข้อผิดพลาด',
+                html: `
+                    <div class="py-4">
+                        <div class="mb-4">
+                            <div class="inline-block p-4 bg-orange-100 rounded-full mb-3">
+                                <i class="fas fa-wifi-slash text-orange-600 text-5xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 mb-4">ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้</p>
+                        <div class="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 text-left">
+                            <div class="flex items-start mb-2">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</span>
+                            </div>
+                            <div class="flex items-start mb-2">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">รีเฟรชหน้าเว็บและลองใหม่</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check text-orange-600 mr-2 mt-1"></i>
+                                <span class="text-sm text-gray-700">หรือติดต่อเราโดยตรงที่ ${formData.get('phone') || '02-XXX-XXXX'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: '<i class="fas fa-sync-alt mr-2"></i>ลองอีกครั้ง',
+                confirmButtonColor: '#DC2626',
+                width: '500px',
+                showClass: {
+                    popup: 'animate__animated animate__fadeIn'
+                },
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl',
+                    title: 'text-2xl font-bold text-gray-800',
+                    confirmButton: 'px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200'
+                }
+            });
+            
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            btnText.textContent = 'ส่งข้อความ';
+            btnLoading.classList.add('hidden');
+        }
+    });
+    </script>
+</body>
+</html>

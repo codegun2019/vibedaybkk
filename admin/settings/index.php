@@ -7,7 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
-require_admin(); // Only admin can access
+// Permission check - allow view for editor and above
+require_permission('settings', 'view');
+$can_edit = has_permission('settings', 'edit');
 
 $page_title = 'ตั้งค่าระบบ';
 $current_page = 'settings';
@@ -21,7 +23,7 @@ foreach ($result as $row) {
     $settings[$row['setting_key']] = $row['setting_value'];
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $can_edit) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Invalid CSRF token';
     } else {
@@ -34,8 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $upload_result = upload_image($_FILES['logo_image'], 'general');
             if ($upload_result['success']) {
-                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'logo_image'");
-                $stmt->execute([$upload_result['path']]);
+                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'logo_image'");
+                $stmt->bind_param('s', $upload_result['path']);
+                $stmt->execute();
             } else {
                 $errors[] = 'Logo: ' . $upload_result['message'];
             }
@@ -50,26 +53,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $upload_result = upload_image($_FILES['favicon'], 'general');
             if ($upload_result['success']) {
-                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'favicon'");
-                $stmt->execute([$upload_result['path']]);
+                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'favicon'");
+                $stmt->bind_param('s', $upload_result['path']);
+                $stmt->execute();
             } else {
                 $errors[] = 'Favicon: ' . $upload_result['message'];
             }
         }
         
         // Update text settings
+        $processed_keys = [];
         foreach ($_POST as $key => $value) {
             if ($key != 'csrf_token' && strpos($key, 'setting_') === 0) {
                 $setting_key = str_replace('setting_', '', $key);
-                $setting_value = clean_input($value);
                 
-                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
-                $stmt->execute([$setting_value, $setting_key]);
+                // ข้ามถ้า key นี้ถูก process แล้ว (กรณี checkbox ที่มี hidden field)
+                if (in_array($setting_key, $processed_keys)) {
+                    continue;
+                }
+                
+                // สำหรับ checkbox ใช้ค่าสุดท้าย
+                if (is_array($value)) {
+                    $setting_value = end($value);
+                } else {
+                    $setting_value = clean_input($value);
+                }
+                
+                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
+                $stmt->bind_param('ss', $setting_value, $setting_key);
+                $stmt->execute();
+                $stmt->close();
+                
+                $processed_keys[] = $setting_key;
             }
         }
         
         if (empty($errors)) {
-            log_activity($pdo, $_SESSION['user_id'], 'update_settings', 'settings', null);
+            log_activity($conn, $_SESSION['user_id'], 'update_settings', 'settings', null);
             set_message('success', 'บันทึกการตั้งค่าสำเร็จ');
             redirect(ADMIN_URL . '/settings/');
         }
@@ -84,13 +104,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 include '../includes/header.php';
+require_once '../includes/readonly-notice.php';
+require_once '../includes/locked-form.php';
 ?>
 
 <div class="mb-6">
     <h2 class="text-3xl font-bold text-gray-900 flex items-center">
         <i class="fas fa-cog mr-3 text-red-600"></i>ตั้งค่าระบบ
+        <?php if (!$can_edit): ?>
+        <span class="ml-3 text-lg text-yellow-600">
+            <i class="fas fa-eye"></i> ดูอย่างเดียว
+        </span>
+        <?php endif; ?>
     </h2>
     <p class="text-gray-600 mt-1">จัดการการตั้งค่าต่างๆ ของเว็บไซต์</p>
+</div>
+
+<?php if (!$can_edit): ?>
+    <?php show_readonly_notice('ตั้งค่าระบบ'); ?>
+<?php endif; ?>
+
+<!-- Settings Menu -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <a href="index.php" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border-2 border-blue-500">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-cog text-white text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">ตั้งค่าทั่วไป</h3>
+        </div>
+        <p class="text-gray-600 text-sm">Logo, ชื่อเว็บไซต์, ข้อมูลติดต่อ</p>
+    </a>
+    
+    <a href="appearance.php" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:border-2 hover:border-purple-500">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-palette text-white text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">ฟอนต์และรูปลักษณ์</h3>
+        </div>
+        <p class="text-gray-600 text-sm">ตั้งค่าฟอนต์, ขนาดตัวอักษร, สีสัน</p>
+    </a>
+    
+    <a href="seo.php" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:border-2 hover:border-orange-500">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-search text-white text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">SEO & Analytics</h3>
+        </div>
+        <p class="text-gray-600 text-sm">SEO, Meta Tags, Google Analytics</p>
+    </a>
+    
+    <a href="social.php" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:border-2 hover:border-pink-500">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-share-alt text-white text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">โซเชียล & Go to Top</h3>
+        </div>
+        <p class="text-gray-600 text-sm">ไอคอนโซเชียล, ปุ่ม Go to Top, สีธีม</p>
+    </a>
+    
+    <a href="<?php echo ADMIN_URL; ?>/homepage/" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:border-2 hover:border-green-500">
+        <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-gradient-to-r from-green-600 to-green-700 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-home text-white text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">จัดการหน้าแรก</h3>
+        </div>
+        <p class="text-gray-600 text-sm">Section, Gallery, Features</p>
+    </a>
 </div>
 
 <?php if (!empty($errors)): ?>
@@ -218,7 +302,7 @@ include '../includes/header.php';
             </h5>
         </div>
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">จำนวนรายการต่อหน้า</label>
                     <input type="number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200" name="setting_items_per_page" value="<?php echo $settings['items_per_page'] ?? 12; ?>">
@@ -226,6 +310,49 @@ include '../includes/header.php';
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">จองล่วงหน้าอย่างน้อย (วัน)</label>
                     <input type="number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200" name="setting_booking_advance_days" value="<?php echo $settings['booking_advance_days'] ?? 3; ?>">
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 my-6"></div>
+            
+            <!-- Display Settings -->
+            <div class="space-y-4">
+                <h6 class="text-sm font-semibold text-gray-700 mb-3">การแสดงผลในหน้าแรก</h6>
+                
+                <div class="p-4 bg-purple-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <span class="text-gray-900 font-semibold">แสดงราคาโมเดล</span>
+                            <p class="text-sm text-gray-600">แสดงราคาของโมเดลในหน้าแรกและหน้ารายละเอียด</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="show_model_price_checkbox" 
+                                   <?php echo ($settings['show_model_price'] ?? '1') == '1' ? 'checked' : ''; ?>
+                                   class="sr-only peer"
+                                   onchange="togglePriceSetting(this)">
+                            <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                    <input type="hidden" id="show_model_price_value" name="setting_show_model_price" 
+                           value="<?php echo ($settings['show_model_price'] ?? '1'); ?>">
+                </div>
+                
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <span class="text-gray-900 font-semibold">แสดงรายละเอียดส่วนตัว</span>
+                            <p class="text-sm text-gray-600">แสดงข้อมูลส่วนตัวของโมเดล (น้ำหนัก, ส่วนสูง, วันเกิด, ประสบการณ์)</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="show_model_details_checkbox" 
+                                   <?php echo ($settings['show_model_details'] ?? '1') == '1' ? 'checked' : ''; ?>
+                                   class="sr-only peer"
+                                   onchange="toggleDetailsSetting(this)">
+                            <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <input type="hidden" id="show_model_details_value" name="setting_show_model_details" 
+                           value="<?php echo ($settings['show_model_details'] ?? '1'); ?>">
                 </div>
             </div>
         </div>
@@ -261,11 +388,141 @@ include '../includes/header.php';
     </div>
     
     <div class="flex justify-end">
-        <button type="submit" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+        <?php if (!$can_edit): ?>
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-3 rounded-lg mr-4 flex items-center">
+            <i class="fas fa-lock mr-2"></i>
+            <span>คุณไม่มีสิทธิ์แก้ไขการตั้งค่า</span>
+        </div>
+        <?php endif; ?>
+        <button type="submit" 
+                id="submit-btn"
+                <?php echo !$can_edit ? 'disabled' : ''; ?>
+                class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 <?php echo !$can_edit ? 'opacity-50 cursor-not-allowed' : ''; ?>">
             <i class="fas fa-save mr-3"></i>บันทึกการตั้งค่า
         </button>
     </div>
 </form>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Debug form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    console.log('Form submitted');
+    console.log('Can edit:', <?php echo $can_edit ? 'true' : 'false'; ?>);
+    
+    <?php if (!$can_edit): ?>
+    e.preventDefault();
+    Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีสิทธิ์',
+        text: 'คุณไม่มีสิทธิ์แก้ไขการตั้งค่า กรุณาติดต่อผู้ดูแลระบบ',
+        confirmButtonColor: '#dc2626'
+    });
+    return false;
+    <?php endif; ?>
+});
+
+// Toggle price setting with notification
+function togglePriceSetting(checkbox) {
+    const hiddenInput = document.getElementById('show_model_price_value');
+    const newValue = checkbox.checked ? '1' : '0';
+    hiddenInput.value = newValue;
+    
+    // Show notification
+    const icon = checkbox.checked ? 'success' : 'info';
+    const title = checkbox.checked ? 'เปิดการแสดงราคา' : 'ปิดการแสดงราคา';
+    const text = checkbox.checked 
+        ? 'ราคาจะแสดงในหน้าแรกและหน้ารายละเอียดโมเดล' 
+        : 'ราคาจะถูกซ่อนจากหน้าเว็บทั้งหมด';
+    
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        showClass: {
+            popup: 'animate__animated animate__fadeInRight'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutRight'
+        }
+    });
+}
+
+// Toggle details setting with notification
+function toggleDetailsSetting(checkbox) {
+    const hiddenInput = document.getElementById('show_model_details_value');
+    const newValue = checkbox.checked ? '1' : '0';
+    hiddenInput.value = newValue;
+    
+    // Show notification
+    const icon = checkbox.checked ? 'success' : 'info';
+    const title = checkbox.checked ? 'เปิดการแสดงรายละเอียด' : 'ปิดการแสดงรายละเอียด';
+    const text = checkbox.checked 
+        ? 'รายละเอียดส่วนตัวจะแสดง (น้ำหนัก, ส่วนสูง, วันเกิด, ประสบการณ์)' 
+        : 'รายละเอียดส่วนตัวจะถูกซ่อนจากหน้าเว็บทั้งหมด';
+    
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        showClass: {
+            popup: 'animate__animated animate__fadeInRight'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutRight'
+        }
+    });
+}
+
+// Show success/error messages
+<?php if (isset($_SESSION['success'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: 'สำเร็จ!',
+    text: '<?php echo $_SESSION['success']; ?>',
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    showClass: {
+        popup: 'animate__animated animate__fadeInRight'
+    }
+});
+<?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error'])): ?>
+Swal.fire({
+    icon: 'error',
+    title: 'ผิดพลาด!',
+    text: '<?php echo $_SESSION['error']; ?>',
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    showClass: {
+        popup: 'animate__animated animate__fadeInRight'
+    }
+});
+<?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+</script>
+
 <?php include '../includes/footer.php'; ?>
+
+
 

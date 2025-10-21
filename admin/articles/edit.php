@@ -7,6 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+
+// Permission check
+require_permission('articles', 'edit');
 $page_title = 'แก้ไขบทความ';
 $current_page = 'articles';
 
@@ -17,14 +20,20 @@ if (!$article_id) {
     redirect(ADMIN_URL . '/articles/');
 }
 
-$stmt = $pdo->prepare("SELECT * FROM articles WHERE id = ?");
-$stmt->execute([$article_id]);
-$article = $stmt->fetch();
+$stmt = $conn->prepare("SELECT * FROM articles WHERE id = ?");
+$stmt->bind_param('i', $article_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$article = $result->fetch_assoc();
+$stmt->close();
 
 if (!$article) {
     set_message('error', 'ไม่พบข้อมูลบทความ');
     redirect(ADMIN_URL . '/articles/');
 }
+
+// Get active categories
+$categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status = 'active' ORDER BY sort_order ASC");
 
 $errors = [];
 $success = false;
@@ -58,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'excerpt' => clean_input($_POST['excerpt']),
             'content' => $_POST['content'],
             'featured_image' => $featured_image,
-            'category' => clean_input($_POST['category']),
+            'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'read_time' => !empty($_POST['read_time']) ? (int)$_POST['read_time'] : 5,
             'status' => $_POST['status'],
             'published_at' => $_POST['status'] == 'published' && !$article['published_at'] ? date('Y-m-d H:i:s') : $article['published_at']
@@ -69,21 +78,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Check duplicate slug
-        $stmt = $pdo->prepare("SELECT id FROM articles WHERE slug = ? AND id != ?");
-        $stmt->execute([$slug, $article_id]);
+        $stmt = $conn->prepare("SELECT id FROM articles WHERE slug = ? AND id != ?");
+        $stmt->bind_param('si', $slug, $article_id);
+            $stmt->execute();
         if ($stmt->fetch()) {
             $errors[] = 'URL นี้มีอยู่แล้ว';
         }
         
         if (empty($errors)) {
-            if (db_update($pdo, 'articles', $data, 'id = :id', ['id' => $article_id])) {
-                log_activity($pdo, $_SESSION['user_id'], 'update', 'articles', $article_id, $article, $data);
+            if (db_update($conn, 'articles', $data, 'id = :id', ['id' => $article_id])) {
+                log_activity($conn, $_SESSION['user_id'], 'update', 'articles', $article_id, $article, $data);
                 $success = true;
                 
                 // Refresh data
-                $stmt = $pdo->prepare("SELECT * FROM articles WHERE id = ?");
-                $stmt->execute([$article_id]);
-                $article = $stmt->fetch();
+                $stmt = $conn->prepare("SELECT * FROM articles WHERE id = ?");
+                $stmt->bind_param('i', $article_id);
+            $stmt->execute();
+                $result = $stmt->get_result();
+$article = $result->fetch_assoc();
             } else {
                 $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
             }
@@ -170,9 +182,8 @@ include '../includes/header.php';
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             เนื้อหาบทความ <span class="text-red-600">*</span>
                         </label>
-                        <textarea name="content" rows="15" required 
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 font-mono text-sm"><?php echo htmlspecialchars($article['content']); ?></textarea>
-                        <p class="text-sm text-gray-500 mt-2">รองรับ HTML tags</p>
+                        <textarea name="content" id="editor" rows="15" required 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"><?php echo htmlspecialchars($article['content']); ?></textarea>
                     </div>
                 </div>
             </div>
@@ -253,8 +264,23 @@ include '../includes/header.php';
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">หมวดหมู่</label>
-                        <input type="text" name="category" placeholder="Photography" value="<?php echo htmlspecialchars($article['category']); ?>" 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                        <select name="category_id" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                            <option value="">-- เลือกหมวดหมู่ --</option>
+                            <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo $article['category_id'] == $cat['id'] ? 'selected' : ''; ?>>
+                                <?php if ($cat['icon']): ?>
+                                    <?php echo $cat['icon']; ?> 
+                                <?php endif; ?>
+                                <?php echo $cat['name']; ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-2">
+                            <a href="<?php echo ADMIN_URL; ?>/article-categories/" class="text-orange-600 hover:underline" target="_blank">
+                                <i class="fas fa-external-link-alt mr-1"></i>จัดการหมวดหมู่
+                            </a>
+                        </p>
                     </div>
                     
                     <div>
@@ -280,3 +306,106 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+
+<!-- CKEditor 5 -->
+<script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
+<script>
+ClassicEditor
+    .create(document.querySelector('#editor'), {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                'alignment', '|',
+                'numberedList', 'bulletedList', '|',
+                'outdent', 'indent', '|',
+                'link', 'blockQuote', 'insertTable', '|',
+                'imageUpload', 'mediaEmbed', '|',
+                'undo', 'redo', '|',
+                'code', 'codeBlock', 'horizontalLine', '|',
+                'removeFormat'
+            ],
+            shouldNotGroupWhenFull: true
+        },
+        language: 'th',
+        image: {
+            toolbar: [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                'linkImage'
+            ]
+        },
+        table: {
+            contentToolbar: [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells',
+                'tableCellProperties',
+                'tableProperties'
+            ]
+        },
+        heading: {
+            options: [
+                { model: 'paragraph', title: 'ย่อหน้า', class: 'ck-heading_paragraph' },
+                { model: 'heading1', view: 'h1', title: 'หัวข้อ 1', class: 'ck-heading_heading1' },
+                { model: 'heading2', view: 'h2', title: 'หัวข้อ 2', class: 'ck-heading_heading2' },
+                { model: 'heading3', view: 'h3', title: 'หัวข้อ 3', class: 'ck-heading_heading3' },
+                { model: 'heading4', view: 'h4', title: 'หัวข้อ 4', class: 'ck-heading_heading4' }
+            ]
+        },
+        fontSize: {
+            options: [
+                'tiny',
+                'small',
+                'default',
+                'big',
+                'huge'
+            ]
+        },
+        link: {
+            decorators: {
+                openInNewTab: {
+                    mode: 'manual',
+                    label: 'เปิดในแท็บใหม่',
+                    attributes: {
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                    }
+                }
+            }
+        }
+    })
+    .then(editor => {
+        window.editor = editor;
+        
+        // Set minimum height
+        editor.editing.view.change(writer => {
+            writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
+        });
+        
+        console.log('CKEditor 5 initialized successfully!');
+    })
+    .catch(error => {
+        console.error('Error initializing CKEditor:', error);
+    });
+</script>
+
+<style>
+.ck-editor__editable {
+    min-height: 400px;
+}
+.ck.ck-editor__main > .ck-editor__editable {
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+.ck.ck-editor__main > .ck-editor__editable:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+</style>
+
+

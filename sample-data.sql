@@ -90,3 +90,5 @@ SELECT 'Sample data inserted successfully!' as message,
        '10 Bookings' as bookings,
        '10 Users (password: password)' as users;
 
+
+

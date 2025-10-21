@@ -22,7 +22,7 @@ if (empty($category_code)) {
 }
 
 // ดึงข้อมูลหมวดหมู่
-$stmt = $pdo->prepare("SELECT * FROM categories WHERE code = ? AND status = 'active'");
+$stmt = $conn->prepare("SELECT * FROM categories WHERE code = ? AND status = 'active'");
 $stmt->execute([$category_code]);
 $category = $stmt->fetch();
 
@@ -40,7 +40,15 @@ $requirements = db_get_rows($conn, "SELECT * FROM model_requirements WHERE categ
 // นับจำนวนโมเดล
 $model_count = count($models);
 
-// Update view count (optional)
+// ดึงเมนูจาก database
+$main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
+$sub_menus = [];
+foreach ($main_menus as $menu) {
+    $subs = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id = {$menu['id']} AND status = 'active' ORDER BY sort_order ASC");
+    if (!empty($subs)) {
+        $sub_menus[$menu['id']] = $subs;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -83,32 +91,10 @@ $model_count = count($models);
                 <div class="flex items-center">
                     <a href="index.php" class="text-2xl font-bold text-red-primary"><?php echo get_logo($settings); ?></a>
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="index.php" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
-                        <a href="index.php#about" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
-                        <a href="services.php" class="nav-link active text-white hover:text-red-primary transition-colors duration-300">บริการ</a>
-                        <a href="articles.php" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">บทความ</a>
-                        <a href="index.php#contact" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
-                    </div>
-                </div>
-                <div class="md:hidden">
-                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                </div>
+                <?php include 'includes/menu.php'; ?>
             </div>
         </div>
-        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-dark-light shadow-lg md:hidden">
-            <div class="p-6">
-                <button id="close-menu" class="float-right text-gray-300 hover:text-white mb-8"><i class="fas fa-times text-xl"></i></button>
-                <div class="clear-both space-y-6">
-                    <a href="index.php" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">หน้าแรก</a>
-                    <a href="index.php#about" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a>
-                    <a href="services.php" class="block text-red-primary font-semibold transition-colors duration-300">บริการ</a>
-                    <a href="articles.php" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">บทความ</a>
-                    <a href="index.php#contact" class="block text-gray-300 hover:text-red-primary transition-colors duration-300">ติดต่อ</a>
-                </div>
-            </div>
-        </div>
+        <?php include 'includes/mobile-menu.php'; ?>
     </nav>
 
     <button id="go-to-top" class="go-to-top bg-red-primary hover:bg-red-light text-white" title="กลับขึ้นด้านบน">
@@ -312,4 +298,6 @@ $model_count = count($models);
     </script>
 </body>
 </html>
+
+
 

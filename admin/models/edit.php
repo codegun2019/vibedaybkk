@@ -7,6 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
+
+// Permission check
+require_permission('models', 'edit');
 $page_title = 'แก้ไขโมเดล';
 $current_page = 'models';
 
@@ -78,8 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Check duplicate code (except current)
         if (!empty($data['code'])) {
-            $stmt = $pdo->prepare("SELECT id FROM models WHERE code = ? AND id != ?");
-            $stmt->execute([$data['code'], $model_id]);
+            $stmt = $conn->prepare("SELECT id FROM models WHERE code = ? AND id != ?");
+            $stmt->bind_param('si', $data['code'], $model_id);
+            $stmt->execute();
             if ($stmt->fetch()) {
                 $errors[] = 'รหัสโมเดลนี้มีอยู่แล้ว';
             }
@@ -87,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // If no errors, update
         if (empty($errors)) {
-            if (db_update($pdo, 'models', $data, 'id = :id', ['id' => $model_id])) {
+            if (db_update($conn, 'models', $data, 'id = :id', ['id' => $model_id])) {
                 
                 // Handle image upload
                 if (!empty($_FILES['images']['name'][0])) {
@@ -110,14 +114,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     'is_primary' => $key == 0 ? 1 : 0,
                                     'sort_order' => $key
                                 ];
-                                db_insert($pdo, 'model_images', $image_data);
+                                db_insert($conn, 'model_images', $image_data);
                             }
                         }
                     }
                 }
                 
                 // Log activity
-                log_activity($pdo, $_SESSION['user_id'], 'update', 'models', $model_id, $model, $data);
+                log_activity($conn, $_SESSION['user_id'], 'update', 'models', $model_id, $model, $data);
                 
                 $success = true;
                 
@@ -500,12 +504,15 @@ include '../includes/header.php';
             </div>
             
             <div class="mt-6">
-                <label class="flex items-center">
-                    <input type="checkbox" name="featured" id="featured" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-                    <span class="ml-2 text-sm text-gray-700">
+                <div class="flex items-center space-x-3">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="featured" id="featured">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="text-sm text-gray-700">
                         <i class="fas fa-star text-yellow-500 mr-1"></i>โมเดลแนะนำ (Featured)
                     </span>
-                </label>
+                </div>
             </div>
         </div>
     </div>
@@ -522,4 +529,6 @@ include '../includes/header.php';
 </form>
 
 <?php include '../includes/footer.php'; ?>
+
+
 
