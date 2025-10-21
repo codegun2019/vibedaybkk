@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 วิธีแก้ปัญหาหน้าบ้านไม่เปลี่ยนแปลง</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #DC2626 0%, #991b1b 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #DC2626 0%, #991b1b 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .content {
+            padding: 50px;
+        }
+        .big-btn {
+            display: block;
+            width: 100%;
+            padding: 30px;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #DC2626 0%, #991b1b 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+        }
+        .big-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 5px solid #DC2626;
+        }
+        .step h2 {
+            color: #DC2626;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        .keyboard {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #1e293b;
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.3em;
+            margin: 10px 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .platform {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .platform h3 {
+            color: #DC2626;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        .icon {
+            font-size: 3em;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 แก้ปัญหาหน้าบ้านไม่เปลี่ยนแปลง</h1>
+            <p style="font-size: 1.3em; margin-top: 10px;">Clear Browser Cache แล้วข้อมูลจะแสดงทันที!</p>
+        </div>
+        
+        <div class="content">
+            <div class="warning">
+                <h3 style="margin-bottom: 10px;">⚠️ ปัญหาที่พบบ่อย</h3>
+                <p>✅ บันทึกการตั้งค่าในหลังบ้านแล้ว</p>
+                <p>❌ แต่หน้าบ้านยังแสดงข้อมูลเก่า</p>
+                <p style="margin-top: 15px;"><strong>สาเหตุ:</strong> Browser เก็บข้อมูลเก่าไว้ (Cache)</p>
+            </div>
+            
+            <div class="step">
+                <h2>🎯 วิธีแก้ - Hard Refresh (แนะนำ)</h2>
+                
+                <div class="platform">
+                    <div class="icon">🪟</div>
+                    <h3>Windows / Linux</h3>
+                    <p style="font-size: 1.2em; margin: 15px 0;">กดปุ่มพร้อมกัน:</p>
+                    <div style="text-align: center;">
+                        <span class="keyboard">Ctrl</span>
+                        <span style="font-size: 2em;">+</span>
+                        <span class="keyboard">Shift</span>
+                        <span style="font-size: 2em;">+</span>
+                        <span class="keyboard">R</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #64748b;">หรือ กด F5 ค้างไว้ + Ctrl</p>
+                </div>
+                
+                <div class="platform">
+                    <div class="icon">🍎</div>
+                    <h3>Mac</h3>
+                    <p style="font-size: 1.2em; margin: 15px 0;">กดปุ่มพร้อมกัน:</p>
+                    <div style="text-align: center;">
+                        <span class="keyboard">Cmd (⌘)</span>
+                        <span style="font-size: 2em;">+</span>
+                        <span class="keyboard">Shift</span>
+                        <span style="font-size: 2em;">+</span>
+                        <span class="keyboard">R</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #64748b;">หรือ กด Cmd + R ค้างไว้</p>
+                </div>
+            </div>
+            
+            <button class="big-btn" onclick="hardRefresh()">
+                🔄 กดที่นี่เพื่อ Hard Refresh ทันที!
+            </button>
+            
+            <div class="step">
+                <h2>🔍 วิธีแก้อื่นๆ</h2>
+                
+                <h3 style="color: #DC2626; margin: 20px 0;">1️⃣ Clear Cache ใน Browser Settings</h3>
+                <div style="padding-left: 20px; line-height: 2;">
+                    <p><strong>Chrome / Edge:</strong> Settings → Privacy → Clear browsing data → Cached images and files</p>
+                    <p><strong>Firefox:</strong> Settings → Privacy & Security → Clear Data → Cached Web Content</p>
+                    <p><strong>Safari:</strong> Safari → Preferences → Privacy → Manage Website Data → Remove All</p>
+                </div>
+                
+                <h3 style="color: #DC2626; margin: 20px 0;">2️⃣ เปิดหน้าใน Incognito / Private Mode</h3>
+                <div style="padding-left: 20px; line-height: 2;">
+                    <p><strong>Windows/Linux:</strong> Ctrl + Shift + N (Chrome/Edge) หรือ Ctrl + Shift + P (Firefox)</p>
+                    <p><strong>Mac:</strong> Cmd + Shift + N (Chrome/Edge) หรือ Cmd + Shift + P (Firefox)</p>
+                </div>
+                
+                <h3 style="color: #DC2626; margin: 20px 0;">3️⃣ Disable Cache ใน Developer Tools</h3>
+                <div style="padding-left: 20px; line-height: 2;">
+                    <p>1. เปิด Developer Tools (F12)</p>
+                    <p>2. ไปที่ Network Tab</p>
+                    <p>3. เช็คถูก "Disable cache"</p>
+                    <p>4. Refresh หน้า</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h2>📝 ขั้นตอนตรวจสอบว่าข้อมูลบันทึกจริง</h2>
+                <div style="padding-left: 20px; line-height: 2; font-size: 1.1em;">
+                    <p>1. เปิด <a href="test-frontend-settings.php" target="_blank" style="color: #DC2626; font-weight: bold;">หน้าทดสอบนี้</a></p>
+                    <p>2. ดูว่าข้อมูลในตารางตรงกับที่บันทึกหรือไม่</p>
+                    <p>3. ถ้าตรง แสดงว่าข้อมูลบันทึกแล้ว (ปัญหาอยู่ที่ Cache)</p>
+                    <p>4. ถ้าไม่ตรง แสดงว่ายังไม่ได้บันทึก</p>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <a href="/" class="big-btn" style="padding: 20px; font-size: 1.3em;">
+                    🏠 ดูหน้าบ้าน
+                </a>
+                <a href="admin/settings/" class="big-btn" style="padding: 20px; font-size: 1.3em; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                    ⚙️ ตั้งค่าหลังบ้าน
+                </a>
+            </div>
+            
+            <a href="test-frontend-settings.php" class="big-btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                🔍 ตรวจสอบข้อมูล Settings
+            </a>
+            
+            <div class="success">
+                ✅ หลังจาก Hard Refresh แล้ว ข้อมูลใหม่จะแสดงทันที!
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function hardRefresh() {
+            // Show loading
+            const btn = event.target;
+            btn.innerHTML = '⏳ กำลัง Refresh...';
+            btn.style.background = '#6b7280';
+            
+            setTimeout(() => {
+                // Hard refresh
+                window.location.reload(true);
+                
+                // If that doesn't work, try this
+                setTimeout(() => {
+                    location.href = location.href + '?t=' + Date.now();
+                }, 100);
+            }, 500);
+        }
+        
+        // Auto-refresh on page load if coming from settings
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('refresh') === 'true') {
+            setTimeout(() => {
+                if (confirm('🔄 ต้องการ Hard Refresh หน้าบ้านเลยไหม?')) {
+                    window.location.href = '/';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
+

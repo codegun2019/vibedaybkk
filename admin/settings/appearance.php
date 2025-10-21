@@ -33,10 +33,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            // Update settings
-            $conn->query("UPDATE settings SET setting_value = '{$font_family}' WHERE setting_key = 'font_family'");
-            $conn->query("UPDATE settings SET setting_value = '{$font_size_base}' WHERE setting_key = 'font_size_base'");
-            $conn->query("UPDATE settings SET setting_value = '{$font_size_scale}' WHERE setting_key = 'font_size_scale'");
+            // Update settings using INSERT ... ON DUPLICATE KEY UPDATE
+            $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value, setting_type) VALUES (?, ?, 'text') ON DUPLICATE KEY UPDATE setting_value = ?");
+            
+            // Font family
+            $key = 'font_family';
+            $stmt->bind_param('sss', $key, $font_family, $font_family);
+            $stmt->execute();
+            
+            // Font size base
+            $key = 'font_size_base';
+            $font_size_base_str = (string)$font_size_base;
+            $stmt->bind_param('sss', $key, $font_size_base_str, $font_size_base_str);
+            $stmt->execute();
+            
+            // Font size scale
+            $key = 'font_size_scale';
+            $font_size_scale_str = (string)$font_size_scale;
+            $stmt->bind_param('sss', $key, $font_size_scale_str, $font_size_scale_str);
+            $stmt->execute();
+            
+            $stmt->close();
             
             log_activity($conn, $_SESSION['user_id'], 'update', 'settings', 0, 'Updated appearance settings');
             

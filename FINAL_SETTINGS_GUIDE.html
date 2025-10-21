@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 คู่มือการตั้งค่าฉบับสมบูรณ์</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 70px;
+            text-align: center;
+        }
+        .header h1 { font-size: 4em; margin-bottom: 20px; }
+        .content { padding: 60px; }
+        .mega-section {
+            margin: 50px 0;
+        }
+        .mega-section h2 {
+            color: #6366f1;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border-top: 5px solid #6366f1;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        .card-icon {
+            font-size: 4em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            color: #6366f1;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .card-content {
+            line-height: 2;
+            font-size: 1.05em;
+        }
+        .btn-mega {
+            display: inline-block;
+            padding: 25px 50px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-weight: bold;
+            margin: 15px 10px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            font-size: 1.3em;
+        }
+        .btn-mega:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .highlight-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 3px solid #3b82f6;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        .highlight-box h3 {
+            color: #1e40af;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        .highlight-box p {
+            color: #1e3a8a;
+            font-size: 1.2em;
+            line-height: 1.8;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 15px;
+            margin: 12px 0;
+            background: white;
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .checklist li::before {
+            content: "✅";
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 คู่มือการตั้งค่าฉบับสมบูรณ์</h1>
+            <p style="font-size: 1.5em; margin-top: 15px;">VIBEDAYBKK Settings - Complete Guide</p>
+            <p style="font-size: 1em; margin-top: 10px; opacity: 0.9;">ทุกอย่างที่ต้องรู้เกี่ยวกับการตั้งค่า</p>
+        </div>
+        
+        <div class="content">
+            <div class="mega-section">
+                <h2>🎯 การตั้งค่าทั้งหมด</h2>
+                
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">⚙️</div>
+                        <h3>ตั้งค่าทั่วไป</h3>
+                        <div class="card-content">
+                            <strong>หน้า:</strong> admin/settings/<br>
+                            <strong>ตั้งค่า:</strong><br>
+                            • Logo (ข้อความ/รูป)<br>
+                            • ข้อมูลเว็บไซต์<br>
+                            • ข้อมูลติดต่อ<br>
+                            • แสดง/ซ่อนราคา<br>
+                            • Social Media URL
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon">🎨</div>
+                        <h3>ฟอนต์และรูปลักษณ์</h3>
+                        <div class="card-content">
+                            <strong>หน้า:</strong> admin/settings/appearance.php<br>
+                            <strong>ตั้งค่า:</strong><br>
+                            • ฟอนต์หลัก (5 แบบ)<br>
+                            • ขนาดฟอนต์<br>
+                            • สเกล<br>
+                            • มี Live Preview
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon">🔍</div>
+                        <h3>SEO & Analytics</h3>
+                        <div class="card-content">
+                            <strong>หน้า:</strong> admin/settings/seo.php<br>
+                            <strong>ตั้งค่า:</strong><br>
+                            • SEO Title/Description<br>
+                            • Open Graph<br>
+                            • Twitter Card<br>
+                            • Google Analytics<br>
+                            • Facebook Pixel
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon">📱</div>
+                        <h3>โซเชียล & Go to Top</h3>
+                        <div class="card-content">
+                            <strong>หน้า:</strong> admin/settings/social.php<br>
+                            <strong>ตั้งค่า:</strong><br>
+                            • 6 Social Media<br>
+                            • ปุ่ม Go to Top<br>
+                            • สีธีม<br>
+                            • ⚠️ ต้องกรอก URL!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="highlight-box" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #dc2626;">
+                <h3 style="color: #991b1b;">⚠️ ปัญหา Social Media ไม่แสดง</h3>
+                <p style="color: #7f1d1d;">
+                    <strong>สาเหตุหลัก:</strong> URL เป็นค่าว่างหรือเป็น "text"<br>
+                    <strong>วิธีแก้:</strong> กรอก URL จริงๆ ใน Settings
+                </p>
+            </div>
+            
+            <div class="mega-section">
+                <h2>🔧 เครื่องมือช่วยแก้ปัญหา</h2>
+                
+                <div class="cards-grid">
+                    <div class="card" style="border-top-color: #10b981;">
+                        <div class="card-icon" style="color: #10b981;"><i class="fas fa-tools"></i></div>
+                        <h3 style="color: #10b981;">Fix Social Media</h3>
+                        <p style="margin: 15px 0;">แก้ไข Twitter, LINE, YouTube อัตโนมัติ</p>
+                        <a href="fix-social-media.php" class="btn-mega btn-success">🔧 เปิดเครื่องมือ</a>
+                    </div>
+                    
+                    <div class="card" style="border-top-color: #f59e0b;">
+                        <div class="card-icon" style="color: #f59e0b;"><i class="fas fa-database"></i></div>
+                        <h3 style="color: #f59e0b;">Fix Logo Database</h3>
+                        <p style="margin: 15px 0;">แก้ logo_image = NULL</p>
+                        <a href="fix-logo-database.php" class="btn-mega btn-warning">🔧 แก้ไข Logo</a>
+                    </div>
+                    
+                    <div class="card" style="border-top-color: #ec4899;">
+                        <div class="card-icon" style="color: #ec4899;"><i class="fas fa-vial"></i></div>
+                        <h3 style="color: #ec4899;">Test Frontend</h3>
+                        <p style="margin: 15px 0;">ตรวจสอบการตั้งค่าหน้าบ้าน</p>
+                        <a href="test-frontend-settings.php" class="btn-mega" style="background: #ec4899;">🧪 ทดสอบ</a>
+                    </div>
+                    
+                    <div class="card" style="border-top-color: #06b6d4;">
+                        <div class="card-icon" style="color: #06b6d4;"><i class="fas fa-search"></i></div>
+                        <h3 style="color: #06b6d4;">Check Logo Path</h3>
+                        <p style="margin: 15px 0;">ตรวจสอบ path ของ Logo</p>
+                        <a href="check-logo-path.php" class="btn-mega" style="background: #06b6d4;">🔍 ตรวจสอบ</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mega-section">
+                <h2>✅ Checklist การตั้งค่า</h2>
+                
+                <div style="background: #f8f9fa; padding: 40px; border-radius: 20px;">
+                    <h3 style="color: #374151; margin-bottom: 25px; font-size: 1.8em;">หลังบ้าน (Admin):</h3>
+                    <ul class="checklist">
+                        <li>เลือกประเภท Logo: ข้อความ หรือ รูปภาพ</li>
+                        <li>อัปโหลด Logo รูปภาพ (ถ้าเลือกแบบรูป)</li>
+                        <li>กรอกข้อมูลติดต่อ: โทร, อีเมล, LINE ID, ที่อยู่</li>
+                        <li><strong>กรอก URL ของ Social Media ทุกตัว!</strong> ← สำคัญมาก!</li>
+                        <li>เปิด/ปิด Social Media ตัวที่ต้องการ</li>
+                        <li>ตั้งค่า Go to Top: ไอคอน, สี, ตำแหน่ง</li>
+                        <li>ตั้งค่า SEO: Title, Description, Keywords</li>
+                        <li>เลือกฟอนต์และขนาด</li>
+                        <li>กดบันทึกในทุกหน้า</li>
+                    </ul>
+                    
+                    <h3 style="color: #374151; margin: 40px 0 25px; font-size: 1.8em;">หน้าบ้าน (Frontend):</h3>
+                    <ul class="checklist">
+                        <li>Hard Refresh: กด <strong>Ctrl+Shift+R</strong> (Windows) หรือ <strong>Cmd+Shift+R</strong> (Mac)</li>
+                        <li>ตรวจสอบ Logo แสดงถูกต้อง</li>
+                        <li>ตรวจสอบ Social Media icons แสดงครบ</li>
+                        <li>ตรวจสอบปุ่ม Go to Top มีสีและตำแหน่งถูก</li>
+                        <li>ตรวจสอบข้อมูลติดต่อถูกต้อง</li>
+                        <li>ตรวจสอบฟอนต์เปลี่ยนไป</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: #fee2e2; padding: 40px; border-radius: 20px; margin: 40px 0; border: 3px solid #dc2626;">
+                <h2 style="color: #991b1b; margin-bottom: 20px; text-align: center;">🚨 ปัญหาที่พบบ่อย & วิธีแก้</h2>
+                
+                <table style="width: 100%; background: white; border-radius: 10px; overflow: hidden; margin-top: 20px;">
+                    <tr style="background: #dc2626; color: white;">
+                        <th style="padding: 15px;">ปัญหา</th>
+                        <th style="padding: 15px;">สาเหตุ</th>
+                        <th style="padding: 15px;">วิธีแก้</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">Logo ไม่เปลี่ยน</td>
+                        <td style="padding: 15px;">Browser Cache</td>
+                        <td style="padding: 15px;"><strong>Ctrl+Shift+R</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">Logo รูปไม่แสดง</td>
+                        <td style="padding: 15px;">logo_image = NULL</td>
+                        <td style="padding: 15px;">ใช้ <strong>fix-logo-database.php</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">Social ไม่แสดง</td>
+                        <td style="padding: 15px;">ไม่มี URL</td>
+                        <td style="padding: 15px;">กรอก URL ใน Settings</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">Twitter/LINE/YouTube ไม่แสดง</td>
+                        <td style="padding: 15px;">ไม่มีใน database</td>
+                        <td style="padding: 15px;">ใช้ <strong>fix-social-media.php</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">ฟอนต์ไม่เปลี่ยน</td>
+                        <td style="padding: 15px;">Cache</td>
+                        <td style="padding: 15px;">Hard Refresh</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px;">การตั้งค่าไม่บันทึก</td>
+                        <td style="padding: 15px;">Permission หรือ SQL error</td>
+                        <td style="padding: 15px;">ตรวจสอบ Permission และ error log</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin: 60px 0;">
+                <h2 style="color: #6366f1; margin-bottom: 40px; font-size: 2.5em;">🚀 Quick Actions</h2>
+                
+                <a href="fix-social-media.php" class="btn-mega btn-success">
+                    <i class="fas fa-share-alt"></i> แก้ไข Social Media
+                </a>
+                <a href="fix-logo-database.php" class="btn-mega btn-warning">
+                    <i class="fas fa-image"></i> แก้ไข Logo
+                </a>
+                <a href="admin/settings/" class="btn-mega">
+                    <i class="fas fa-cog"></i> ตั้งค่าทั่วไป
+                </a>
+                <a href="admin/settings/social.php" class="btn-mega btn-danger">
+                    <i class="fas fa-share-alt"></i> โซเชียล & Go to Top
+                </a>
+                <a href="/" class="btn-mega" style="background: #10b981;">
+                    <i class="fas fa-home"></i> ดูหน้าบ้าน
+                </a>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 50px; border-radius: 20px; text-align: center; border: 5px solid #10b981;">
+                <h2 style="color: #065f46; margin-bottom: 20px; font-size: 2.5em;">✨ ทุกอย่างพร้อมแล้ว!</h2>
+                <p style="color: #047857; font-size: 1.4em; line-height: 2;">
+                    ระบบ VIBEDAYBKK มีการตั้งค่าครบถ้วน<br>
+                    รองรับการปรับแต่งทุกส่วน<br>
+                    <strong>60+ Settings Keys</strong> พร้อมใช้งาน
+                </p>
+                <div style="margin-top: 30px; font-size: 1.2em; color: #059669;">
+                    ✅ Logo | ✅ Social Media | ✅ Go to Top<br>
+                    ✅ SEO | ✅ Fonts | ✅ Contact | ✅ Analytics
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        setTimeout(() => {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }, 500);
+    </script>
+</body>
+</html>
+

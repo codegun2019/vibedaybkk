@@ -1,0 +1,28 @@
+# Ignore uploaded files
+uploads/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
+# Ignore temporary files
+*.tmp
+*.log
+*.cache
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore node modules (if any)
+node_modules/
+
+# Ignore vendor (if using Composer)
+vendor/

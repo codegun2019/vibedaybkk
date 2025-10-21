@@ -42,56 +42,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Invalid CSRF token';
     } else {
-        // Collect data
-        $data = [
-            'category_id' => (int)$_POST['category_id'],
-            'code' => clean_input($_POST['code']),
-            'name' => clean_input($_POST['name']),
-            'name_en' => clean_input($_POST['name_en']),
-            'description' => $_POST['description'],
-            'price_min' => !empty($_POST['price_min']) ? (float)$_POST['price_min'] : null,
-            'price_max' => !empty($_POST['price_max']) ? (float)$_POST['price_max'] : null,
-            'height' => !empty($_POST['height']) ? (int)$_POST['height'] : null,
-            'weight' => !empty($_POST['weight']) ? (int)$_POST['weight'] : null,
-            'bust' => !empty($_POST['bust']) ? (int)$_POST['bust'] : null,
-            'waist' => !empty($_POST['waist']) ? (int)$_POST['waist'] : null,
-            'hips' => !empty($_POST['hips']) ? (int)$_POST['hips'] : null,
-            'experience_years' => !empty($_POST['experience_years']) ? (int)$_POST['experience_years'] : 0,
-            'age' => !empty($_POST['age']) ? (int)$_POST['age'] : null,
-            'skin_tone' => clean_input($_POST['skin_tone']),
-            'hair_color' => clean_input($_POST['hair_color']),
-            'eye_color' => clean_input($_POST['eye_color']),
-            'languages' => clean_input($_POST['languages']),
-            'skills' => $_POST['skills'],
-            'featured' => isset($_POST['featured']) ? 1 : 0,
-            'status' => $_POST['status'],
-            'sort_order' => !empty($_POST['sort_order']) ? (int)$_POST['sort_order'] : 0,
-        ];
+        // ตรวจสอบฟิลด์ที่มีในตาราง models
+        $columns_result = $conn->query("SHOW COLUMNS FROM models");
+        $existing_columns = [];
+        while ($col = $columns_result->fetch_assoc()) {
+            $existing_columns[] = $col['Field'];
+        }
+        
+        // Collect data - เฉพาะฟิลด์ที่มีในตาราง
+        $data = [];
+        
+        // ฟิลด์พื้นฐาน (ต้องมีเสมอ)
+        $data['category_id'] = (int)$_POST['category_id'];
+        if (in_array('code', $existing_columns)) $data['code'] = clean_input($_POST['code']);
+        $data['name'] = clean_input($_POST['name']);
+        
+        // ฟิลด์เสริม (ตรวจสอบว่ามีในตารางก่อน)
+        if (in_array('name_en', $existing_columns)) $data['name_en'] = clean_input($_POST['name_en']);
+        if (in_array('description', $existing_columns)) $data['description'] = $_POST['description'];
+        if (in_array('price', $existing_columns)) $data['price'] = !empty($_POST['price']) ? (float)$_POST['price'] : null;
+        if (in_array('price_min', $existing_columns)) $data['price_min'] = !empty($_POST['price_min']) ? (float)$_POST['price_min'] : null;
+        if (in_array('price_max', $existing_columns)) $data['price_max'] = !empty($_POST['price_max']) ? (float)$_POST['price_max'] : null;
+        if (in_array('height', $existing_columns)) $data['height'] = !empty($_POST['height']) ? (int)$_POST['height'] : null;
+        if (in_array('weight', $existing_columns)) $data['weight'] = !empty($_POST['weight']) ? (int)$_POST['weight'] : null;
+        if (in_array('bust', $existing_columns)) $data['bust'] = !empty($_POST['bust']) ? (int)$_POST['bust'] : null;
+        if (in_array('waist', $existing_columns)) $data['waist'] = !empty($_POST['waist']) ? (int)$_POST['waist'] : null;
+        if (in_array('hips', $existing_columns)) $data['hips'] = !empty($_POST['hips']) ? (int)$_POST['hips'] : null;
+        if (in_array('experience_years', $existing_columns)) $data['experience_years'] = !empty($_POST['experience_years']) ? (int)$_POST['experience_years'] : 0;
+        if (in_array('experience', $existing_columns)) $data['experience'] = $_POST['experience'] ?? '';
+        if (in_array('portfolio', $existing_columns)) $data['portfolio'] = $_POST['portfolio'] ?? '';
+        if (in_array('age', $existing_columns)) $data['age'] = !empty($_POST['age']) ? (int)$_POST['age'] : null;
+        if (in_array('birth_date', $existing_columns)) $data['birth_date'] = !empty($_POST['birth_date']) ? $_POST['birth_date'] : null;
+        if (in_array('skin_tone', $existing_columns)) $data['skin_tone'] = clean_input($_POST['skin_tone'] ?? '');
+        if (in_array('hair_color', $existing_columns)) $data['hair_color'] = clean_input($_POST['hair_color'] ?? '');
+        if (in_array('eye_color', $existing_columns)) $data['eye_color'] = clean_input($_POST['eye_color'] ?? '');
+        if (in_array('languages', $existing_columns)) $data['languages'] = clean_input($_POST['languages'] ?? '');
+        if (in_array('skills', $existing_columns)) $data['skills'] = $_POST['skills'] ?? '';
+        if (in_array('featured', $existing_columns)) $data['featured'] = isset($_POST['featured']) ? 1 : 0;
+        if (in_array('status', $existing_columns)) $data['status'] = $_POST['status'];
+        if (in_array('sort_order', $existing_columns)) $data['sort_order'] = !empty($_POST['sort_order']) ? (int)$_POST['sort_order'] : 0;
         
         // Validate
         if (empty($data['category_id'])) {
             $errors[] = 'กรุณาเลือกหมวดหมู่';
         }
-        if (empty($data['code'])) {
+        if (isset($data['code']) && empty($data['code'])) {
             $errors[] = 'กรุณากรอกรหัสโมเดล';
         }
         if (empty($data['name'])) {
             $errors[] = 'กรุณากรอกชื่อโมเดล';
         }
         
-        // Check duplicate code (except current)
-        if (!empty($data['code'])) {
+        // Check duplicate code (except current) - ถ้ามีฟิลด์ code
+        if (isset($data['code']) && !empty($data['code'])) {
             $stmt = $conn->prepare("SELECT id FROM models WHERE code = ? AND id != ?");
             $stmt->bind_param('si', $data['code'], $model_id);
             $stmt->execute();
-            if ($stmt->fetch()) {
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
                 $errors[] = 'รหัสโมเดลนี้มีอยู่แล้ว';
             }
+            $stmt->close();
         }
         
         // If no errors, update
         if (empty($errors)) {
-            if (db_update($conn, 'models', $data, 'id = :id', ['id' => $model_id])) {
+            try {
+                // อัพเดทข้อมูลด้วย SQL ง่ายๆ
+                $update_fields = [];
+                $update_values = [];
+                $update_types = '';
+                
+                foreach ($data as $field => $value) {
+                    $update_fields[] = "`{$field}` = ?";
+                    $update_values[] = $value;
+                    
+                    if (is_int($value)) {
+                        $update_types .= 'i';
+                    } elseif (is_float($value)) {
+                        $update_types .= 'd';
+                    } else {
+                        $update_types .= 's';
+                    }
+                }
+                
+                // เพิ่ม updated_at ถ้ามี
+                if (in_array('updated_at', $existing_columns)) {
+                    $update_fields[] = "`updated_at` = NOW()";
+                }
+                
+                // สร้าง SQL
+                $sql = "UPDATE models SET " . implode(', ', $update_fields) . " WHERE id = ?";
+                $update_values[] = $model_id;
+                $update_types .= 'i';
+                
+                // Execute
+                $stmt = $conn->prepare($sql);
+                if (!$stmt) {
+                    throw new Exception("Prepare failed: " . $conn->error);
+                }
+                
+                $stmt->bind_param($update_types, ...$update_values);
+                
+                if (!$stmt->execute()) {
+                    throw new Exception("Execute failed: " . $stmt->error);
+                }
+                
+                $stmt->close();
                 
                 // Handle image upload
                 if (!empty($_FILES['images']['name'][0])) {
@@ -107,29 +164,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             $upload_result = upload_image($file, 'models');
                             if ($upload_result['success']) {
-                                $image_data = [
-                                    'model_id' => $model_id,
-                                    'image_path' => $upload_result['path'],
-                                    'image_type' => 'portfolio',
-                                    'is_primary' => $key == 0 ? 1 : 0,
-                                    'sort_order' => $key
-                                ];
-                                db_insert($conn, 'model_images', $image_data);
+                                // ตรวจสอบว่ามีตาราง model_images
+                                $table_check = $conn->query("SHOW TABLES LIKE 'model_images'");
+                                if ($table_check && $table_check->num_rows > 0) {
+                                    $image_data = [
+                                        'model_id' => $model_id,
+                                        'image_path' => $upload_result['path'],
+                                        'image_type' => 'portfolio',
+                                        'is_primary' => $key == 0 ? 1 : 0,
+                                        'sort_order' => $key
+                                    ];
+                                    db_insert($conn, 'model_images', $image_data);
+                                }
                             }
                         }
                     }
                 }
                 
                 // Log activity
-                log_activity($conn, $_SESSION['user_id'], 'update', 'models', $model_id, $model, $data);
+                log_activity($conn, $_SESSION['user_id'], 'update', 'models', $model_id);
                 
                 $success = true;
+                set_message('success', 'บันทึกข้อมูลสำเร็จ');
                 
                 // Refresh model data
                 $model = get_model($conn, $model_id);
-                $model_images = get_model_images($conn, $model_id);
-            } else {
-                $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+                
+            } catch (Exception $e) {
+                $errors[] = 'เกิดข้อผิดพลาดในการบันทึก: ' . $e->getMessage();
             }
         }
     }
@@ -231,7 +293,7 @@ include '../includes/header.php';
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">รหัสโมเดล <span class="text-red-500">*</span></label>
-                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="code" required placeholder="เช่น FM001" value="<?php echo htmlspecialchars($model['code']); ?>">
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="code" required placeholder="เช่น FM001" value="<?php echo htmlspecialchars($model['code'] ?? ''); ?>">
                     <small class="text-gray-500 text-sm mt-1">รหัสเฉพาะของโมเดล (ไม่ซ้ำกัน)</small>
                 </div>
             </div>
@@ -239,11 +301,11 @@ include '../includes/header.php';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ (ไทย) <span class="text-red-500">*</span></label>
-                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name" required value="<?php echo htmlspecialchars($model['name']); ?>">
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name" required value="<?php echo htmlspecialchars($model['name'] ?? ''); ?>">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ (อังกฤษ)</label>
-                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name_en" value="<?php echo htmlspecialchars($model['name_en']); ?>">
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="name_en" value="<?php echo htmlspecialchars($model['name_en'] ?? ''); ?>">
                 </div>
             </div>
             

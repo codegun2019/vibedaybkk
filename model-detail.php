@@ -1,526 +1,474 @@
 <?php
 /**
- * VIBEDAYBKK - Model Detail Page
  * หน้ารายละเอียดโมเดล
  */
-define('VIBEDAYBKK_ADMIN', true);
+
 require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
-$model_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// ดึงการตั้งค่า
+$global_settings = get_all_settings($conn);
 
-if (!$model_id) {
-    header('Location: index.php');
+// ตรวจสอบว่าเปิดการแสดงรายละเอียดหรือไม่
+$detail_enabled = ($global_settings['model_detail_enabled'] ?? '1') == '1';
+
+if (!$detail_enabled) {
+    // ถ้าปิดการแสดงรายละเอียด
+    set_message('error', 'ขออภัย ฟีเจอร์นี้ปิดการใช้งานชั่วคราว');
+    header('Location: models.php');
     exit;
 }
 
+// รับ ID หรือ slug
+$model_id = 0;
+$slug = '';
+
+if (isset($_GET['id'])) {
+    $model_id = (int)$_GET['id'];
+} elseif (isset($_GET['slug'])) {
+    $slug = clean_input($_GET['slug']);
+}
+
 // ดึงข้อมูลโมเดล
-$stmt = $conn->prepare("
-    SELECT 
-        m.*,
-        c.name as category_name,
-        c.gender as category_gender
-    FROM models m
-    LEFT JOIN categories c ON m.category_id = c.id
-    WHERE m.id = ?
-");
-$stmt->bind_param('i', $model_id);
+if ($model_id > 0) {
+    $stmt = $conn->prepare("
+        SELECT m.*, c.name as category_name, c.icon as category_icon
+        FROM models m 
+        LEFT JOIN categories c ON m.category_id = c.id 
+        WHERE m.id = ?
+    ");
+    $stmt->bind_param('i', $model_id);
+} elseif (!empty($slug)) {
+    $stmt = $conn->prepare("
+        SELECT m.*, c.name as category_name, c.icon as category_icon
+        FROM models m 
+        LEFT JOIN categories c ON m.category_id = c.id 
+        WHERE m.slug = ?
+    ");
+    $stmt->bind_param('s', $slug);
+} else {
+    header('Location: models.php');
+    exit;
+}
+
 $stmt->execute();
 $result = $stmt->get_result();
 $model = $result->fetch_assoc();
 $stmt->close();
 
 if (!$model) {
-    header('Location: index.php');
+    set_message('error', 'ไม่พบข้อมูลโมเดล');
+    header('Location: models.php');
     exit;
 }
 
-// อัปเดตจำนวนการดู
-$conn->query("UPDATE models SET view_count = view_count + 1 WHERE id = $model_id");
-
-// ดึงรูปภาพทั้งหมดของโมเดล
-$images_stmt = $conn->prepare("
-    SELECT * FROM model_images 
-    WHERE model_id = ? 
-    ORDER BY is_primary DESC, sort_order ASC
-");
-$images_stmt->bind_param('i', $model_id);
-$images_stmt->execute();
-$images_result = $images_stmt->get_result();
-$model_images = $images_result->fetch_all(MYSQLI_ASSOC);
-$images_stmt->close();
-
-// ดึงโมเดลที่เกี่ยวข้อง
-$related_stmt = $conn->prepare("
-    SELECT 
-        m.*,
-        c.name as category_name,
-        mi.image_path
-    FROM models m
-    LEFT JOIN categories c ON m.category_id = c.id
-    LEFT JOIN model_images mi ON m.id = mi.model_id AND mi.is_primary = 1
-    WHERE m.category_id = ? AND m.id != ? AND m.status = 'available'
-    ORDER BY m.featured DESC, m.sort_order ASC
-    LIMIT 3
-");
-$related_stmt->bind_param('ii', $model['category_id'], $model_id);
-$related_stmt->execute();
-$related_result = $related_stmt->get_result();
-$related_models = $related_result->fetch_all(MYSQLI_ASSOC);
-$related_stmt->close();
-
-// ดึงข้อมูล settings
-$global_settings = [];
-$settings_result = db_get_rows($conn, "SELECT * FROM settings");
-foreach ($settings_result as $row) {
-    $global_settings[$row['setting_key']] = $row['setting_value'];
+// นับจำนวนการดู
+if (isset($model['id'])) {
+    $conn->query("UPDATE models SET view_count = view_count + 1 WHERE id = " . (int)$model['id']);
 }
-
-// ตั้งค่าการแสดงผล
-$show_price = ($global_settings['show_model_price'] ?? '1') == '1';
-$show_details = ($global_settings['show_model_details'] ?? '1') == '1';
 
 // ดึงข้อมูลเมนู
-$main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
-
-$page_title = $model['name'] . ' - ' . ($global_settings['site_name'] ?? 'VIBEDAYBKK');
-
-// ดึงข้อมูลโซเชียลมีเดีย
-$social_platforms = [
-    'facebook' => ['color' => 'bg-blue-600 hover:bg-blue-700', 'hover_color' => 'hover:bg-blue-600'],
-    'instagram' => ['color' => 'bg-pink-500 hover:bg-pink-600', 'hover_color' => 'hover:bg-pink-500'],
-    'twitter' => ['color' => 'bg-black hover:bg-gray-800', 'hover_color' => 'hover:bg-red-primary'],
-    'line' => ['color' => 'bg-green-500 hover:bg-green-600', 'hover_color' => 'hover:bg-green-500'],
-    'youtube' => ['color' => 'bg-red-600 hover:bg-red-700', 'hover_color' => 'hover:bg-red-600'],
-    'tiktok' => ['color' => 'bg-gray-900 hover:bg-black', 'hover_color' => 'hover:bg-gray-900']
-];
-
-$active_socials = [];
-foreach ($social_platforms as $platform => $colors) {
-    $enabled = $global_settings["social_{$platform}_enabled"] ?? '0';
-    if ($enabled == '1') {
-        $active_socials[$platform] = [
-            'url' => $global_settings["social_{$platform}_url"] ?? '#',
-            'icon' => $global_settings["social_{$platform}_icon"] ?? "fa-{$platform}",
-            'color' => $colors['color'],
-            'hover_color' => $colors['hover_color'],
-            'name' => ucfirst($platform)
-        ];
+$main_menus = [];
+$menu_result = $conn->query("SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
+if ($menu_result) {
+    while ($menu = $menu_result->fetch_assoc()) {
+        $main_menus[] = $menu;
     }
 }
+
+// ดึงรูปภาพเพิ่มเติม (ถ้ามี)
+$model_images = [];
+$images_check = $conn->query("SHOW TABLES LIKE 'model_images'");
+if ($images_check && $images_check->num_rows > 0) {
+    $images_stmt = $conn->prepare("SELECT * FROM model_images WHERE model_id = ? ORDER BY sort_order ASC");
+    $images_stmt->bind_param('i', $model['id']);
+    $images_stmt->execute();
+    $images_result = $images_stmt->get_result();
+    while ($img = $images_result->fetch_assoc()) {
+        $model_images[] = $img;
+    }
+}
+
+// ดึงโมเดลที่เกี่ยวข้อง
+$related_models = [];
+$related_stmt = $conn->prepare("
+    SELECT m.*, c.name as category_name 
+    FROM models m 
+    LEFT JOIN categories c ON m.category_id = c.id 
+    WHERE m.category_id = ? AND m.id != ? AND m.status = 'available'
+    ORDER BY RAND() 
+    LIMIT 4
+");
+$related_stmt->bind_param('ii', $model['category_id'], $model['id']);
+$related_stmt->execute();
+$related_result = $related_stmt->get_result();
+while ($rel = $related_result->fetch_assoc()) {
+    $related_models[] = $rel;
+}
+
+// ตรวจสอบฟิลด์ที่แสดงได้ (ตาม settings)
+$show_price = ($global_settings['model_detail_show_price'] ?? '1') == '1';
+$show_price_range = ($global_settings['model_detail_show_price_range'] ?? '1') == '1';
+$show_measurements = ($global_settings['model_detail_show_measurements'] ?? '1') == '1';
+$show_personal_info = ($global_settings['model_detail_show_personal_info'] ?? '1') == '1';
+$show_experience = ($global_settings['model_detail_show_experience'] ?? '1') == '1';
+$show_portfolio = ($global_settings['model_detail_show_portfolio'] ?? '1') == '1';
+$show_contact = ($global_settings['model_detail_show_contact'] ?? '1') == '1';
 ?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title; ?></title>
-    <meta name="description" content="<?php echo htmlspecialchars($model['description'] ?? ''); ?>">
-    <?php echo get_favicon($global_settings); ?>
+    <title><?php echo htmlspecialchars($model['name']); ?> - <?php echo $global_settings['site_name'] ?? 'VIBEDAY'; ?></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<?php echo htmlspecialchars($model['description'] ?? $model['name']); ?>">
+    <meta name="keywords" content="<?php echo $model['name']; ?>, โมเดล, นางแบบ, <?php echo $model['category_name'] ?? ''; ?>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'kanit': ['Kanit', 'sans-serif'],
-                    },
-                    colors: {
-                        'red-primary': '#DC2626',
-                        'red-light': '#EF4444',
-                        'dark': '#0a0a0a',
-                        'dark-light': '#1a1a1a',
-                        'accent': '#FBBF24',
-                    }
-                }
-            }
-        }
-    </script>
-    
     <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
+        body { font-family: 'Kanit', sans-serif; }
+        .bg-dark { background: #1a1a2e; }
+        .bg-dark-light { background: #16213e; }
+        .text-red-primary { color: #DC2626; }
+        .bg-red-primary { background: #DC2626; }
+        .hover-scale { transition: transform 0.3s; }
+        .hover-scale:hover { transform: scale(1.05); }
+        .gallery-img {
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        
-        .hover-scale {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .hover-scale:hover {
+        .gallery-img:hover {
             transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
         }
     </style>
 </head>
-<body class="bg-dark text-white font-kanit">
+<body class="bg-dark text-white">
+
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full bg-dark/95 backdrop-blur-sm z-50 border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="index.php" class="text-2xl font-bold text-red-primary">
-                        <?php echo get_logo($global_settings); ?>
-                    </a>
-                </div>
+    <nav class="bg-dark-light shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="text-3xl font-bold text-red-primary">
+                    <?php echo $global_settings['logo_text'] ?? 'VIBEDAY'; ?>
+                </a>
                 
-                <?php include 'includes/menu.php'; ?>
-            </div>
-        </div>
-        
-        <?php include 'includes/mobile-menu.php'; ?>
-    </nav>
-
-    <!-- Social Sidebar -->
-    <?php if (!empty($active_socials)): ?>
-    <div class="fixed right-6 top-1/2 transform -translate-y-1/2 z-40 hidden lg:flex flex-col space-y-3">
-        <?php foreach ($active_socials as $platform => $social): ?>
-        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
-           class="w-12 h-12 flex items-center justify-center <?php echo $social['color']; ?> text-white rounded-full shadow-lg transition-all duration-300 hover:scale-110" 
-           title="<?php echo $social['name']; ?>"
-           target="_blank"
-           rel="noopener noreferrer">
-            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
-        </a>
-        <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
-
-    <!-- Model Detail -->
-    <div class="min-h-screen py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <!-- Breadcrumb -->
-            <nav class="mb-8 text-sm">
-                <ol class="flex items-center space-x-2 text-gray-400">
-                    <li><a href="index.php" class="hover:text-red-primary">หน้าแรก</a></li>
-                    <li><i class="fas fa-chevron-right text-xs"></i></li>
-                    <li><a href="index.php#services" class="hover:text-red-primary">โมเดล</a></li>
-                    <li><i class="fas fa-chevron-right text-xs"></i></li>
-                    <li class="text-white"><?php echo htmlspecialchars($model['name']); ?></li>
-                </ol>
-            </nav>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Left Column - Images -->
-                <div class="lg:col-span-2">
-                    <?php if (!empty($model_images)): ?>
-                    <!-- Main Image -->
-                    <div class="mb-4 rounded-xl overflow-hidden">
-                        <img id="mainImage" 
-                             src="<?php echo UPLOADS_URL . '/' . $model_images[0]['image_path']; ?>" 
-                             alt="<?php echo htmlspecialchars($model['name']); ?>"
-                             class="w-full h-[600px] object-cover">
-                    </div>
-                    
-                    <!-- Thumbnail Gallery -->
-                    <?php if (count($model_images) > 1): ?>
-                    <div class="grid grid-cols-4 gap-4">
-                        <?php foreach ($model_images as $img): ?>
-                        <div class="cursor-pointer rounded-lg overflow-hidden hover:opacity-75 transition-opacity"
-                             onclick="changeMainImage('<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>')">
-                            <img src="<?php echo UPLOADS_URL . '/' . $img['image_path']; ?>" 
-                                 alt="<?php echo htmlspecialchars($img['title'] ?? ''); ?>"
-                                 class="w-full h-24 object-cover">
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                    <?php else: ?>
-                    <div class="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl h-[600px] flex items-center justify-center">
-                        <div class="text-center">
-                            <i class="fas fa-user text-9xl text-gray-600 mb-4"></i>
-                            <p class="text-gray-400">ยังไม่มีรูปภาพ</p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Right Column - Info -->
-                <div class="lg:col-span-1">
-                    <div class="bg-dark-light rounded-xl p-6 sticky top-24">
-                        
-                        <!-- Name -->
-                        <h1 class="text-3xl font-bold mb-2"><?php echo htmlspecialchars($model['name']); ?></h1>
-                        
-                        <!-- Category -->
-                        <div class="flex items-center text-gray-400 mb-4">
-                            <i class="fas fa-briefcase mr-2"></i>
-                            <span><?php echo htmlspecialchars($model['category_name']); ?></span>
-                        </div>
-
-                        <!-- Stats -->
-                        <?php if ($show_details): ?>
-                        <div class="grid grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-700">
-                            <?php if ($model['height']): ?>
-                            <div>
-                                <div class="text-gray-400 text-sm">ส่วนสูง</div>
-                                <div class="text-xl font-semibold"><?php echo $model['height']; ?> cm</div>
-                            </div>
+                <div class="hidden md:flex space-x-8">
+                    <?php foreach ($main_menus as $menu): ?>
+                        <a href="<?php echo $menu['url']; ?>" class="text-gray-300 hover:text-red-primary transition">
+                            <?php if (!empty($menu['icon'])): ?>
+                                <i class="fas <?php echo $menu['icon']; ?> mr-2"></i>
                             <?php endif; ?>
-                            
-                            <?php if ($model['weight']): ?>
-                            <div>
-                                <div class="text-gray-400 text-sm">น้ำหนัก</div>
-                                <div class="text-xl font-semibold"><?php echo $model['weight']; ?> kg</div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if ($model['age']): ?>
-                            <div>
-                                <div class="text-gray-400 text-sm">อายุ</div>
-                                <div class="text-xl font-semibold"><?php echo $model['age']; ?> ปี</div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if ($model['experience_years']): ?>
-                            <div>
-                                <div class="text-gray-400 text-sm">ประสบการณ์</div>
-                                <div class="text-xl font-semibold"><?php echo $model['experience_years']; ?> ปี</div>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- Body Measurements -->
-                        <?php if ($model['bust'] || $model['waist'] || $model['hips']): ?>
-                        <div class="mb-6 pb-6 border-b border-gray-700">
-                            <h3 class="font-semibold mb-3">รอบวัด</h3>
-                            <div class="grid grid-cols-3 gap-4">
-                                <?php if ($model['bust']): ?>
-                                <div>
-                                    <div class="text-gray-400 text-sm">อก</div>
-                                    <div class="font-semibold"><?php echo $model['bust']; ?>"</div>
-                                </div>
-                                <?php endif; ?>
-                                <?php if ($model['waist']): ?>
-                                <div>
-                                    <div class="text-gray-400 text-sm">เอว</div>
-                                    <div class="font-semibold"><?php echo $model['waist']; ?>"</div>
-                                </div>
-                                <?php endif; ?>
-                                <?php if ($model['hips']): ?>
-                                <div>
-                                    <div class="text-gray-400 text-sm">สะโพก</div>
-                                    <div class="font-semibold"><?php echo $model['hips']; ?>"</div>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- Price -->
-                        <?php if ($show_price && ($model['price_min'] || $model['price_max'])): ?>
-                        <div class="mb-6 pb-6 border-b border-gray-700">
-                            <h3 class="text-gray-400 text-sm mb-2">ราคา</h3>
-                            <div class="text-3xl font-bold text-red-primary">
-                                ฿<?php echo number_format($model['price_min'] ?? 0); ?>
-                                <?php if ($model['price_max'] && $model['price_max'] != $model['price_min']): ?>
-                                - ฿<?php echo number_format($model['price_max']); ?>
-                                <?php endif; ?>
-                                <span class="text-lg text-gray-400">/วัน</span>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- Contact Buttons -->
-                        <div class="space-y-3">
-                            <a href="booking.php?model_id=<?php echo $model['id']; ?>" 
-                               class="block w-full bg-red-primary hover:bg-red-light text-white text-center py-3 rounded-lg font-semibold transition-colors">
-                                <i class="fas fa-calendar-check mr-2"></i>จองเลย
-                            </a>
-                            <a href="contact.php?subject=สอบถามเกี่ยวกับ <?php echo urlencode($model['name']); ?>" 
-                               class="block w-full bg-gray-700 hover:bg-gray-600 text-white text-center py-3 rounded-lg font-semibold transition-colors">
-                                <i class="fas fa-envelope mr-2"></i>สอบถามข้อมูล
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Description & Details -->
-            <?php if ($model['description']): ?>
-            <div class="mt-12">
-                <h2 class="text-2xl font-bold mb-6">เกี่ยวกับ<?php echo htmlspecialchars($model['name']); ?></h2>
-                <div class="bg-dark-light rounded-xl p-8">
-                    <p class="text-gray-300 leading-relaxed whitespace-pre-line"><?php echo htmlspecialchars($model['description']); ?></p>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- Skills -->
-            <?php if ($model['skills']): ?>
-            <div class="mt-12">
-                <h2 class="text-2xl font-bold mb-6">ทักษะ</h2>
-                <div class="bg-dark-light rounded-xl p-8">
-                    <div class="flex flex-wrap gap-3">
-                        <?php 
-                        $skills = explode(',', $model['skills']);
-                        foreach ($skills as $skill): 
-                        ?>
-                        <span class="px-4 py-2 bg-red-primary/20 text-red-primary rounded-full">
-                            <?php echo htmlspecialchars(trim($skill)); ?>
-                        </span>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- Related Models -->
-            <?php if (!empty($related_models)): ?>
-            <div class="mt-12">
-                <h2 class="text-2xl font-bold mb-6">โมเดลที่เกี่ยวข้อง</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <?php foreach ($related_models as $related): ?>
-                    <a href="model-detail.php?id=<?php echo $related['id']; ?>" class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
-                        <div class="relative h-64 overflow-hidden">
-                            <?php if ($related['image_path']): ?>
-                            <img src="<?php echo UPLOADS_URL . '/' . $related['image_path']; ?>" 
-                                 alt="<?php echo htmlspecialchars($related['name']); ?>"
-                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                            <?php else: ?>
-                            <div class="bg-gradient-to-br from-gray-700 to-gray-800 h-full flex items-center justify-center">
-                                <i class="fas fa-user text-5xl text-gray-600"></i>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="p-6">
-                            <h4 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($related['name']); ?></h4>
-                            <p class="text-gray-400 text-sm"><?php echo htmlspecialchars($related['category_name']); ?></p>
-                        </div>
-                    </a>
+                            <?php echo $menu['title']; ?>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
-    </div>
+    </nav>
 
-    <!-- Footer -->
-    <footer class="bg-dark-light border-t border-gray-800 py-12 mt-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- About -->
-                <div class="md:col-span-2">
-                    <h3 class="text-2xl font-bold text-red-primary mb-4">
-                        <?php echo get_logo($global_settings); ?>
-                    </h3>
-                    <p class="text-gray-400 mb-4">
-                        <?php echo htmlspecialchars($global_settings['site_description'] ?? 'บริการโมเดลและนางแบบมืออาชีพ'); ?>
-                    </p>
-                </div>
-                
-                <!-- Quick Links -->
+    <!-- Model Detail -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <!-- Breadcrumb -->
+            <div class="mb-8 text-sm">
+                <a href="/" class="text-gray-400 hover:text-red-primary">หน้าแรก</a>
+                <span class="mx-2 text-gray-600">/</span>
+                <a href="models.php" class="text-gray-400 hover:text-red-primary">โมเดล</a>
+                <span class="mx-2 text-gray-600">/</span>
+                <span class="text-red-primary"><?php echo htmlspecialchars($model['name']); ?></span>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Left - Image Gallery -->
                 <div>
-                    <h4 class="text-lg font-semibold mb-4">เมนูด่วน</h4>
-                    <ul class="space-y-2">
-                        <li><a href="index.php#home" class="text-gray-400 hover:text-red-primary transition-colors">หน้าแรก</a></li>
-                        <li><a href="index.php#about" class="text-gray-400 hover:text-red-primary transition-colors">เกี่ยวกับเรา</a></li>
-                        <li><a href="index.php#services" class="text-gray-400 hover:text-red-primary transition-colors">บริการ</a></li>
-                        <li><a href="index.php#contact" class="text-gray-400 hover:text-red-primary transition-colors">ติดต่อเรา</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Contact -->
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <?php if (!empty($global_settings['site_phone'])): ?>
-                        <li class="flex items-center">
-                            <i class="fas fa-phone mr-2 text-red-primary"></i>
-                            <a href="tel:<?php echo $global_settings['site_phone']; ?>" class="hover:text-red-primary transition-colors">
-                                <?php echo $global_settings['site_phone']; ?>
-                            </a>
-                        </li>
+                    <!-- Main Image -->
+                    <div class="mb-6 rounded-2xl overflow-hidden bg-gray-800">
+                        <?php if (!empty($model['featured_image'])): ?>
+                            <img src="<?php echo htmlspecialchars($model['featured_image']); ?>" 
+                                 alt="<?php echo htmlspecialchars($model['name']); ?>"
+                                 class="w-full h-[600px] object-cover">
+                        <?php else: ?>
+                            <div class="w-full h-[600px] flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
+                                <i class="fas fa-user text-9xl text-gray-600"></i>
+                            </div>
                         <?php endif; ?>
-                        <?php if (!empty($global_settings['site_email'])): ?>
-                        <li class="flex items-center">
-                            <i class="fas fa-envelope mr-2 text-red-primary"></i>
-                            <a href="mailto:<?php echo $global_settings['site_email']; ?>" class="hover:text-red-primary transition-colors">
-                                <?php echo $global_settings['site_email']; ?>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                    </ul>
-                    
-                    <!-- Social Links -->
-                    <?php if (!empty($active_socials)): ?>
-                    <div class="flex space-x-3 mt-4">
-                        <?php foreach ($active_socials as $platform => $social): ?>
-                        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
-                           class="w-10 h-10 flex items-center justify-center <?php echo $social['color']; ?> rounded-full transition-all duration-300 hover:scale-110"
-                           target="_blank" rel="noopener noreferrer" title="<?php echo $social['name']; ?>">
-                            <i class="fab <?php echo $social['icon']; ?>"></i>
-                        </a>
-                        <?php endforeach; ?>
                     </div>
+                    
+                    <!-- Additional Images -->
+                    <?php if (!empty($model_images)): ?>
+                        <div class="grid grid-cols-4 gap-4">
+                            <?php foreach ($model_images as $img): ?>
+                                <div class="gallery-img rounded-lg overflow-hidden">
+                                    <img src="<?php echo BASE_URL . '/' . $img['image_path']; ?>" 
+                                         alt="Gallery"
+                                         class="w-full h-24 object-cover">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Right - Details -->
+                <div>
+                    <!-- Header -->
+                    <div class="mb-6">
+                        <?php if (!empty($model['category_name'])): ?>
+                            <span class="inline-block bg-red-primary px-4 py-1 rounded-full text-sm font-medium mb-4">
+                                <i class="fas <?php echo $model['category_icon'] ?? 'fa-tag'; ?> mr-2"></i>
+                                <?php echo $model['category_name']; ?>
+                            </span>
+                        <?php endif; ?>
+                        
+                        <h1 class="text-4xl font-bold mb-2"><?php echo htmlspecialchars($model['name']); ?></h1>
+                        
+                        <?php if (!empty($model['name_en'])): ?>
+                            <p class="text-xl text-gray-400 mb-2"><?php echo htmlspecialchars($model['name_en']); ?></p>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($model['code'])): ?>
+                            <p class="text-gray-500">รหัส: <span class="font-mono"><?php echo $model['code']; ?></span></p>
+                        <?php endif; ?>
+                        
+                        <!-- Status -->
+                        <div class="mt-4">
+                            <?php if ($model['status'] == 'available'): ?>
+                                <span class="inline-block bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                    <i class="fas fa-check-circle mr-2"></i>พร้อมรับงาน
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-block bg-gray-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                    <i class="fas fa-times-circle mr-2"></i>ไม่ว่าง
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Price -->
+                    <?php if ($show_price && !empty($model['price']) && $model['price'] > 0): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-2">
+                                <i class="fas fa-dollar-sign mr-2 text-red-primary"></i>ค่าบริการ
+                            </h3>
+                            <p class="text-4xl font-bold text-red-primary"><?php echo number_format($model['price']); ?> ฿</p>
+                            <?php if ($show_price_range && !empty($model['price_min']) && !empty($model['price_max'])): ?>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    <i class="fas fa-chart-line mr-2"></i>
+                                    ช่วงราคา: <?php echo number_format($model['price_min']); ?> - <?php echo number_format($model['price_max']); ?> บาท
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    <?php elseif (!$show_price): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-2">
+                                <i class="fas fa-dollar-sign mr-2 text-red-primary"></i>ค่าบริการ
+                            </h3>
+                            <p class="text-2xl font-medium text-gray-400">
+                                <i class="fas fa-phone mr-2"></i>
+                                <?php echo $global_settings['price_hidden_text'] ?? 'ติดต่อสอบถาม'; ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Measurements (ข้อมูลส่วนตัว) -->
+                    <?php if ($show_personal_info && ($show_measurements || !empty($model['height']) || !empty($model['weight']))): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-ruler mr-2 text-red-primary"></i>ข้อมูลส่วนตัว
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <?php if (!empty($model['height'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">ส่วนสูง</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['height']; ?> cm</p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['weight'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">น้ำหนัก</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['weight']; ?> kg</p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['bust'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">รอบอก</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['bust']; ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['waist'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">รอบเอว</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['waist']; ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['hips'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">รอบสะโพก</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['hips']; ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['age'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">อายุ</p>
+                                        <p class="text-xl font-semibold"><?php echo $model['age']; ?> ปี</p>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($model['birth_date'])): ?>
+                                    <div>
+                                        <p class="text-gray-400 text-sm">วันเกิด</p>
+                                        <p class="text-xl font-semibold"><?php echo date('d/m/Y', strtotime($model['birth_date'])); ?></p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Description -->
+                    <?php if (!empty($model['description'])): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-info-circle mr-2 text-red-primary"></i>รายละเอียด
+                            </h3>
+                            <p class="text-gray-300 leading-relaxed"><?php echo nl2br(htmlspecialchars($model['description'])); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Experience -->
+                    <?php if ($show_experience && !empty($model['experience'])): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-briefcase mr-2 text-red-primary"></i>ประสบการณ์
+                            </h3>
+                            <p class="text-gray-300 leading-relaxed"><?php echo nl2br(htmlspecialchars($model['experience'])); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Portfolio -->
+                    <?php if ($show_portfolio && !empty($model['portfolio'])): ?>
+                        <div class="bg-dark-light rounded-xl p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-star mr-2 text-red-primary"></i>ผลงาน
+                            </h3>
+                            <p class="text-gray-300 leading-relaxed"><?php echo nl2br(htmlspecialchars($model['portfolio'])); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Additional Info -->
+                    <div class="bg-dark-light rounded-xl p-6 mb-6">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <?php if (!empty($model['skin_tone'])): ?>
+                                <div>
+                                    <p class="text-gray-400">สีผิว</p>
+                                    <p class="font-medium"><?php echo htmlspecialchars($model['skin_tone']); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($model['hair_color'])): ?>
+                                <div>
+                                    <p class="text-gray-400">สีผม</p>
+                                    <p class="font-medium"><?php echo htmlspecialchars($model['hair_color']); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($model['languages'])): ?>
+                                <div>
+                                    <p class="text-gray-400">ภาษา</p>
+                                    <p class="font-medium"><?php echo htmlspecialchars($model['languages']); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($model['view_count'])): ?>
+                                <div>
+                                    <p class="text-gray-400">ยอดดู</p>
+                                    <p class="font-medium"><?php echo number_format($model['view_count']); ?> ครั้ง</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Buttons -->
+                    <?php if ($show_contact): ?>
+                        <div class="space-y-3">
+                            <a href="#contact" class="block w-full bg-red-primary hover:bg-red-700 text-white text-center py-4 rounded-xl font-medium transition text-lg">
+                                <i class="fas fa-calendar-check mr-2"></i>จองบริการ
+                            </a>
+                            
+                            <?php if (!empty($global_settings['contact_line'])): ?>
+                                <a href="https://line.me/ti/p/<?php echo $global_settings['contact_line']; ?>" 
+                                   target="_blank"
+                                   class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-4 rounded-xl font-medium transition">
+                                    <i class="fab fa-line mr-2"></i>ติดต่อผ่าน LINE
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Related Models -->
+    <?php if (!empty($related_models)): ?>
+    <section class="py-16 bg-dark-light">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">โมเดลที่เกี่ยวข้อง</h2>
             
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 pt-8 text-center">
-                <p class="text-gray-500">
-                    &copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>. สงวนลิขสิทธิ์
-                </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <?php foreach ($related_models as $rel): ?>
+                    <a href="model-detail.php?id=<?php echo $rel['id']; ?>" class="group">
+                        <div class="bg-dark rounded-2xl overflow-hidden hover-scale">
+                            <div class="relative h-64 overflow-hidden">
+                                <?php if (!empty($rel['featured_image'])): ?>
+                                    <img src="<?php echo htmlspecialchars($rel['featured_image']); ?>" 
+                                         alt="<?php echo htmlspecialchars($rel['name']); ?>"
+                                         class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <div class="w-full h-full flex items-center justify-center bg-gray-800">
+                                        <i class="fas fa-user text-5xl text-gray-600"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold mb-2"><?php echo htmlspecialchars($rel['name']); ?></h3>
+                                <?php if (!empty($rel['category_name'])): ?>
+                                    <p class="text-sm text-gray-400"><?php echo $rel['category_name']; ?></p>
+                                <?php endif; ?>
+                                <?php if ($show_price && !empty($rel['price'])): ?>
+                                    <p class="text-red-primary font-bold mt-2"><?php echo number_format($rel['price']); ?> ฿</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
             </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- Footer -->
+    <footer class="bg-dark-light py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold mb-4"><?php echo $global_settings['logo_text'] ?? 'VIBEDAY'; ?></h3>
+            <p class="text-gray-400">&copy; <?php echo date('Y'); ?> All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Go to Top Button -->
-    <?php 
-    $gototop_enabled = $global_settings['gototop_enabled'] ?? '1';
-    if ($gototop_enabled == '1'):
-        $gototop_icon = $global_settings['gototop_icon'] ?? 'fa-arrow-up';
-        $gototop_bg_color = $global_settings['gototop_bg_color'] ?? 'bg-red-primary';
-        $gototop_text_color = $global_settings['gototop_text_color'] ?? 'text-white';
-        $gototop_position = $global_settings['gototop_position'] ?? 'right';
-        $position_class = $gototop_position === 'left' ? 'left-6' : 'right-6';
-    ?>
-    <button id="goToTop" class="fixed bottom-6 <?php echo $position_class; ?> w-12 h-12 <?php echo $gototop_bg_color . ' ' . $gototop_text_color; ?> rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50">
-        <i class="fas <?php echo $gototop_icon; ?>"></i>
-    </button>
-    <?php endif; ?>
-
-    <script>
-        // Change main image
-        function changeMainImage(src) {
-            document.getElementById('mainImage').src = src;
-        }
-        
-        // Go to top button
-        const goToTopBtn = document.getElementById('goToTop');
-        if (goToTopBtn) {
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 300) {
-                    goToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
-                    goToTopBtn.classList.add('opacity-100');
-                } else {
-                    goToTopBtn.classList.add('opacity-0', 'pointer-events-none');
-                    goToTopBtn.classList.remove('opacity-100');
-                }
-            });
-            
-            goToTopBtn.addEventListener('click', function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-        }
-    </script>
 </body>
 </html>
-
-
+<?php $conn->close(); ?>

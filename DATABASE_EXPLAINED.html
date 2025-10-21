@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 คู่มือฐานข้อมูล VIBEDAYBKK</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.8;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 60px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 4em; margin-bottom: 15px; }
+        .category-section {
+            margin: 40px 0;
+        }
+        .category-header {
+            background: #334155;
+            padding: 25px;
+            border-radius: 15px 15px 0 0;
+            border-left: 8px solid #8b5cf6;
+        }
+        .category-header h2 {
+            color: #a78bfa;
+            font-size: 2.3em;
+            margin-bottom: 10px;
+        }
+        .category-header p {
+            color: #cbd5e1;
+            font-size: 1.2em;
+        }
+        .table-detail {
+            background: #1e293b;
+            padding: 35px;
+            margin-bottom: 3px;
+            border-left: 5px solid #475569;
+        }
+        .table-detail:last-child {
+            border-radius: 0 0 15px 15px;
+        }
+        .table-detail h3 {
+            color: #60a5fa;
+            font-size: 2em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .field-item {
+            background: #334155;
+            padding: 18px;
+            border-radius: 10px;
+            border-left: 3px solid #60a5fa;
+        }
+        .field-item strong {
+            color: #60a5fa;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+        }
+        .field-item .type {
+            color: #34d399;
+            font-family: 'Courier New', monospace;
+            margin-left: 10px;
+        }
+        .field-item .desc {
+            color: #cbd5e1;
+            margin-top: 8px;
+            font-size: 0.95em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 18px 35px;
+            background: #6366f1;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            margin: 10px 8px;
+            font-size: 1.1em;
+        }
+        .btn:hover { background: #4f46e5; }
+        .highlight {
+            background: #8b5cf6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .note {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 คู่มือฐานข้อมูล</h1>
+            <p style="font-size: 1.5em; margin-top: 15px;">VIBEDAYBKK Database - Complete Guide</p>
+            <p style="font-size: 1em; margin-top: 10px; opacity: 0.9;">อธิบายทุกตารางและทุกฟิลด์แบบละเอียด</p>
+        </div>
+
+        <!-- Category 1: User Management -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-users-cog"></i> 1. User Management (จัดการผู้ใช้)</h2>
+                <p>ระบบจัดการผู้ใช้งาน บทบาท และสิทธิ์การเข้าถึง</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-users"></i> users - ผู้ใช้งานระบบ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บข้อมูลผู้ใช้งานระบบ Admin (ผู้ดูแลเว็บไซต์, บรรณาธิการ, ผู้ชม)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสผู้ใช้ (Primary Key, Auto Increment)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>username</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">👤 ชื่อผู้ใช้สำหรับ login (ห้ามซ้ำ - UNIQUE)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>password</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🔒 รหัสผ่าน (เข้ารหัส bcrypt)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>full_name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📝 ชื่อ-นามสกุลจริง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>email</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📧 อีเมล</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>role</strong><span class="type">ENUM</span>
+                        <div class="desc">🎭 บทบาท: programmer, admin, editor, viewer</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: active (ใช้งานได้), inactive (ระงับ)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>last_login</strong><span class="type">DATETIME</span>
+                        <div class="desc">🕐 เวลา login ครั้งล่าสุด</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>created_at</strong><span class="type">TIMESTAMP</span>
+                        <div class="desc">📅 วันที่สร้าง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>updated_at</strong><span class="type">TIMESTAMP</span>
+                        <div class="desc">🔄 วันที่อัปเดต (อัตโนมัติ)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-user-shield"></i> roles - บทบาทผู้ใช้</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> กำหนดบทบาท 4 ระดับ (Programmer=100, Admin=80, Editor=50, Viewer=10)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสบทบาท</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>role_key</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🏷️ รหัสบทบาท (programmer, admin, editor, viewer)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>display_name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📝 ชื่อแสดง (ภาษาไทย)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>description</strong><span class="type">TEXT</span>
+                        <div class="desc">📄 คำอธิบาย</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>level</strong><span class="type">INT</span>
+                        <div class="desc">📊 ระดับสิทธิ์ (0-100, สูงกว่า=มีสิทธิ์มากกว่า)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>icon</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎨 ไอคอน Font Awesome</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>color</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🎨 สีประจำบทบาท</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>is_active</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">🔘 ใช้งานหรือไม่ (1=ใช้, 0=ไม่ใช้)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-key"></i> permissions - สิทธิ์การเข้าถึง</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> ควบคุมว่าแต่ละ role สามารถทำอะไรได้บ้างในแต่ละ feature (11 features)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัส permission</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>role_key</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎭 บทบาท (เชื่อมกับตาราง roles)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>feature</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎯 ฟีเจอร์ (models, categories, articles, users, settings, etc.)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>can_view</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">👁️ สามารถดูได้ (1=ได้, 0=ไม่ได้)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>can_create</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">➕ สามารถสร้างได้</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>can_edit</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">✏️ สามารถแก้ไขได้</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>can_delete</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">🗑️ สามารถลบได้</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>can_export</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">📤 สามารถ export ได้</div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>💡 Features ที่มี (11 อัน):</strong><br>
+                    models, categories, articles, article_categories, users, menus, bookings, contacts, gallery, homepage, settings
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 2: Configuration -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-cogs"></i> 2. Configuration (การตั้งค่า)</h2>
+                <p>การตั้งค่าระบบทั้งหมด - ควบคุมการทำงานและรูปลักษณ์ของเว็บไซต์</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-cog"></i> settings - การตั้งค่าระบบ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บการตั้งค่าทุกอย่าง (60+ keys) - Logo, SEO, Social Media, Fonts, Colors
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสการตั้งค่า</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>setting_key</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🏷️ ชื่อ key (เช่น logo_type, seo_title, font_family) - UNIQUE</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>setting_value</strong><span class="type">TEXT</span>
+                        <div class="desc">💾 ค่าที่เก็บไว้</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>setting_type</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">📌 ประเภท (text, toggle, number, color)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>category</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">📂 หมวดหมู่ (general, seo, social, appearance)</div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>💡 Settings Keys สำคัญ:</strong><br>
+                    • <strong>Logo:</strong> logo_type, logo_text, logo_image, favicon<br>
+                    • <strong>SEO:</strong> seo_title, seo_description, seo_keywords, og_*, twitter_*<br>
+                    • <strong>Social:</strong> social_facebook_enabled, social_facebook_url (×6 platforms)<br>
+                    • <strong>Fonts:</strong> font_family, font_size_base, font_size_scale<br>
+                    • <strong>Colors:</strong> theme_primary_color, theme_accent_color<br>
+                    • <strong>Go to Top:</strong> gototop_enabled, gototop_icon, gototop_bg_color
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 3: Content Management -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-file-alt"></i> 3. Content Management (จัดการเนื้อหา)</h2>
+                <p>เก็บเนื้อหาทั้งหมดของเว็บไซต์ - โมเดล, บทความ, หมวดหมู่, เมนู</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-user-tie"></i> models - ข้อมูลโมเดล</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บข้อมูลโมเดลทั้งหมด - ชื่อ, รูป, ราคา, รายละเอียด, portfolio
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสโมเดล</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>category_id</strong><span class="type">INT</span>
+                        <div class="desc">📁 หมวดหมู่ (เชื่อมกับตาราง categories)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📝 ชื่อโมเดล</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>slug</strong><span class="type">VARCHAR(150)</span>
+                        <div class="desc">🔗 URL slug (เช่น model-name-123)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>featured_image</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ รูปหลัก</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>price</strong><span class="type">DECIMAL(10,2)</span>
+                        <div class="desc">💰 ราคา</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>height</strong><span class="type">INT</span>
+                        <div class="desc">📏 ส่วนสูง (cm)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>weight</strong><span class="type">INT</span>
+                        <div class="desc">⚖️ น้ำหนัก (kg)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>birth_date</strong><span class="type">DATE</span>
+                        <div class="desc">🎂 วันเกิด</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>experience</strong><span class="type">TEXT</span>
+                        <div class="desc">💼 ประสบการณ์</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>portfolio</strong><span class="type">TEXT</span>
+                        <div class="desc">📸 ผลงาน</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>description</strong><span class="type">TEXT</span>
+                        <div class="desc">📄 คำอธิบาย</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: active (แสดง), inactive (ซ่อน)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>view_count</strong><span class="type">INT</span>
+                        <div class="desc">👁️ จำนวนการดู</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-folder"></i> categories - หมวดหมู่โมเดล</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> แบ่งประเภทบริการ (นางแบบ, พรีเซ็นเตอร์, ผู้ชาย, Kids)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสหมวดหมู่</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📝 ชื่อหมวดหมู่</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>slug</strong><span class="type">VARCHAR(150)</span>
+                        <div class="desc">🔗 URL slug</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>description</strong><span class="type">TEXT</span>
+                        <div class="desc">📄 คำอธิบาย</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>icon</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎨 ไอคอน</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>image</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ รูปประจำหมวดหมู่</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>price_range</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">💰 ช่วงราคา (เช่น 5,000-10,000 บาท)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>sort_order</strong><span class="type">INT</span>
+                        <div class="desc">🔢 ลำดับการแสดง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: active, inactive</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-newspaper"></i> articles - บทความ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บบทความ/ข่าวสาร - เคล็ดลับ, ความรู้, ข่าวสาร
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสบทความ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>title</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">📝 หัวข้อบทความ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>slug</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🔗 URL slug</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>content</strong><span class="type">LONGTEXT</span>
+                        <div class="desc">📄 เนื้อหาบทความ (HTML ได้)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>excerpt</strong><span class="type">TEXT</span>
+                        <div class="desc">📋 สรุปย่อ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>featured_image</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ รูปปก</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>author_id</strong><span class="type">INT</span>
+                        <div class="desc">👤 ผู้เขียน (เชื่อมกับ users)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: draft (แบบร่าง), published (เผยแพร่)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>view_count</strong><span class="type">INT</span>
+                        <div class="desc">👁️ จำนวนการดู</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>read_time</strong><span class="type">INT</span>
+                        <div class="desc">⏱️ เวลาอ่าน (นาที)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>published_at</strong><span class="type">DATETIME</span>
+                        <div class="desc">📅 วันที่เผยแพร่</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-bars"></i> menus - เมนูนำทาง</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> จัดการเมนูที่แสดงบนเว็บ - รองรับ parent/child (เมนูหลัก + เมนูย่อย)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสเมนู</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>parent_id</strong><span class="type">INT</span>
+                        <div class="desc">👨‍👦 เมนูหลัก (NULL=เมนูหลัก, มีค่า=เมนูย่อย)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>title</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📝 ชื่อเมนู</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>url</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🔗 ลิงก์ (เช่น /, #about, /articles.php)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>icon</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎨 ไอคอน Font Awesome</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>sort_order</strong><span class="type">INT</span>
+                        <div class="desc">🔢 ลำดับการแสดง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: active (แสดง), inactive (ซ่อน)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 4: Business -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-business-time"></i> 4. Business (ธุรกิจ)</h2>
+                <p>ข้อมูลธุรกรรมทางธุรกิจ - การจอง, ข้อความติดต่อ, รีวิว</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-calendar-check"></i> bookings - การจองบริการ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บข้อมูลการจองโมเดล - วันที่, เวลา, สถานที่, ราคา
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสการจอง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>model_id</strong><span class="type">INT</span>
+                        <div class="desc">👤 โมเดลที่จอง (เชื่อมกับ models)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>customer_name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🧑 ชื่อลูกค้า</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>customer_email</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📧 อีเมลลูกค้า</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>customer_phone</strong><span class="type">VARCHAR(20)</span>
+                        <div class="desc">📞 เบอร์โทรลูกค้า</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>booking_date</strong><span class="type">DATE</span>
+                        <div class="desc">📅 วันที่จอง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>booking_time</strong><span class="type">TIME</span>
+                        <div class="desc">🕐 เวลาจอง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>location</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">📍 สถานที่</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>price</strong><span class="type">DECIMAL(10,2)</span>
+                        <div class="desc">💰 ราคา</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">ENUM</span>
+                        <div class="desc">🔘 สถานะ: pending, confirmed, cancelled, completed</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>notes</strong><span class="type">TEXT</span>
+                        <div class="desc">📝 หมายเหตุ</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-envelope"></i> contacts - ข้อความติดต่อ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บข้อความจากฟอร์มติดต่อ - สอบถามข้อมูล, ขอใบเสนอราคา
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสข้อความ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🧑 ชื่อผู้ติดต่อ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>email</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📧 อีเมล</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>phone</strong><span class="type">VARCHAR(20)</span>
+                        <div class="desc">📞 เบอร์โทร</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>service_type</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">💼 ประเภทงาน (fashion, photography, event, commercial, other)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>message</strong><span class="type">TEXT</span>
+                        <div class="desc">💬 รายละเอียดงาน</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>ip_address</strong><span class="type">VARCHAR(45)</span>
+                        <div class="desc">🌐 IP Address ผู้ส่ง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>user_agent</strong><span class="type">TEXT</span>
+                        <div class="desc">💻 Browser/Device ที่ใช้</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">VARCHAR(20)</span>
+                        <div class="desc">🔘 สถานะ: new (ใหม่), read (อ่านแล้ว), replied (ตอบแล้ว)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>created_at</strong><span class="type">TIMESTAMP</span>
+                        <div class="desc">📅 วันที่ส่ง</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-star"></i> customer_reviews - รีวิวลูกค้า</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บรีวิวและความคิดเห็นจากลูกค้า - แสดงในหน้าแรก
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสรีวิว</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>customer_name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🧑 ชื่อลูกค้า</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>content</strong><span class="type">TEXT</span>
+                        <div class="desc">💬 เนื้อหารีวิว</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>rating</strong><span class="type">INT</span>
+                        <div class="desc">⭐ คะแนน (1-5 ดาว)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>image</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ รูปภาพ (screenshot LINE หรือรูปลูกค้า)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>is_active</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">🔘 แสดงหรือไม่ (1=แสดง, 0=ซ่อน)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>sort_order</strong><span class="type">INT</span>
+                        <div class="desc">🔢 ลำดับการแสดง</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 5: Media -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-photo-video"></i> 5. Media (สื่อ)</h2>
+                <p>จัดการรูปภาพและแกลเลอรี่</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-images"></i> gallery - แกลเลอรี่</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บรูปภาพแกลเลอรี่ทั่วไป - ผลงาน, กิจกรรม
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสรูป</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>title</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">📝 ชื่อรูป</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>image_path</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ path ของรูป</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>description</strong><span class="type">TEXT</span>
+                        <div class="desc">📄 คำอธิบาย</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>sort_order</strong><span class="type">INT</span>
+                        <div class="desc">🔢 ลำดับการแสดง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>is_active</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">🔘 แสดงหรือไม่</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>view_count</strong><span class="type">INT</span>
+                        <div class="desc">👁️ จำนวนการดู</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-home"></i> homepage_sections - เนื้อหาหน้าแรก</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บ section ต่างๆ ในหน้าแรก (Hero, About, Services, Contact)
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>section_key</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🏷️ รหัส section (hero, about, services, contact)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>title</strong><span class="type">TEXT</span>
+                        <div class="desc">📝 หัวข้อ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>subtitle</strong><span class="type">TEXT</span>
+                        <div class="desc">📋 หัวข้อย่อย</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>content</strong><span class="type">LONGTEXT</span>
+                        <div class="desc">📄 เนื้อหา (HTML ได้)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>background_type</strong><span class="type">ENUM</span>
+                        <div class="desc">🎨 ประเภทพื้นหลัง: color, image, gradient</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>background_color</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">🎨 สีพื้นหลัง (เช่น #DC2626)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>background_image</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🖼️ รูปพื้นหลัง</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>button1_text</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🔘 ข้อความปุ่มที่ 1</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>button1_link</strong><span class="type">VARCHAR(255)</span>
+                        <div class="desc">🔗 ลิงก์ปุ่มที่ 1</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>is_active</strong><span class="type">TINYINT(1)</span>
+                        <div class="desc">🔘 แสดง section นี้หรือไม่</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-envelope-open-text"></i> contacts - ข้อความติดต่อ</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บข้อความจากฟอร์มติดต่อในหน้าแรก - ตอนนี้แก้ไขให้บันทึกได้แล้ว ✅
+                </p>
+                
+                <div class="note" style="background: #d1fae5; color: #065f46; border-color: #10b981;">
+                    <strong>✅ แก้ไขล่าสุด:</strong> contact-submit.php บันทึกข้อมูลลงตารางนี้ พร้อม SweetAlert2 notification
+                </div>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัสข้อความ (Primary Key)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>name</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">🧑 ชื่อ-นามสกุล ผู้ติดต่อ</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>email</strong><span class="type">VARCHAR(100)</span>
+                        <div class="desc">📧 อีเมล (ต้องไม่ว่าง, validate format)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>phone</strong><span class="type">VARCHAR(20)</span>
+                        <div class="desc">📞 เบอร์โทรศัพท์ (ต้องไม่ว่าง)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>service_type</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">💼 ประเภทงาน: fashion (แฟชั่น), photography (ถ่ายภาพ), event (อีเวนต์), commercial (โฆษณา), other (อื่นๆ)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>message</strong><span class="type">TEXT</span>
+                        <div class="desc">💬 รายละเอียดงาน (ต้องไม่ว่าง)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>ip_address</strong><span class="type">VARCHAR(45)</span>
+                        <div class="desc">🌐 IP Address ผู้ส่ง (บันทึกอัตโนมัติ)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>user_agent</strong><span class="type">TEXT</span>
+                        <div class="desc">💻 Browser/Device (บันทึกอัตโนมัติ)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>status</strong><span class="type">VARCHAR(20)</span>
+                        <div class="desc">🔘 สถานะ: new (ใหม่), read (อ่านแล้ว), replied (ตอบแล้ว)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>created_at</strong><span class="type">TIMESTAMP</span>
+                        <div class="desc">📅 วันที่ส่งข้อความ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 6: System -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2><i class="fas fa-server"></i> 6. System (ระบบ)</h2>
+                <p>ข้อมูลระบบและ logging</p>
+            </div>
+            
+            <div class="table-detail">
+                <h3><i class="fas fa-history"></i> activity_logs - บันทึกกิจกรรม</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">
+                    <strong>จุดประสงค์:</strong> เก็บ log การทำงานของ user - create, update, delete, login
+                </p>
+                
+                <div class="field-grid">
+                    <div class="field-item">
+                        <strong>id</strong><span class="type">INT</span>
+                        <div class="desc">🔑 รหัส log</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>user_id</strong><span class="type">INT</span>
+                        <div class="desc">👤 ผู้ทำ (เชื่อมกับ users)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>action</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">⚡ การกระทำ (create, update, delete, login, etc.)</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>table_name</strong><span class="type">VARCHAR(50)</span>
+                        <div class="desc">📊 ตารางที่ทำงาน</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>record_id</strong><span class="type">INT</span>
+                        <div class="desc">🔢 ID ของข้อมูลที่ทำงาน</div>
+                    </div>
+                    <div class="field-item">
+                        <strong>created_at</strong><span class="type">TIMESTAMP</span>
+                        <div class="desc">🕐 เวลาที่ทำ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 50px 0;">
+            <a href="show-database-structure.php" class="btn" style="background: #8b5cf6;">
+                <i class="fas fa-database"></i> ดูโครงสร้างแบบละเอียด
+            </a>
+            <a href="/" class="btn" style="background: #10b981;">
+                <i class="fas fa-home"></i> กลับหน้าแรก
+            </a>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); padding: 40px; border-radius: 20px; margin-top: 40px;">
+            <h3 style="color: #a78bfa; text-align: center; font-size: 2em; margin-bottom: 20px;">
+                📊 สถิติฐานข้อมูล
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="text-align: center; padding: 25px; background: #475569; border-radius: 12px;">
+                    <div style="font-size: 3.5em; color: #8b5cf6; font-weight: bold;">18+</div>
+                    <div style="color: #cbd5e1; margin-top: 10px;">ตารางทั้งหมด</div>
+                </div>
+                <div style="text-align: center; padding: 25px; background: #475569; border-radius: 12px;">
+                    <div style="font-size: 3.5em; color: #10b981; font-weight: bold;">200+</div>
+                    <div style="color: #cbd5e1; margin-top: 10px;">ฟิลด์ทั้งหมด</div>
+                </div>
+                <div style="text-align: center; padding: 25px; background: #475569; border-radius: 12px;">
+                    <div style="font-size: 3.5em; color: #f59e0b; font-weight: bold;">60+</div>
+                    <div style="color: #cbd5e1; margin-top: 10px;">Settings Keys</div>
+                </div>
+                <div style="text-align: center; padding: 25px; background: #475569; border-radius: 12px;">
+                    <div style="font-size: 3.5em; color: #ec4899; font-weight: bold;">100%</div>
+                    <div style="color: #cbd5e1; margin-top: 10px;">พร้อมใช้งาน</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

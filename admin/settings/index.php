@@ -36,11 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $can_edit) {
             
             $upload_result = upload_image($_FILES['logo_image'], 'general');
             if ($upload_result['success']) {
-                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'logo_image'");
-                $stmt->bind_param('s', $upload_result['path']);
+                $key = 'logo_image';
+                $file_path = $upload_result['file_path']; // ใช้ 'file_path' ไม่ใช่ 'path'
+                $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value, setting_type) VALUES (?, ?, 'text') ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->bind_param('sss', $key, $file_path, $file_path);
                 $stmt->execute();
+                $stmt->close();
             } else {
-                $errors[] = 'Logo: ' . $upload_result['message'];
+                $errors[] = 'Logo: ' . ($upload_result['error'] ?? $upload_result['message'] ?? 'Unknown error');
             }
         }
         
@@ -53,11 +56,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $can_edit) {
             
             $upload_result = upload_image($_FILES['favicon'], 'general');
             if ($upload_result['success']) {
-                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = 'favicon'");
-                $stmt->bind_param('s', $upload_result['path']);
+                $key = 'favicon';
+                $file_path = $upload_result['file_path']; // ใช้ 'file_path' ไม่ใช่ 'path'
+                $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value, setting_type) VALUES (?, ?, 'text') ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->bind_param('sss', $key, $file_path, $file_path);
                 $stmt->execute();
+                $stmt->close();
             } else {
-                $errors[] = 'Favicon: ' . $upload_result['message'];
+                $errors[] = 'Favicon: ' . ($upload_result['error'] ?? $upload_result['message'] ?? 'Unknown error');
             }
         }
         
@@ -79,8 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $can_edit) {
                     $setting_value = clean_input($value);
                 }
                 
-                $stmt = $conn->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
-                $stmt->bind_param('ss', $setting_value, $setting_key);
+                // Use INSERT ... ON DUPLICATE KEY UPDATE to handle both new and existing settings
+                $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value, setting_type) VALUES (?, ?, 'text') ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->bind_param('sss', $setting_key, $setting_value, $setting_value);
                 $stmt->execute();
                 $stmt->close();
                 

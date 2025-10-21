@@ -25,7 +25,7 @@ define('DB_CHARSET', 'utf8mb4');
 
 // Site Configuration
 define('SITE_NAME', 'VIBEDAYBKK');
-define('SITE_URL', 'http://localhost/vibedaybkk');
+define('SITE_URL', 'http://localhost:8888/vibedaybkk');
 define('BASE_URL', SITE_URL); // Alias for SITE_URL
 define('ADMIN_URL', SITE_URL . '/admin');
 

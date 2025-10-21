@@ -23,12 +23,18 @@ function clean_input($data) {
     return $data;
 }
 
-// Escape for safe HTML output
+// Escape for safe HTML output (รองรับ null ใน PHP 8.1+)
 function escape_html($data) {
     if (is_array($data)) {
         return array_map('escape_html', $data);
     }
-    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    // แปลง null เป็น empty string ก่อนส่งเข้า htmlspecialchars
+    return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+// Helper function สำหรับ htmlspecialchars ที่รองรับ null
+function h($data) {
+    return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 // Sanitize for database (for raw queries)
@@ -502,7 +508,8 @@ function upload_image($file, $folder = 'general', $createThumbnail = true) {
             return ['success' => false, 'error' => 'ไม่สามารถย้ายไฟล์ได้'];
         }
         
-        $relativePath = 'uploads/' . $folder . '/' . $newFilename;
+        // เก็บ path แบบ 'general/filename.png' (ไม่ใส่ uploads/ เพราะ UPLOADS_URL มีอยู่แล้ว)
+        $relativePath = $folder . '/' . $newFilename;
         
         // Create thumbnail if requested and GD is available
         $thumbnailPath = null;
@@ -518,7 +525,7 @@ function upload_image($file, $folder = 'general', $createThumbnail = true) {
                 
                 // Create thumbnail (300x300)
                 if (create_thumbnail($uploadPath, $thumbPath, 300, 300)) {
-                    $thumbnailPath = 'uploads/' . $folder . '/thumbs/' . $thumbFilename;
+                    $thumbnailPath = $folder . '/thumbs/' . $thumbFilename;
                 }
             } catch (Exception $e) {
                 // Thumbnail creation failed, but upload succeeded
@@ -529,9 +536,9 @@ function upload_image($file, $folder = 'general', $createThumbnail = true) {
         return [
             'success' => true,
             'filename' => $newFilename,
-            'file_path' => $relativePath,
+            'file_path' => $relativePath, // เช่น 'general/filename.png'
             'thumbnail_path' => $thumbnailPath,
-            'url' => BASE_URL . '/' . $relativePath,
+            'url' => UPLOADS_URL . '/' . $relativePath, // ได้ http://localhost/vibedaybkk/uploads/general/filename.png
             'width' => $width,
             'height' => $height,
             'mime_type' => $mimeType
@@ -974,6 +981,62 @@ function get_status_badge($status) {
         'completed' => '<span class="badge badge-success">เสร็จสิ้น</span>',
     ];
     return $badges[$status] ?? '<span class="badge badge-secondary">' . $status . '</span>';
+}
+
+/**
+ * Settings Functions
+ */
+
+// Get all settings as associative array
+function get_all_settings($conn) {
+    $settings = [];
+    $result = $conn->query("SELECT setting_key, setting_value FROM settings");
+    
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $settings[$row['setting_key']] = $row['setting_value'];
+        }
+    }
+    
+    return $settings;
+}
+
+// Get single setting value
+function get_setting($conn, $key, $default = '') {
+    $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+    $stmt->bind_param('s', $key);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        return $row['setting_value'];
+    }
+    
+    return $default;
+}
+
+// Update or create setting
+function update_setting($conn, $key, $value, $type = 'text', $category = 'general') {
+    $stmt = $conn->prepare("
+        INSERT INTO settings (setting_key, setting_value, setting_type, category) 
+        VALUES (?, ?, ?, ?) 
+        ON DUPLICATE KEY UPDATE setting_value = ?, setting_type = ?, category = ?
+    ");
+    $stmt->bind_param('sssssss', $key, $value, $type, $category, $value, $type, $category);
+    $success = $stmt->execute();
+    $stmt->close();
+    
+    return $success;
+}
+
+// Delete setting
+function delete_setting($conn, $key) {
+    $stmt = $conn->prepare("DELETE FROM settings WHERE setting_key = ?");
+    $stmt->bind_param('s', $key);
+    $success = $stmt->execute();
+    $stmt->close();
+    
+    return $success;
 }
 
 

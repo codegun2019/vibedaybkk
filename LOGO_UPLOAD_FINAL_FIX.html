@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ แก้ไขปัญหา Logo Upload สำเร็จ!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: celebrate 1s ease-in-out;
+        }
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+        .content {
+            padding: 50px;
+        }
+        .problem {
+            background: #fee2e2;
+            border-left: 5px solid #dc2626;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .problem h3 {
+            color: #991b1b;
+            margin-bottom: 15px;
+        }
+        .solution {
+            background: #d1fae5;
+            border-left: 5px solid #059669;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .solution h3 {
+            color: #065f46;
+            margin-bottom: 15px;
+        }
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .keyword { color: #f472b6; }
+        .string { color: #a5f3fc; }
+        .comment { color: #94a3b8; }
+        .error { color: #fca5a5; }
+        .success { color: #6ee7b7; }
+        .btn {
+            display: inline-block;
+            padding: 20px 40px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            margin: 15px 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 1.2em;
+        }
+        .btn:hover {
+            background: #059669;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .btn-secondary {
+            background: #dc2626;
+        }
+        .btn-secondary:hover {
+            background: #991b1b;
+        }
+        .steps {
+            counter-reset: step;
+        }
+        .step {
+            counter-increment: step;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            position: relative;
+            padding-left: 80px;
+        }
+        .step::before {
+            content: counter(step);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ แก้ไขปัญหาสำเร็จ!</h1>
+            <p style="font-size: 1.4em; margin-top: 15px;">Logo Upload - Bug Fixed!</p>
+        </div>
+        
+        <div class="content">
+            <div class="problem">
+                <h3>🐛 ปัญหาที่พบ</h3>
+                <p style="font-size: 1.1em; line-height: 1.8;">
+                    <strong>อาการ:</strong> อัปโหลดรูป Logo แล้วไม่โดนบันทึก<br>
+                    <strong>ผลลัพธ์:</strong> ไฟล์อัปโหลดสำเร็จ แต่ <span class="highlight">logo_image</span> ใน database ยังเป็น <span class="highlight">NULL</span>
+                </p>
+                
+                <div class="code">
+<span class="comment">// ฟังก์ชัน upload_image() return:</span>
+<span class="keyword">return</span> [
+    <span class="string">'success'</span> => <span class="keyword">true</span>,
+    <span class="success">'file_path'</span> => <span class="string">'uploads/general/xxx.png'</span>, <span class="comment">← ชื่อ key ที่ถูกต้อง</span>
+    <span class="string">'filename'</span> => <span class="string">'xxx.png'</span>,
+];
+
+<span class="comment">// แต่โค้ดเดิมใช้:</span>
+$upload_result[<span class="error">'path'</span>]  <span class="comment">← key นี้ไม่มี! ผิด!</span>
+                </div>
+            </div>
+            
+            <div class="solution">
+                <h3>💡 วิธีแก้ไข</h3>
+                <p style="font-size: 1.1em; margin-bottom: 15px;"><strong>เปลี่ยนจาก:</strong></p>
+                
+                <div class="code">
+$upload_result[<span class="error">'path'</span>]  <span class="comment">// ❌ ผิด - ไม่มี key นี้</span>
+                </div>
+                
+                <p style="font-size: 1.1em; margin: 15px 0;"><strong>เป็น:</strong></p>
+                
+                <div class="code">
+$file_path = $upload_result[<span class="success">'file_path'</span>];  <span class="comment">// ✅ ถูก!</span>
+$stmt->bind_param(<span class="string">'sss'</span>, $key, $file_path, $file_path);
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 30px 0;">
+                <h2 style="color: #10b981; margin-bottom: 20px;">🧪 วิธีทดสอบ</h2>
+                
+                <div class="steps">
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">ไปหน้า Settings</h3>
+                        <p>เปิด: <strong>admin/settings/</strong></p>
+                    </div>
+                    
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">เลือกประเภท Logo</h3>
+                        <p>เลือก: <strong>🖼️ รูปภาพ</strong></p>
+                    </div>
+                    
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">อัปโหลดรูป</h3>
+                        <p>เลือกไฟล์รูป PNG/JPG (แนะนำ 200x60px)</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">กดบันทึก</h3>
+                        <p>กดปุ่ม <strong>"บันทึกการตั้งค่า"</strong></p>
+                    </div>
+                    
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">ตรวจสอบ Database</h3>
+                        <p>ไปดูใน phpMyAdmin → ตาราง <strong>settings</strong> → <span class="highlight">logo_image</span> ต้องมีค่า!</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h3 style="color: #374151; margin-bottom: 10px;">Hard Refresh หน้าบ้าน</h3>
+                        <p>กด <strong>Ctrl+Shift+R</strong> (Windows) หรือ <strong>Cmd+Shift+R</strong> (Mac)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #d1fae5; padding: 30px; border-radius: 15px; margin: 30px 0; text-align: center;">
+                <h2 style="color: #065f46; margin-bottom: 15px;">✨ ผลลัพธ์</h2>
+                <p style="font-size: 1.2em; color: #047857; line-height: 1.8;">
+                    ✅ อัปโหลดรูป Logo ได้แล้ว<br>
+                    ✅ บันทึกลง Database สำเร็จ<br>
+                    ✅ แสดงผลในหน้าบ้านได้<br>
+                    ✅ ทั้ง Logo, Preloader และ Footer
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="admin/settings/" class="btn">⚙️ ไปหน้า Settings</a>
+                <a href="/" class="btn btn-secondary">🏠 ดูหน้าบ้าน</a>
+            </div>
+            
+            <div style="background: #f1f5f9; padding: 20px; border-radius: 10px; margin-top: 40px; text-align: center;">
+                <p style="color: #64748b;">
+                    💡 <strong>หมายเหตุ:</strong> ถ้าหน้าบ้านยังไม่แสดง Logo ใหม่<br>
+                    ให้กด <strong>Ctrl+Shift+R</strong> เพื่อ Hard Refresh ลบ Cache
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+    </script>
+</body>
+</html>
+
