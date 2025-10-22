@@ -17,36 +17,38 @@ $page_title = 'จัดการแกลเลอรี่';
 $current_page = 'gallery';
 
 // Get filter parameters
-$album_id = isset($_GET['album']) ? (int)$_GET['album'] : 0;
+$category = isset($_GET['category']) ? clean_input($_GET['category']) : '';
 $search = isset($_GET['search']) ? clean_input($_GET['search']) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = 24;
 $offset = ($page - 1) * $per_page;
 
 // Build query
-$where = ["1=1"];
+$where = ["is_active = 1"];
 $params = [];
+$types = '';
 
-if ($album_id > 0) {
-    $where[] = "gi.album_id = ?";
-    $params[] = $album_id;
+if ($category) {
+    $where[] = "category = ?";
+    $params[] = $category;
+    $types .= 's';
 }
 
 if ($search) {
-    $where[] = "(gi.title LIKE ? OR gi.description LIKE ? OR gi.tags LIKE ?)";
+    $where[] = "(title LIKE ? OR description LIKE ? OR tags LIKE ?)";
     $search_term = "%{$search}%";
     $params[] = $search_term;
     $params[] = $search_term;
     $params[] = $search_term;
+    $types .= 'sss';
 }
 
 $where_clause = implode(' AND ', $where);
 
 // Count total
-$count_sql = "SELECT COUNT(*) as total FROM gallery_images gi WHERE {$where_clause}";
+$count_sql = "SELECT COUNT(*) as total FROM gallery WHERE {$where_clause}";
 if (!empty($params)) {
     $stmt = $conn->prepare($count_sql);
-    $types = str_repeat('s', count($params));
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -61,18 +63,11 @@ if (!empty($params)) {
 $total_pages = ceil($total_images / $per_page);
 
 // Get images
-$sql = "SELECT gi.*, 
-        ga.title as album_name
-        FROM gallery_images gi
-        LEFT JOIN gallery_albums ga ON gi.album_id = ga.id
-        WHERE {$where_clause}
-        ORDER BY gi.created_at DESC
-        LIMIT {$per_page} OFFSET {$offset}";
+$sql = "SELECT * FROM gallery WHERE {$where_clause} ORDER BY sort_order ASC, created_at DESC LIMIT {$per_page} OFFSET {$offset}";
         
 $images = [];
 if (!empty($params)) {
     $stmt = $conn->prepare($sql);
-    $types = str_repeat('s', count($params));
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -87,8 +82,8 @@ if (!empty($params)) {
     }
 }
 
-// Get albums for filter
-$albums = db_get_rows($conn, "SELECT * FROM gallery_albums WHERE is_active = 1 ORDER BY sort_order ASC");
+// Get categories for filter
+$categories = db_get_rows($conn, "SELECT DISTINCT category FROM gallery WHERE category IS NOT NULL AND category != '' AND is_active = 1 ORDER BY category ASC");
 
 include '../includes/header.php';
 require_once '../includes/readonly-notice.php';
@@ -106,26 +101,22 @@ require_once '../includes/readonly-notice.php';
         <p class="text-gray-600 mt-1">จำนวนรูปภาพทั้งหมด: <?php echo number_format($total_images); ?> รูป</p>
     </div>
     <div class="mt-4 sm:mt-0 flex flex-wrap gap-3">
-        <!-- จัดการอัลบั้ม -->
-        <?php if ($can_edit): ?>
-        <a href="albums.php" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
-            <i class="fas fa-folder-open mr-2"></i>จัดการอัลบั้ม
+        <!-- เพิ่มรูปภาพ -->
+        <?php if ($can_create): ?>
+        <a href="add.php" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
+            <i class="fas fa-plus mr-2"></i>เพิ่มรูปภาพ
         </a>
         <?php else: ?>
         <button class="inline-flex items-center px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
-            <i class="fas fa-lock mr-2"></i>จัดการอัลบั้ม
+            <i class="fas fa-lock mr-2"></i>เพิ่มรูปภาพ
         </button>
         <?php endif; ?>
         
-        <!-- อัพโหลดรูปภาพ -->
+        <!-- จัดการหมวดหมู่ -->
         <?php if ($can_create): ?>
-        <a href="upload.php" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
-            <i class="fas fa-cloud-upload-alt mr-2"></i>อัพโหลดรูปภาพ
+        <a href="categories.php" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
+            <i class="fas fa-folder mr-2"></i>จัดการหมวดหมู่
         </a>
-        <?php else: ?>
-        <button class="inline-flex items-center px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
-            <i class="fas fa-lock mr-2"></i>อัพโหลดรูปภาพ
-        </button>
         <?php endif; ?>
         
         <!-- เลือกหลายรูป -->
@@ -150,12 +141,12 @@ require_once '../includes/readonly-notice.php';
                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
         </div>
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">อัลบั้ม</label>
-            <select name="album" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                <option value="0">ทั้งหมด</option>
-                <?php foreach ($albums as $album): ?>
-                <option value="<?php echo $album['id']; ?>" <?php echo $album_id == $album['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($album['title']); ?>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">หมวดหมู่</label>
+            <select name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                <option value="">ทั้งหมด</option>
+                <?php foreach ($categories as $cat): ?>
+                <option value="<?php echo htmlspecialchars($cat['category']); ?>" <?php echo $category == $cat['category'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($cat['category']); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
@@ -173,9 +164,9 @@ require_once '../includes/readonly-notice.php';
 <div class="bg-white rounded-xl shadow-lg p-12 text-center">
     <i class="fas fa-images text-6xl text-gray-400 mb-4"></i>
     <h5 class="text-gray-600 text-xl font-medium mb-4">ยังไม่มีรูปภาพ</h5>
-    <button id="upload-btn-2" class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium">
-        <i class="fas fa-cloud-upload-alt mr-2"></i>อัพโหลดรูปภาพแรก
-    </button>
+    <a href="add.php" class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium">
+        <i class="fas fa-plus mr-2"></i>เพิ่มรูปภาพแรก
+    </a>
 </div>
 <?php else: ?>
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
@@ -195,10 +186,19 @@ require_once '../includes/readonly-notice.php';
         
         <!-- Image -->
         <div class="aspect-square overflow-hidden bg-gray-100">
-            <img src="<?php echo BASE_URL . '/' . ($image['thumbnail_path'] ?: $image['image_path']); ?>" 
+            <?php
+            $image_src = $image['image'] ?? '';
+            if (filter_var($image_src, FILTER_VALIDATE_URL)) {
+                $final_image_src = $image_src;
+            } else {
+                $final_image_src = UPLOADS_URL . '/' . $image_src;
+            }
+            ?>
+            <img src="<?php echo $final_image_src; ?>" 
                  alt="<?php echo htmlspecialchars($image['title'] ?: 'Image'); ?>"
                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                 loading="lazy">
+                 loading="lazy"
+                 onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop'">
         </div>
         
         <!-- Overlay -->
@@ -213,12 +213,12 @@ require_once '../includes/readonly-notice.php';
                 </div>
                 <!-- Image Links -->
                 <div class="flex space-x-1 mb-2">
-                    <button onclick="event.stopPropagation(); showCopyOptions('<?php echo $image['image_path']; ?>', '<?php echo addslashes($image['title']); ?>')" 
+                    <button onclick="event.stopPropagation(); copyImageUrl('<?php echo $final_image_src; ?>')" 
                             class="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-xs font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
                             title="คัดลอกลิงก์">
                         <i class="fas fa-copy mr-1"></i>Copy
                     </button>
-                    <button onclick="event.stopPropagation(); downloadImage('<?php echo BASE_URL . '/' . $image['image_path']; ?>', '<?php echo $image['title']; ?>')" 
+                    <button onclick="event.stopPropagation(); downloadImage('<?php echo $final_image_src; ?>', '<?php echo $image['title']; ?>')" 
                             class="px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-all shadow-lg"
                             title="ดาวน์โหลด">
                         <i class="fas fa-download"></i>
@@ -246,11 +246,11 @@ require_once '../includes/readonly-notice.php';
             </button>
         </div>
         
-        <!-- Album Badge -->
-        <?php if ($image['album_name']): ?>
+        <!-- Category Badge -->
+        <?php if (!empty($image['category'])): ?>
         <div class="absolute top-2 left-2">
             <span class="inline-flex items-center px-2 py-1 bg-purple-600/90 text-white text-xs rounded-full">
-                <i class="fas fa-folder mr-1"></i><?php echo $image['album_name']; ?>
+                <i class="fas fa-tag mr-1"></i><?php echo htmlspecialchars($image['category']); ?>
             </span>
         </div>
         <?php endif; ?>

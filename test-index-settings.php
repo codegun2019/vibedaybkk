@@ -153,3 +153,4 @@ if (!empty($relevant_settings)) {
 </html>
 
 <?php $conn->close(); ?>
+

@@ -9,3 +9,4 @@ echo "Type: " . $row['Type'] . "\n";
 echo "Null: " . $row['Null'] . "\n";
 echo "Default: " . $row['Default'] . "\n";
 
+

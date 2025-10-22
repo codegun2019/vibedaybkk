@@ -11,3 +11,4 @@ $id = (int)$_GET['id'] ?? 0;
 redirect(ADMIN_URL . '/contacts/view.php?id=' . $id);
 ?>
 
+

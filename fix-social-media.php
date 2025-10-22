@@ -340,3 +340,4 @@ foreach ($all_platforms as $platform) {
 </body>
 </html>
 
+

@@ -86,18 +86,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            if (db_update($conn, 'articles', $data, 'id = :id', ['id' => $article_id])) {
-                log_activity($conn, $_SESSION['user_id'], 'update', 'articles', $article_id, $article, $data);
-                $success = true;
+            try {
+                // ตรวจสอบว่าตารางมีคอลัมน์อะไรบ้าง
+                $columns_result = $conn->query("DESCRIBE articles");
+                $existing_columns = [];
+                while ($col = $columns_result->fetch_assoc()) {
+                    $existing_columns[] = $col['Field'];
+                }
                 
-                // Refresh data
-                $stmt = $conn->prepare("SELECT * FROM articles WHERE id = ?");
-                $stmt->bind_param('i', $article_id);
-            $stmt->execute();
-                $result = $stmt->get_result();
-$article = $result->fetch_assoc();
-            } else {
-                $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+                // กรองเฉพาะคอลัมน์ที่มีอยู่จริง
+                $filtered_data = [];
+                foreach ($data as $key => $value) {
+                    if (in_array($key, $existing_columns)) {
+                        $filtered_data[$key] = $value;
+                    }
+                }
+                
+                // เพิ่ม updated_at ถ้ามี
+                if (in_array('updated_at', $existing_columns)) {
+                    $filtered_data['updated_at'] = date('Y-m-d H:i:s');
+                }
+                
+                // สร้าง UPDATE query
+                $fields = [];
+                $values = [];
+                $types = '';
+                
+                foreach ($filtered_data as $key => $value) {
+                    $fields[] = "`$key` = ?";
+                    $values[] = $value;
+                    
+                    // กำหนดประเภทข้อมูล
+                    if (is_int($value)) {
+                        $types .= 'i';
+                    } elseif (is_double($value)) {
+                        $types .= 'd';
+                    } elseif (is_null($value)) {
+                        $types .= 's';
+                    } else {
+                        $types .= 's';
+                    }
+                }
+                
+                // เพิ่ม article_id สำหรับ WHERE clause
+                $values[] = $article_id;
+                $types .= 'i';
+                
+                $sql = "UPDATE articles SET " . implode(', ', $fields) . " WHERE id = ?";
+                $stmt = $conn->prepare($sql);
+                
+                if (!$stmt) {
+                    throw new Exception('Prepare failed: ' . $conn->error);
+                }
+                
+                $stmt->bind_param($types, ...$values);
+                
+                if ($stmt->execute()) {
+                    log_activity($conn, $_SESSION['user_id'], 'update', 'articles', $article_id, $article, $filtered_data);
+                    $success = true;
+                    
+                    // Refresh data
+                    $stmt = $conn->prepare("SELECT * FROM articles WHERE id = ?");
+                    $stmt->bind_param('i', $article_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $article = $result->fetch_assoc();
+                } else {
+                    $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $stmt->error;
+                }
+                
+                $stmt->close();
+            } catch (Exception $e) {
+                $errors[] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
             }
         }
     }
@@ -310,8 +370,50 @@ include '../includes/header.php';
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
 <script>
+class UploadAdapter {
+    constructor(loader) {
+        this.loader = loader;
+    }
+
+    upload() {
+        return this.loader.file.then(file => new Promise((resolve, reject) => {
+            const data = new FormData();
+            data.append('upload', file);
+
+            fetch('upload-image.php', {
+                method: 'POST',
+                body: data
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.url) {
+                    resolve({
+                        default: result.url
+                    });
+                } else {
+                    reject(result.error?.message || 'เกิดข้อผิดพลาดในการอัพโหลด');
+                }
+            })
+            .catch(error => {
+                reject('เกิดข้อผิดพลาด: ' + error);
+            });
+        }));
+    }
+
+    abort() {
+        // Reject the promise returned from the upload() method.
+    }
+}
+
+function CustomUploadAdapterPlugin(editor) {
+    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+        return new UploadAdapter(loader);
+    };
+}
+
 ClassicEditor
     .create(document.querySelector('#editor'), {
+        extraPlugins: [CustomUploadAdapterPlugin],
         toolbar: {
             items: [
                 'heading', '|',
@@ -331,11 +433,18 @@ ClassicEditor
         language: 'th',
         image: {
             toolbar: [
-                'imageTextAlternative',
+                'imageTextAlternative', '|',
                 'imageStyle:inline',
                 'imageStyle:block',
-                'imageStyle:side',
+                'imageStyle:side', '|',
                 'linkImage'
+            ],
+            styles: [
+                'full',
+                'side',
+                'alignLeft',
+                'alignCenter',
+                'alignRight'
             ]
         },
         table: {
@@ -386,10 +495,10 @@ ClassicEditor
             writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
         });
         
-        console.log('CKEditor 5 initialized successfully!');
+        console.log('✅ CKEditor 5 พร้อมระบบอัพโหลดรูปภาพ!');
     })
     .catch(error => {
-        console.error('Error initializing CKEditor:', error);
+        console.error('❌ Error initializing CKEditor:', error);
     });
 </script>
 

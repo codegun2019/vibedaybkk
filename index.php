@@ -49,6 +49,16 @@ $categories = db_get_rows($conn, "SELECT * FROM categories WHERE status = 'activ
 // ดึงข้อมูล reviews
 $reviews = db_get_rows($conn, "SELECT * FROM customer_reviews WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 6");
 
+// ดึงข้อมูลบทความ
+$articles = db_get_rows($conn, "
+    SELECT a.*, ac.name as category_name, ac.color as category_color
+    FROM articles a
+    LEFT JOIN article_categories ac ON a.category_id = ac.id
+    WHERE a.status = 'published'
+    ORDER BY a.published_at DESC
+    LIMIT 6
+");
+
 // ดึงข้อมูลติดต่อ (ตรงตามหลังบ้าน)
 $contact_info = [
     'phone' => $global_settings['site_phone'] ?? $global_settings['contact_phone'] ?? '02-123-4567',
@@ -399,6 +409,20 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
         .hover-scale:hover {
             transform: scale(1.05);
             box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         button, .btn {
@@ -974,7 +998,7 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
                         <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
                             <?php if (!empty($review['image'])): ?>
                             <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 overflow-hidden">
-                                <img src="<?php echo BASE_URL . '/' . $review['image']; ?>" alt="<?php echo htmlspecialchars($review['customer_name']); ?>" class="w-full h-full object-cover">
+                                <img src="<?php echo UPLOADS_URL . '/' . $review['image']; ?>" alt="<?php echo htmlspecialchars($review['customer_name']); ?>" class="w-full h-full object-cover">
                             </div>
                             <?php else: ?>
                             <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 flex items-center justify-center">
@@ -1015,6 +1039,78 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
     </section>
     <?php endif; ?>
 
+    <!-- Articles Section -->
+    <?php if (!empty($articles)): ?>
+    <section class="py-20 bg-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    บทความและ<span class="text-red-primary">ข่าวสาร</span>
+                </h2>
+                <p class="text-gray-400 text-lg">อัพเดทเทรนด์และเรื่องราวน่าสนใจจากโลกของเรา</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php foreach ($articles as $article): ?>
+                <article class="bg-dark-light rounded-lg overflow-hidden hover-scale group">
+                    <?php if (!empty($article['featured_image'])): ?>
+                    <div class="relative overflow-hidden h-48">
+                        <img src="<?php echo UPLOADS_URL . '/' . $article['featured_image']; ?>" alt="<?php echo h($article['title']); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <?php if (!empty($article['category_name'])): ?>
+                        <span class="absolute top-4 left-4 px-3 py-1 text-xs font-semibold rounded-full" style="background-color: <?php echo $article['category_color'] ?? '#DC2626'; ?>; color: white;">
+                            <?php echo h($article['category_name']); ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="relative overflow-hidden h-48 bg-gradient-to-br from-red-primary to-red-light flex items-center justify-center">
+                        <i class="fas fa-newspaper text-6xl text-white/30"></i>
+                        <?php if (!empty($article['category_name'])): ?>
+                        <span class="absolute top-4 left-4 px-3 py-1 text-xs font-semibold rounded-full" style="background-color: <?php echo $article['category_color'] ?? '#DC2626'; ?>; color: white;">
+                            <?php echo h($article['category_name']); ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="p-6">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span><?php echo date('d M Y', strtotime($article['published_at'] ?? $article['created_at'])); ?></span>
+                            <?php if (!empty($article['author_name'])): ?>
+                            <i class="far fa-user ml-4 mr-2"></i>
+                            <span><?php echo h($article['author_name']); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-red-primary transition-colors">
+                            <?php echo h($article['title']); ?>
+                        </h3>
+
+                        <?php if (!empty($article['excerpt'])): ?>
+                        <p class="text-gray-400 text-sm mb-4 line-clamp-3">
+                            <?php echo h($article['excerpt']); ?>
+                        </p>
+                        <?php endif; ?>
+
+                        <a href="article-detail.php?slug=<?php echo h($article['slug']); ?>" class="inline-flex items-center text-red-primary hover:text-red-light transition-colors font-semibold">
+                            อ่านเพิ่มเติม
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="articles.php" class="inline-block bg-red-primary hover:bg-red-light text-white font-bold py-3 px-8 rounded-full transition-all duration-300 hover:scale-105">
+                    ดูบทความทั้งหมด
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <!-- Contact Section -->
     <section id="contact" class="py-20 bg-dark-light">

@@ -62,13 +62,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            if (db_insert($conn, 'articles', $data)) {
-                $article_id = $conn->insert_id;
-                log_activity($conn, $_SESSION['user_id'], 'create', 'articles', $article_id, null, $data);
-                set_message('success', 'เพิ่มบทความสำเร็จ');
-                redirect(ADMIN_URL . '/articles/edit.php?id=' . $article_id);
-            } else {
-                $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+            try {
+                // ตรวจสอบว่าตารางมีคอลัมน์อะไรบ้าง
+                $columns_result = $conn->query("DESCRIBE articles");
+                $existing_columns = [];
+                while ($col = $columns_result->fetch_assoc()) {
+                    $existing_columns[] = $col['Field'];
+                }
+                
+                // กรองเฉพาะคอลัมน์ที่มีอยู่จริง
+                $filtered_data = [];
+                foreach ($data as $key => $value) {
+                    if (in_array($key, $existing_columns)) {
+                        $filtered_data[$key] = $value;
+                    }
+                }
+                
+                // เพิ่ม created_at ถ้ามี
+                if (in_array('created_at', $existing_columns)) {
+                    $filtered_data['created_at'] = date('Y-m-d H:i:s');
+                }
+                
+                if (db_insert($conn, 'articles', $filtered_data)) {
+                    $article_id = $conn->insert_id;
+                    log_activity($conn, $_SESSION['user_id'], 'create', 'articles', $article_id, null, $filtered_data);
+                    set_message('success', 'เพิ่มบทความสำเร็จ');
+                    redirect(ADMIN_URL . '/articles/edit.php?id=' . $article_id);
+                } else {
+                    $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $conn->error;
+                }
+            } catch (Exception $e) {
+                $errors[] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
             }
         }
     }
@@ -228,8 +252,50 @@ include '../includes/header.php';
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
 <script>
+class UploadAdapter {
+    constructor(loader) {
+        this.loader = loader;
+    }
+
+    upload() {
+        return this.loader.file.then(file => new Promise((resolve, reject) => {
+            const data = new FormData();
+            data.append('upload', file);
+
+            fetch('upload-image.php', {
+                method: 'POST',
+                body: data
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.url) {
+                    resolve({
+                        default: result.url
+                    });
+                } else {
+                    reject(result.error?.message || 'เกิดข้อผิดพลาดในการอัพโหลด');
+                }
+            })
+            .catch(error => {
+                reject('เกิดข้อผิดพลาด: ' + error);
+            });
+        }));
+    }
+
+    abort() {
+        // Reject the promise returned from the upload() method.
+    }
+}
+
+function CustomUploadAdapterPlugin(editor) {
+    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+        return new UploadAdapter(loader);
+    };
+}
+
 ClassicEditor
     .create(document.querySelector('#editor'), {
+        extraPlugins: [CustomUploadAdapterPlugin],
         toolbar: {
             items: [
                 'heading', '|',
@@ -249,11 +315,18 @@ ClassicEditor
         language: 'th',
         image: {
             toolbar: [
-                'imageTextAlternative',
+                'imageTextAlternative', '|',
                 'imageStyle:inline',
                 'imageStyle:block',
-                'imageStyle:side',
+                'imageStyle:side', '|',
                 'linkImage'
+            ],
+            styles: [
+                'full',
+                'side',
+                'alignLeft',
+                'alignCenter',
+                'alignRight'
             ]
         },
         table: {
@@ -304,10 +377,10 @@ ClassicEditor
             writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
         });
         
-        console.log('CKEditor 5 initialized successfully!');
+        console.log('✅ CKEditor 5 พร้อมระบบอัพโหลดรูปภาพ!');
     })
     .catch(error => {
-        console.error('Error initializing CKEditor:', error);
+        console.error('❌ Error initializing CKEditor:', error);
     });
 </script>
 

@@ -189,3 +189,4 @@ $logo_image = $settings['logo_image'] ?? '';
 </body>
 </html>
 
+

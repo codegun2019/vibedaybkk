@@ -365,3 +365,4 @@ $logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
 </body>
 </html>
 
+

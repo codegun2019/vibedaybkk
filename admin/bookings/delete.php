@@ -30,3 +30,4 @@ if ($id > 0) {
 redirect(ADMIN_URL . '/bookings/');
 ?>
 
+

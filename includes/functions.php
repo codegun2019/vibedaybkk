@@ -311,7 +311,13 @@ function db_insert($conn, $table, $data) {
         $types = '';
         $values = [];
         foreach ($data as $value) {
-            if (is_int($value)) {
+            // ตรวจสอบว่าเป็น array หรือไม่
+            if (is_array($value)) {
+                $value = json_encode($value);
+                $types .= 's';
+            } elseif (is_null($value)) {
+                $types .= 's';
+            } elseif (is_int($value)) {
                 $types .= 'i';
             } elseif (is_double($value)) {
                 $types .= 'd';
@@ -319,6 +325,10 @@ function db_insert($conn, $table, $data) {
                 $types .= 's';
             }
             $values[] = $value;
+        }
+        
+        if (empty($types)) {
+            throw new Exception("No data to insert");
         }
         
         $stmt->bind_param($types, ...$values);
@@ -353,7 +363,13 @@ function db_update($conn, $table, $data, $where, $whereParams = []) {
         
         // Add data values
         foreach ($data as $value) {
-            if (is_int($value)) {
+            // ตรวจสอบว่าเป็น array หรือไม่
+            if (is_array($value)) {
+                $value = json_encode($value);
+                $types .= 's';
+            } elseif (is_null($value)) {
+                $types .= 's';
+            } elseif (is_int($value)) {
                 $types .= 'i';
             } elseif (is_double($value)) {
                 $types .= 'd';
@@ -365,7 +381,13 @@ function db_update($conn, $table, $data, $where, $whereParams = []) {
         
         // Add where params
         foreach ($whereParams as $value) {
-            if (is_int($value)) {
+            // ตรวจสอบว่าเป็น array หรือไม่
+            if (is_array($value)) {
+                $value = json_encode($value);
+                $types .= 's';
+            } elseif (is_null($value)) {
+                $types .= 's';
+            } elseif (is_int($value)) {
                 $types .= 'i';
             } elseif (is_double($value)) {
                 $types .= 'd';
