@@ -28,6 +28,8 @@ if (!$section) {
 $section_key = $section['section_key'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/../includes/notification.php';
+    
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Invalid CSRF token';
     } else {
@@ -80,6 +82,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        // Handle right image upload (for How to Book section)
+        $right_image = $section['right_image'] ?? '';
+        if (isset($_FILES['right_image']) && $_FILES['right_image']['error'] === UPLOAD_ERR_OK) {
+            // Delete old image
+            if (!empty($right_image)) {
+                delete_image($right_image);
+            }
+            
+            $upload_result = upload_image($_FILES['right_image'], 'homepage');
+            if ($upload_result['success']) {
+                $right_image = $upload_result['file_path'];
+            } else {
+                $errors[] = 'Right Image: ' . ($upload_result['error'] ?? $upload_result['message'] ?? 'Unknown error');
+            }
+        }
+        
+        // สำหรับ How to Book section - จัดการ steps
+        $steps = [];
+        if ($section_key === 'how-to-book' && isset($_POST['steps'])) {
+            foreach ($_POST['steps'] as $step) {
+                if (!empty($step['title']) && !empty($step['description'])) {
+                    $steps[] = [
+                        'title' => clean_input($step['title']),
+                        'description' => clean_input($step['description'])
+                    ];
+                }
+            }
+        }
+        
         // Build settings JSON
         $settings = [];
         if (isset($_POST['settings']) && is_array($_POST['settings'])) {
@@ -100,6 +131,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $check_column = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'left_image'");
             $has_left_image = $check_column->num_rows > 0;
             
+            // ตรวจสอบว่าคอลัมน์ right_image และ steps มีอยู่หรือไม่
+            $check_right_image = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'right_image'");
+            $has_right_image = $check_right_image->num_rows > 0;
+            
+            $check_steps = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'steps'");
+            $has_steps = $check_steps->num_rows > 0;
+            
             // UPDATE with correct column names
             $sql = "UPDATE homepage_sections SET 
                     title = ?, 
@@ -117,8 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     background_size = ?, 
                     background_repeat = ?, 
                     background_attachment = ?,
-                    sort_order = ?
-                    WHERE id = ?";
+                    sort_order = ?";
             
             $params = [
                 $title, $subtitle, $content,
@@ -126,15 +163,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $button2_text, $button2_link,
                 $background_image, $background_color, $left_image,
                 $background_type, $background_position, $background_size, $background_repeat, $background_attachment,
-                $sort_order, $id
+                $sort_order
             ];
             
+            // เพิ่ม right_image ถ้ามีคอลัมน์
+            if ($has_right_image) {
+                $sql = str_replace('sort_order = ?', 'right_image = ?, sort_order = ?', $sql);
+                array_splice($params, -1, 0, $right_image);
+            }
+            
+            // เพิ่ม steps ถ้ามีคอลัมน์
+            if ($has_steps) {
+                $sql = str_replace('sort_order = ?', 'steps = ?, sort_order = ?', $sql);
+                $steps_json = json_encode($steps, JSON_UNESCAPED_UNICODE);
+                array_splice($params, -1, 0, $steps_json);
+            }
+            
+            $sql .= " WHERE id = ?";
+            $params[] = $id;
+            
             if (db_execute($conn, $sql, $params)) {
-                $success = true;
+                set_success_message('บันทึกข้อมูล ' . ($section['title'] ?? 'Section') . ' เรียบร้อยแล้ว');
                 // Refresh section data
                 $section = db_get_row($conn, "SELECT * FROM homepage_sections WHERE id = ?", [$id]);
+                
+                // Redirect to prevent form resubmission
+                header("Location: edit.php?id={$id}");
+                exit;
             } else {
-                $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+                set_error_message('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $conn->error);
             }
         }
     }
@@ -158,24 +215,26 @@ include '../includes/header.php';
     </a>
 </div>
 
-<?php if ($success): ?>
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-    <div class="flex items-center">
-        <i class="fas fa-check-circle mr-2"></i>
-        <span>บันทึกข้อมูลเรียบร้อยแล้ว</span>
-    </div>
-</div>
-<?php endif; ?>
-
-<?php if (!empty($errors)): ?>
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-    <?php foreach ($errors as $error): ?>
-    <div class="flex items-center mb-1">
-        <i class="fas fa-exclamation-circle mr-2"></i>
-        <span><?php echo $error; ?></span>
-    </div>
-    <?php endforeach; ?>
-</div>
+<?php 
+// แสดง errors ถ้ามี (ใช้ SweetAlert2)
+if (!empty($errors)): 
+    $error_message = implode('\n', array_map('addslashes', $errors));
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        icon: 'error',
+        title: '❌ เกิดข้อผิดพลาด!',
+        html: '<?php echo str_replace("\n", "<br>", $error_message); ?>',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'ตกลง',
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'rounded-lg px-6 py-2.5 font-medium'
+        }
+    });
+});
+</script>
 <?php endif; ?>
 
 <form method="POST" enctype="multipart/form-data">
@@ -352,6 +411,34 @@ include '../includes/header.php';
             <?php endif; ?>
             <?php endif; ?>
             
+            <!-- Right Image Upload (for How to Book section) -->
+            <?php if ($section_key === 'how-to-book'): ?>
+            <?php 
+            $check_right_image = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'right_image'");
+            $has_right_image = $check_right_image->num_rows > 0;
+            ?>
+            <?php if ($has_right_image): ?>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">รูปภาพทางขวา</label>
+                <?php if (!empty($section['right_image'])): ?>
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <?php 
+                    $preview_url = (strpos($section['right_image'], 'uploads/') === 0) 
+                        ? BASE_URL . '/' . $section['right_image'] 
+                        : UPLOADS_URL . '/' . $section['right_image'];
+                    ?>
+                    <img src="<?php echo $preview_url; ?>" 
+                         class="h-32 object-cover rounded mb-2">
+                    <p class="text-xs text-gray-500">รูปปัจจุบัน: <?php echo htmlspecialchars($section['right_image']); ?></p>
+                </div>
+                <?php endif; ?>
+                <input type="file" name="right_image" accept="image/*" 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                <p class="text-sm text-gray-500 mt-2">แนะนำขนาด: 400x600px หรือ 1:1.5</p>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
+            
             <!-- Background Image Upload -->
             <div id="background_image_section" class="<?php echo ($section['background_type'] ?? 'color') == 'image' ? '' : 'hidden'; ?>">
                 <label class="block text-sm font-semibold text-gray-700 mb-2">รูปพื้นหลัง</label>
@@ -421,6 +508,140 @@ include '../includes/header.php';
                     </select>
                 </div>
             </div>
+            
+            <!-- Steps Management (for How to Book section) -->
+            <?php if ($section_key === 'how-to-book'): ?>
+            <?php 
+            $check_steps = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'steps'");
+            $has_steps = $check_steps->num_rows > 0;
+            ?>
+            <?php if ($has_steps): ?>
+            <div class="mt-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-4">ขั้นตอนการจองบริการ</label>
+                
+                <?php 
+                // ดึง steps จากฐานข้อมูล
+                $steps = [];
+                if (!empty($section['steps'])) {
+                    $steps = json_decode($section['steps'], true);
+                }
+                
+                // ถ้าไม่มี steps ให้ใช้ default
+                if (empty($steps)) {
+                    $steps = [
+                        ['title' => 'เลือกบริการ', 'description' => 'เลือกประเภทโมเดลและบริการที่ต้องการ'],
+                        ['title' => 'ติดต่อเรา', 'description' => 'ติดต่อผ่าน Line หรือโทรศัพท์เพื่อปรึกษารายละเอียด'],
+                        ['title' => 'ยืนยันการจอง', 'description' => 'ยืนยันรายละเอียดและชำระเงินมัดจำ'],
+                        ['title' => 'เริ่มงาน', 'description' => 'โมเดลจะมาถึงสถานที่ตามเวลาที่กำหนด']
+                    ];
+                }
+                ?>
+                
+                <div id="steps-container">
+                    <?php foreach ($steps as $index => $step): ?>
+                    <div class="step-item bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h6 class="text-lg font-semibold text-gray-700">ขั้นตอนที่ <?php echo $index + 1; ?></h6>
+                            <button type="button" class="remove-step text-red-600 hover:text-red-800 font-bold" <?php echo count($steps) <= 1 ? 'disabled' : ''; ?>>
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">ชื่อขั้นตอน</label>
+                                <input type="text" name="steps[<?php echo $index; ?>][title]" 
+                                       value="<?php echo htmlspecialchars($step['title']); ?>"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="เช่น: เลือกบริการ">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">คำอธิบาย</label>
+                                <input type="text" name="steps[<?php echo $index; ?>][description]" 
+                                       value="<?php echo htmlspecialchars($step['description']); ?>"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="เช่น: เลือกประเภทโมเดลและบริการที่ต้องการ">
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <button type="button" id="add-step" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                    <i class="fas fa-plus mr-2"></i>เพิ่มขั้นตอน
+                </button>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let stepIndex = <?php echo count($steps); ?>;
+                    
+                    // Add step
+                    document.getElementById('add-step').addEventListener('click', function() {
+                        const container = document.getElementById('steps-container');
+                        const stepHtml = `
+                            <div class="step-item bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h6 class="text-lg font-semibold text-gray-700">ขั้นตอนที่ ${stepIndex + 1}</h6>
+                                    <button type="button" class="remove-step text-red-600 hover:text-red-800 font-bold">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">ชื่อขั้นตอน</label>
+                                        <input type="text" name="steps[${stepIndex}][title]" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="เช่น: เลือกบริการ">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">คำอธิบาย</label>
+                                        <input type="text" name="steps[${stepIndex}][description]" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="เช่น: เลือกประเภทโมเดลและบริการที่ต้องการ">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', stepHtml);
+                        stepIndex++;
+                        updateStepNumbers();
+                    });
+                    
+                    // Remove step
+                    document.addEventListener('click', function(e) {
+                        if (e.target.closest('.remove-step')) {
+                            const stepItems = document.querySelectorAll('.step-item');
+                            if (stepItems.length > 1) {
+                                e.target.closest('.step-item').remove();
+                                updateStepNumbers();
+                            }
+                        }
+                    });
+                    
+                    // Update step numbers
+                    function updateStepNumbers() {
+                        const stepItems = document.querySelectorAll('.step-item');
+                        stepItems.forEach((item, index) => {
+                            const title = item.querySelector('h6');
+                            title.textContent = `ขั้นตอนที่ ${index + 1}`;
+                            
+                            // Update input names
+                            const titleInput = item.querySelector('input[name*="[title]"]');
+                            const descInput = item.querySelector('input[name*="[description]"]');
+                            titleInput.name = `steps[${index}][title]`;
+                            descInput.name = `steps[${index}][description]`;
+                        });
+                        
+                        // Enable/disable remove buttons
+                        const removeButtons = document.querySelectorAll('.remove-step');
+                        removeButtons.forEach(btn => {
+                            btn.disabled = stepItems.length <= 1;
+                        });
+                    }
+                });
+                </script>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
             
             <!-- Colors Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

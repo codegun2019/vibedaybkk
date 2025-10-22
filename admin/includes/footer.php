@@ -73,6 +73,13 @@
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="<?php echo ADMIN_URL; ?>/includes/toast.js"></script>
+    
+    <?php 
+    // แสดง notifications
+    require_once __DIR__ . '/notification.php';
+    echo render_notifications_script();
+    ?>
+    
     <script>
         // Mobile sidebar toggle
         const sidebarToggle = document.getElementById('sidebar-toggle');

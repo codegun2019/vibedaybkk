@@ -371,30 +371,5 @@ $full_name = $_SESSION['full_name'];
             
             <!-- Content -->
             <main class="flex-1 overflow-y-auto p-6">
-                <?php
-                $message = get_message();
-                if ($message):
-                    $colors = [
-                        'success' => 'bg-green-100 border-green-400 text-green-700',
-                        'error' => 'bg-red-100 border-red-400 text-red-700',
-                        'warning' => 'bg-yellow-100 border-yellow-400 text-yellow-700',
-                        'info' => 'bg-blue-100 border-blue-400 text-blue-700'
-                    ];
-                    $icons = [
-                        'success' => 'fa-check-circle',
-                        'error' => 'fa-exclamation-circle',
-                        'warning' => 'fa-exclamation-triangle',
-                        'info' => 'fa-info-circle'
-                    ];
-                    $color = $colors[$message['type']] ?? $colors['info'];
-                    $icon = $icons[$message['type']] ?? $icons['info'];
-                ?>
-                <div class="<?php echo $color; ?> border-l-4 p-4 mb-6 rounded-r-lg" role="alert">
-                    <div class="flex items-center">
-                        <i class="fas <?php echo $icon; ?> mr-3 text-xl"></i>
-                        <span><?php echo $message['message']; ?></span>
-                    </div>
-                </div>
-                <?php endif; ?>
 
 

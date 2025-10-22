@@ -35,16 +35,20 @@ $all_categories = array_unique(array_merge($default_categories, array_column($ex
 sort($all_categories);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    require_once __DIR__ . '/../includes/notification.php';
+    
     if (isset($_POST['add_category'])) {
         $new_category = clean_input($_POST['new_category']);
         
         if (empty($new_category)) {
-            $errors[] = 'กรุณากรอกชื่อหมวดหมู่';
+            set_error_message('กรุณากรอกชื่อหมวดหมู่');
         } elseif (in_array($new_category, $all_categories)) {
-            $errors[] = 'หมวดหมู่นี้มีอยู่แล้ว';
+            set_warning_message('หมวดหมู่ "' . $new_category . '" มีอยู่แล้ว');
         } else {
-            $success = true;
-            // หมวดหมู่ใหม่จะถูกเพิ่มในรายการอัตโนมัติเมื่อมีการใช้งาน
+            set_success_message('เพิ่มหมวดหมู่ "' . $new_category . '" สำเร็จ! สามารถใช้งานได้ทันทีเมื่ออัปโหลดรูปภาพ');
+            // Redirect to prevent form resubmission
+            header("Location: categories.php");
+            exit;
         }
     }
 }
@@ -65,23 +69,6 @@ include '../includes/header.php';
         </a>
     </div>
 </div>
-
-<?php if ($success): ?>
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-        <i class="fas fa-check-circle mr-2"></i>เพิ่มหมวดหมู่ใหม่เรียบร้อยแล้ว
-    </div>
-<?php endif; ?>
-
-<?php if (!empty($errors)): ?>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-        <i class="fas fa-exclamation-circle mr-2"></i>
-        <ul class="list-disc list-inside">
-            <?php foreach ($errors as $error): ?>
-                <li><?php echo htmlspecialchars($error); ?></li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php endif; ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- หมวดหมู่ที่มีอยู่ -->

@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload'])) {
         $description = 'ภาพถ่ายหญิงสาวสวมชุดไทยแบบดั้งเดิมพร้อมเครื่องประดับทอง ฉากหลังเป็นซากปรักหักพังโบราณ สไตล์สตรีทแฟชั่นไทย';
         $category = 'สตรีทแฟชั่น';
         $tags = 'ไทย,แฟชั่น,ชุดไทย,เครื่องประดับ,โบราณ';
-        $image_path = $upload_result['path'];
+        $image_path = $upload_result['file_path'];
         
         $sql = "INSERT INTO gallery (title, description, image, category, tags, sort_order, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $stmt = $conn->prepare($sql);

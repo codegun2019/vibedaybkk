@@ -73,6 +73,40 @@ $go_to_top_icon = $global_settings['gototop_icon'] ?? 'fa-arrow-up';
 $go_to_top_bg_color = $global_settings['gototop_bg_color'] ?? 'bg-red-primary';
 $go_to_top_text_color = $global_settings['gototop_text_color'] ?? 'text-white';
 $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
+
+// ดึงข้อมูล Hero Section จากฐานข้อมูล
+require_once 'includes/homepage-functions.php';
+$hero_section = get_homepage_section('hero');
+if (!$hero_section) {
+    // ถ้าไม่มีข้อมูล ให้ใช้ค่า default
+    $hero_section = [
+        'title' => 'VIBEDAYBKK',
+        'subtitle' => 'บริการโมเดลและนางแบบมืออาชีพ',
+        'content' => 'เราคือผู้เชี่ยวชาญด้านบริการโมเดลและนางแบบคุณภาพสูง พร้อมให้บริการสำหรับงานถ่ายภาพ งานแฟชั่น และงานอีเวนต์ต่างๆ ด้วยทีมงานมืออาชีพและโมเดลที่ผ่านการคัดสรรอย่างดี',
+        'button1_text' => 'จองบริการตอนนี้',
+        'button1_link' => '#contact',
+        'button2_text' => 'ดูผลงาน',
+        'button2_link' => '#services',
+        'background_type' => 'color',
+        'background_color' => '',
+        'background_image' => ''
+    ];
+}
+
+// ดึงข้อมูล About Section จากฐานข้อมูล
+$about_section = get_homepage_section('about');
+if (!$about_section) {
+    // ถ้าไม่มีข้อมูล ให้ใช้ค่า default
+    $about_section = [
+        'title' => 'เกี่ยวกับ VIBEDAYBKK',
+        'subtitle' => '',
+        'content' => 'VIBEDAYBKK เป็นบริษัทชั้นนำด้านบริการโมเดลและนางแบบในกรุงเทพฯ เราให้บริการครบวงจรตั้งแต่การคัดสรรโมเดล การจัดการงาน ไปจนถึงการประสานงานในวันถ่ายทำ',
+        'left_image' => '',
+        'background_type' => 'color',
+        'background_color' => '#1a1a1a',
+        'background_image' => ''
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -685,28 +719,58 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
     <?php endif; ?>
 
     <!-- Hero Section -->
-    <section id="home" class="hero-gradient min-h-screen flex items-center pt-16">
+    <section id="home" class="hero-gradient min-h-screen flex items-center pt-16"
+             <?php if (($hero_section['background_type'] ?? 'color') === 'image' && !empty($hero_section['background_image'])): ?>
+             style="background-image: url('<?php echo UPLOADS_URL . '/' . $hero_section['background_image']; ?>'); 
+                    background-position: <?php echo $hero_section['background_position'] ?? 'center'; ?>; 
+                    background-size: <?php echo $hero_section['background_size'] ?? 'cover'; ?>; 
+                    background-repeat: <?php echo $hero_section['background_repeat'] ?? 'no-repeat'; ?>; 
+                    background-attachment: <?php echo $hero_section['background_attachment'] ?? 'scroll'; ?>;"
+             <?php elseif (!empty($hero_section['background_color'])): ?>
+             style="background-color: <?php echo $hero_section['background_color']; ?>;"
+             <?php endif; ?>>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <!-- Left Content -->
+                <?php if (($hero_section['background_type'] ?? 'color') !== 'image'): ?>
                 <div class="animate-fade-in">
                     <h1 class="text-4xl md:text-6xl font-bold mb-6">
-                        <span class="text-red-primary">VIBE</span>DAY<span class="text-red-primary">BKK</span>
+                        <?php 
+                        $title = $hero_section['title'] ?? 'VIBEDAYBKK';
+                        // แยก VIBEDAYBKK เป็น VIBE DAY BKK
+                        if ($title === 'VIBEDAYBKK') {
+                            echo '<span class="text-red-primary">VIBE</span>DAY<span class="text-red-primary">BKK</span>';
+                        } else {
+                            echo htmlspecialchars($title);
+                        }
+                        ?>
                     </h1>
+                    <?php if (!empty($hero_section['subtitle'])): ?>
                     <h2 class="text-2xl md:text-3xl font-medium mb-6 text-gray-300">
-                        บริการโมเดลและนางแบบมืออาชีพ
+                        <?php echo htmlspecialchars($hero_section['subtitle']); ?>
                     </h2>
+                    <?php endif; ?>
+                    <?php if (!empty($hero_section['content'])): ?>
                     <p class="text-lg mb-8 text-gray-400 leading-relaxed">
-                        เราคือผู้เชี่ยวชาญด้านบริการโมเดลและนางแบบคุณภาพสูง พร้อมให้บริการสำหรับงานถ่ายภาพ งานแฟชั่น และงานอีเวนต์ต่างๆ ด้วยทีมงานมืออาชีพและโมเดลที่ผ่านการคัดสรรอย่างดี
+                        <?php echo nl2br(htmlspecialchars($hero_section['content'])); ?>
                     </p>
+                    <?php endif; ?>
+                    <?php if (!empty($hero_section['button1_text']) || !empty($hero_section['button2_text'])): ?>
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="#contact" class="bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale text-center shadow-lg">
-                            <i class="fas fa-calendar-check mr-2"></i>จองบริการตอนนี้
+                        <?php if (!empty($hero_section['button1_text'])): ?>
+                        <a href="<?php echo htmlspecialchars($hero_section['button1_link'] ?? '#'); ?>" 
+                           class="bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale text-center shadow-lg">
+                            <i class="fas fa-calendar-check mr-2"></i><?php echo htmlspecialchars($hero_section['button1_text']); ?>
                         </a>
-                        <a href="#services" class="border-2 border-red-primary text-red-primary hover:bg-red-primary hover:text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 text-center shadow-lg">
-                            <i class="fas fa-images mr-2"></i>ดูผลงาน
+                        <?php endif; ?>
+                        <?php if (!empty($hero_section['button2_text'])): ?>
+                        <a href="<?php echo htmlspecialchars($hero_section['button2_link'] ?? '#'); ?>" 
+                           class="border-2 border-red-primary text-red-primary hover:bg-red-primary hover:text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 text-center shadow-lg">
+                            <i class="fas fa-images mr-2"></i><?php echo htmlspecialchars($hero_section['button2_text']); ?>
                         </a>
+                        <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
                 
                 <!-- Right Content - Models Images -->
@@ -727,32 +791,74 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 bg-dark-light">
+    <section id="about" class="py-20"
+             <?php if (($about_section['background_type'] ?? 'color') === 'image' && !empty($about_section['background_image'])): ?>
+             style="background-image: url('<?php echo UPLOADS_URL . '/' . $about_section['background_image']; ?>'); 
+                    background-position: <?php echo $about_section['background_position'] ?? 'center'; ?>; 
+                    background-size: <?php echo $about_section['background_size'] ?? 'cover'; ?>; 
+                    background-repeat: <?php echo $about_section['background_repeat'] ?? 'no-repeat'; ?>; 
+                    background-attachment: <?php echo $about_section['background_attachment'] ?? 'scroll'; ?>;"
+             <?php elseif (!empty($about_section['background_color'])): ?>
+             style="background-color: <?php echo $about_section['background_color']; ?>;"
+             <?php else: ?>
+             class="bg-dark-light"
+             <?php endif; ?>>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <?php if (($about_section['background_type'] ?? 'color') !== 'image'): ?>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <!-- Left - Phone App Image -->
+                <!-- Left - Image -->
                 <div class="flex justify-center">
+                    <?php if (!empty($about_section['left_image'])): ?>
+                    <div class="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl hover-scale">
+                        <img src="<?php echo UPLOADS_URL . '/' . $about_section['left_image']; ?>" 
+                             alt="<?php echo htmlspecialchars($about_section['title'] ?? 'About'); ?>"
+                             class="w-full h-auto object-cover">
+                    </div>
+                    <?php else: ?>
                     <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-64 h-96 rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
                         <div class="text-center">
                             <i class="fas fa-mobile-alt text-6xl text-red-primary mb-4"></i>
                             <p class="text-gray-400">VIBEDAYBKK App</p>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
                 
-                <!-- Right - Service Details -->
+                <!-- Right - Content -->
                 <div>
+                    <?php if (!empty($about_section['title'])): ?>
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">
-                        เกี่ยวกับ <span class="text-red-primary">VIBEDAYBKK</span>
+                        <?php 
+                        $about_title = $about_section['title'];
+                        // ถ้ามี "VIBEDAYBKK" ในชื่อ ให้เปลี่ยนสีแดง
+                        if (strpos($about_title, 'VIBEDAYBKK') !== false) {
+                            echo str_replace('VIBEDAYBKK', '<span class="text-red-primary">VIBEDAYBKK</span>', htmlspecialchars($about_title));
+                        } else {
+                            echo htmlspecialchars($about_title);
+                        }
+                        ?>
                     </h2>
-                    <p class="text-gray-400 mb-6 leading-relaxed">
-                        VIBEDAYBKK เป็นบริษัทชั้นนำด้านบริการโมเดลและนางแบบในกรุงเทพฯ เราให้บริการครบวงจรตั้งแต่การคัดสรรโมเดล การจัดการงาน ไปจนถึงการประสานงานในวันถ่ายทำ
-                    </p>
+                    <?php endif; ?>
+                    
+                    <?php if (!empty($about_section['subtitle'])): ?>
+                    <h3 class="text-xl md:text-2xl font-medium mb-6 text-gray-300">
+                        <?php echo htmlspecialchars($about_section['subtitle']); ?>
+                    </h3>
+                    <?php endif; ?>
+                    
+                    <?php if (!empty($about_section['content'])): ?>
+                    <div class="text-gray-400 mb-6 leading-relaxed">
+                        <?php echo nl2br(htmlspecialchars($about_section['content'])); ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Check list items (ถ้ามี) -->
                     <div class="space-y-4">
                         <div class="flex items-center">
                             <i class="fas fa-check-circle text-red-primary mr-3"></i>
@@ -771,8 +877,18 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
                             <span>รองรับงานทุกประเภทและขนาด</span>
                         </div>
                     </div>
+                    
+                    <?php if (!empty($about_section['button1_text'])): ?>
+                    <div class="mt-8">
+                        <a href="<?php echo htmlspecialchars($about_section['button1_link'] ?? '#'); ?>" 
+                           class="inline-block bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale shadow-lg">
+                            <?php echo htmlspecialchars($about_section['button1_text']); ?>
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -919,57 +1035,105 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
     </section>
 
     <!-- How to Book Section -->
-    <section class="py-20 bg-dark-light">
+    <section id="how-to-book" class="py-20 bg-dark-light">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <!-- Left - Steps -->
                 <div>
+                    <?php 
+                    // ดึงข้อมูล How to Book Section จากฐานข้อมูล
+                    $how_to_book_section = get_homepage_section('how-to-book');
+                    if (!$how_to_book_section) {
+                        // ถ้าไม่มีข้อมูล ให้ใช้ค่า default
+                        $how_to_book_section = [
+                            'title' => 'วิธีการจองบริการ',
+                            'subtitle' => '',
+                            'content' => '',
+                            'button1_text' => '',
+                            'button1_link' => '',
+                            'background_type' => 'color',
+                            'background_color' => '',
+                            'background_image' => '',
+                            'right_image' => ''
+                        ];
+                    }
+                    ?>
                     <h2 class="text-3xl md:text-4xl font-bold mb-8">
-                        วิธีการจอง<span class="text-red-primary">บริการ</span>
+                        <?php 
+                        $title = $how_to_book_section['title'] ?? 'วิธีการจองบริการ';
+                        // ถ้ามี "บริการ" ในชื่อ ให้เปลี่ยนสีแดง
+                        if (strpos($title, 'บริการ') !== false) {
+                            echo str_replace('บริการ', '<span class="text-red-primary">บริการ</span>', htmlspecialchars($title));
+                        } else {
+                            echo htmlspecialchars($title);
+                        }
+                        ?>
                     </h2>
+                    <?php if (!empty($how_to_book_section['content'])): ?>
+                    <div class="text-gray-400 mb-6 leading-relaxed">
+                        <?php echo nl2br(htmlspecialchars($how_to_book_section['content'])); ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php
+                    // ดึงข้อมูล steps จากฐานข้อมูล
+                    $steps = [];
+                    if (!empty($how_to_book_section['steps'])) {
+                        $steps = json_decode($how_to_book_section['steps'], true);
+                    }
+                    
+                    // ถ้าไม่มี steps ในฐานข้อมูล ให้ใช้ default
+                    if (empty($steps)) {
+                        $steps = [
+                            [
+                                'title' => 'เลือกบริการ',
+                                'description' => 'เลือกประเภทโมเดลและบริการที่ต้องการ'
+                            ],
+                            [
+                                'title' => 'ติดต่อเรา',
+                                'description' => 'ติดต่อผ่าน Line หรือโทรศัพท์เพื่อปรึกษารายละเอียด'
+                            ],
+                            [
+                                'title' => 'ยืนยันการจอง',
+                                'description' => 'ยืนยันรายละเอียดและชำระเงินมัดจำ'
+                            ],
+                            [
+                                'title' => 'เริ่มงาน',
+                                'description' => 'โมเดลจะมาถึงสถานที่ตามเวลาที่กำหนด'
+                            ]
+                        ];
+                    }
+                    ?>
+                    
                     <div class="space-y-6">
+                        <?php foreach ($steps as $index => $step): ?>
                         <div class="flex items-start">
-                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">1</div>
+                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1"><?php echo $index + 1; ?></div>
                             <div>
-                                <h4 class="text-xl font-semibold mb-2">เลือกบริการ</h4>
-                                <p class="text-gray-400">เลือกประเภทโมเดลและบริการที่ต้องการ</p>
+                                <h4 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($step['title']); ?></h4>
+                                <p class="text-gray-400"><?php echo htmlspecialchars($step['description']); ?></p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start">
-                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">2</div>
-                            <div>
-                                <h4 class="text-xl font-semibold mb-2">ติดต่อเรา</h4>
-                                <p class="text-gray-400">ติดต่อผ่าน Line หรือโทรศัพท์เพื่อปรึกษารายละเอียด</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start">
-                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">3</div>
-                            <div>
-                                <h4 class="text-xl font-semibold mb-2">ยืนยันการจอง</h4>
-                                <p class="text-gray-400">ยืนยันรายละเอียดและชำระเงินมัดจำ</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start">
-                            <div class="bg-red-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-4 mt-1">4</div>
-                            <div>
-                                <h4 class="text-xl font-semibold mb-2">เริ่มงาน</h4>
-                                <p class="text-gray-400">โมเดลจะมาถึงสถานที่ตามเวลาที่กำหนด</p>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
                 
-                <!-- Right - Phone Image -->
+                <!-- Right - Image -->
                 <div class="flex justify-center">
+                    <?php if (!empty($how_to_book_section['right_image'])): ?>
+                    <div class="w-full max-w-md rounded-3xl overflow-hidden shadow-2xl hover-scale">
+                        <img src="<?php echo UPLOADS_URL . '/' . $how_to_book_section['right_image']; ?>" 
+                             alt="<?php echo htmlspecialchars($how_to_book_section['title'] ?? 'How to Book'); ?>"
+                             class="w-full h-auto object-cover">
+                    </div>
+                    <?php else: ?>
                     <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-64 h-96 rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
                         <div class="text-center">
                             <i class="fas fa-calendar-check text-6xl text-red-primary mb-4"></i>
                             <p class="text-gray-400">จองง่าย รวดเร็ว</p>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

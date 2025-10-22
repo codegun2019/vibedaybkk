@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 if ($table_check && $table_check->num_rows > 0) {
                                     $image_data = [
                                         'model_id' => $model_id,
-                                        'image_path' => $upload_result['path'],
+                                        'image_path' => $upload_result['file_path'],
                                         'image_type' => 'portfolio',
                                         'is_primary' => $key == 0 ? 1 : 0,
                                         'sort_order' => $key

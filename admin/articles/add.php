@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
             $upload_result = upload_image($_FILES['featured_image'], 'articles');
             if ($upload_result['success']) {
-                $featured_image = $upload_result['path'];
+                $featured_image = $upload_result['file_path'];
             } else {
                 $errors[] = $upload_result['message'];
             }
