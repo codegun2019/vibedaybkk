@@ -375,3 +375,5 @@ if (is_dir($gallery_folder)) {
 </html>
 
 <?php $conn->close(); ?>
+
+

@@ -10,3 +10,5 @@ echo "Null: " . $row['Null'] . "\n";
 echo "Default: " . $row['Default'] . "\n";
 
 
+
+

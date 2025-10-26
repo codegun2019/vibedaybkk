@@ -857,13 +857,9 @@ if (!$about_section) {
                     </div>
                     <?php endif; ?>
                     
-                    <!-- ================================
-                         SECTION: ABOUT - FEATURES LIST
-                         ดึงรายการคุณสมบัติจากฐานข้อมูล
-                         จัดการที่: admin/homepage/edit.php?id=2
-                         ================================ -->
+                    <!-- Check list items (ดึงจากฐานข้อมูล) -->
                     <?php 
-                    // ดึงรายการคุณสมบัติจากฐานข้อมูล (features column)
+                    // ดึงรายการคุณสมบัติจากฐานข้อมูล
                     $about_features = [];
                     if (!empty($about_section['features'])) {
                         $about_features = json_decode($about_section['features'], true);

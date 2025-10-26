@@ -354,3 +354,5 @@ if (is_dir($thumb_folder)) {
 </html>
 
 <?php $conn->close(); ?>
+
+

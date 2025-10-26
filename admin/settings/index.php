@@ -365,34 +365,6 @@ require_once '../includes/locked-form.php';
         </div>
     </div>
     
-    <!-- Social Media -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-        <div class="bg-gradient-to-r from-pink-600 to-pink-700 px-6 py-4">
-            <h5 class="text-white text-lg font-semibold flex items-center">
-                <i class="fas fa-share-alt mr-3"></i>โซเชียลมีเดีย
-            </h5>
-        </div>
-        <div class="p-6 space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    <i class="fab fa-facebook mr-2 text-blue-600"></i>Facebook
-                </label>
-                <input type="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200" name="setting_facebook_url" value="<?php echo $settings['facebook_url'] ?? ''; ?>" placeholder="https://facebook.com/vibedaybkk">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    <i class="fab fa-instagram mr-2 text-pink-600"></i>Instagram
-                </label>
-                <input type="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200" name="setting_instagram_url" value="<?php echo $settings['instagram_url'] ?? ''; ?>" placeholder="https://instagram.com/vibedaybkk">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    <i class="fab fa-twitter mr-2 text-blue-400"></i>Twitter / X
-                </label>
-                <input type="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all duration-200" name="setting_twitter_url" value="<?php echo $settings['twitter_url'] ?? ''; ?>" placeholder="https://x.com/vibedaybkk">
-            </div>
-        </div>
-    </div>
     
     <div class="flex justify-end">
         <?php if (!$can_edit): ?>

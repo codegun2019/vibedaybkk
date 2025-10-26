@@ -111,6 +111,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        // สำหรับ About section - จัดการ features list
+        $features = [];
+        if ($section_key === 'about' && isset($_POST['features'])) {
+            foreach ($_POST['features'] as $feature) {
+                if (!empty($feature['text'])) {
+                    $features[] = [
+                        'text' => clean_input($feature['text']),
+                        'icon' => clean_input($feature['icon'] ?? 'fa-check-circle')
+                    ];
+                }
+            }
+        }
+        
         // Build settings JSON
         $settings = [];
         if (isset($_POST['settings']) && is_array($_POST['settings'])) {
@@ -177,6 +190,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sql = str_replace('sort_order = ?', 'steps = ?, sort_order = ?', $sql);
                 $steps_json = json_encode($steps, JSON_UNESCAPED_UNICODE);
                 array_splice($params, -1, 0, $steps_json);
+            }
+            
+            // เพิ่ม features สำหรับ About section
+            $check_features = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'features'");
+            $has_features = $check_features->num_rows > 0;
+            if ($has_features && $section_key === 'about') {
+                $sql = str_replace('sort_order = ?', 'features = ?, sort_order = ?', $sql);
+                $features_json = json_encode($features, JSON_UNESCAPED_UNICODE);
+                array_splice($params, -1, 0, $features_json);
             }
             
             $sql .= " WHERE id = ?";
@@ -508,6 +530,161 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
             </div>
+            
+            <!-- Features Management (for About section) -->
+            <?php if ($section_key === 'about'): ?>
+            <?php 
+            $check_features = $conn->query("SHOW COLUMNS FROM homepage_sections LIKE 'features'");
+            $has_features = $check_features->num_rows > 0;
+            ?>
+            <?php if ($has_features): ?>
+            <div class="mt-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-4">รายการคุณสมบัติ</label>
+                
+                <?php 
+                // ดึง features จากฐานข้อมูล
+                $features = [];
+                if (!empty($section['features'])) {
+                    $features = json_decode($section['features'], true);
+                }
+                
+                // ถ้าไม่มี features ให้ใช้ default
+                if (empty($features)) {
+                    $features = [
+                        ['text' => 'โมเดลมืออาชีพที่ผ่านการคัดสรร', 'icon' => 'fa-check-circle'],
+                        ['text' => 'บริการครบวงจรในราคาที่เหมาะสม', 'icon' => 'fa-check-circle'],
+                        ['text' => 'ทีมงานมืออาชีพพร้อมให้คำปรึกษา', 'icon' => 'fa-check-circle'],
+                        ['text' => 'รองรับงานทุกประเภทและขนาด', 'icon' => 'fa-check-circle']
+                    ];
+                }
+                ?>
+                
+                <div id="features-container">
+                    <?php foreach ($features as $index => $feature): ?>
+                    <div class="feature-item bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h6 class="text-lg font-semibold text-gray-700">คุณสมบัติที่ <?php echo $index + 1; ?></h6>
+                            <button type="button" class="remove-feature text-red-600 hover:text-red-800 font-bold" <?php echo count($features) <= 1 ? 'disabled' : ''; ?>>
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">ข้อความ</label>
+                                <input type="text" name="features[<?php echo $index; ?>][text]" 
+                                       value="<?php echo htmlspecialchars($feature['text']); ?>"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="เช่น: โมเดลมืออาชีพที่ผ่านการคัดสรร">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600 mb-1">ไอคอน</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" name="features[<?php echo $index; ?>][icon]" 
+                                           value="<?php echo htmlspecialchars($feature['icon']); ?>"
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="fa-check-circle">
+                                    <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas <?php echo htmlspecialchars($feature['icon']); ?> text-gray-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <button type="button" id="add-feature" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                    <i class="fas fa-plus mr-2"></i>เพิ่มคุณสมบัติ
+                </button>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let featureIndex = <?php echo count($features); ?>;
+                    
+                    // Add feature
+                    document.getElementById('add-feature').addEventListener('click', function() {
+                        const container = document.getElementById('features-container');
+                        const featureHtml = `
+                            <div class="feature-item bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h6 class="text-lg font-semibold text-gray-700">คุณสมบัติที่ ${featureIndex + 1}</h6>
+                                    <button type="button" class="remove-feature text-red-600 hover:text-red-800 font-bold">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">ข้อความ</label>
+                                        <input type="text" name="features[${featureIndex}][text]" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="เช่น: โมเดลมืออาชีพที่ผ่านการคัดสรร">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">ไอคอน</label>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" name="features[${featureIndex}][icon]" 
+                                                   value="fa-check-circle"
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                   placeholder="fa-check-circle">
+                                            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-check-circle text-gray-600"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', featureHtml);
+                        featureIndex++;
+                        updateFeatureNumbers();
+                    });
+                    
+                    // Remove feature
+                    document.addEventListener('click', function(e) {
+                        if (e.target.closest('.remove-feature')) {
+                            const featureItems = document.querySelectorAll('.feature-item');
+                            if (featureItems.length > 1) {
+                                e.target.closest('.feature-item').remove();
+                                updateFeatureNumbers();
+                            }
+                        }
+                    });
+                    
+                    // Update feature numbers
+                    function updateFeatureNumbers() {
+                        const featureItems = document.querySelectorAll('.feature-item');
+                        featureItems.forEach((item, index) => {
+                            const title = item.querySelector('h6');
+                            title.textContent = `คุณสมบัติที่ ${index + 1}`;
+                            
+                            // Update input names
+                            const textInput = item.querySelector('input[name*="[text]"]');
+                            const iconInput = item.querySelector('input[name*="[icon]"]');
+                            textInput.name = `features[${index}][text]`;
+                            iconInput.name = `features[${index}][icon]`;
+                        });
+                        
+                        // Enable/disable remove buttons
+                        const removeButtons = document.querySelectorAll('.remove-feature');
+                        removeButtons.forEach(btn => {
+                            btn.disabled = featureItems.length <= 1;
+                        });
+                    }
+                });
+                </script>
+            </div>
+            <?php else: ?>
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                    <div>
+                        <p class="text-sm font-medium text-yellow-800">ต้องรัน SQL Script ก่อน</p>
+                        <p class="text-xs text-yellow-600">รันไฟล์ <code>setup-about-section-complete.sql</code> เพื่อเพิ่มคอลัมน์ features</p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
             
             <!-- Steps Management (for How to Book section) -->
             <?php if ($section_key === 'how-to-book'): ?>

@@ -353,6 +353,60 @@ if ($check_gallery->num_rows == 0) {
             color: white;
             border-color: #DC2626;
         }
+        
+        .social-sidebar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .social-sidebar a {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .social-sidebar a:hover {
+            transform: translateX(-5px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+        }
+        
+        .go-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .go-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .go-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.5);
+        }
     </style>
 </head>
 <body class="bg-dark text-white">
@@ -409,7 +463,13 @@ if ($check_gallery->num_rows == 0) {
                 <!-- Header Mobile Menu -->
                 <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
                     <div class="flex items-center gap-3">
-                        <?php if ($logo_type === 'image' && !empty($logo_image)): ?>
+                        <?php 
+                        $logo_type = $global_settings['logo_type'] ?? 'text';
+                        $logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $logo_image = $global_settings['logo_image'] ?? '';
+                        
+                        if ($logo_type === 'image' && !empty($logo_image)): 
+                        ?>
                             <img src="<?php echo UPLOADS_URL . '/' . $logo_image; ?>" alt="Logo" class="h-8 object-contain">
                         <?php else: ?>
                             <i class="fas fa-star text-red-primary text-xl"></i>
@@ -477,7 +537,7 @@ if ($check_gallery->num_rows == 0) {
                 </div>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Social Sidebar -->
     <?php if (!empty($active_socials)): ?>
@@ -492,7 +552,7 @@ if ($check_gallery->num_rows == 0) {
 
     <!-- Go to Top Button -->
     <?php if ($go_to_top_enabled == '1'): ?>
-    <button id="go-to-top" class="go-to-top <?php echo htmlspecialchars($go_to_top_bg_color); ?> hover:opacity-90 <?php echo htmlspecialchars($go_to_top_text_color); ?>" title="กลับขึ้นด้านบน" style="<?php echo $go_to_top_position === 'left' ? 'left: 30px; right: Tobo;' : ''; ?>">
+    <button id="go-to-top" class="go-to-top <?php echo htmlspecialchars($go_to_top_bg_color); ?> hover:opacity-90 <?php echo htmlspecialchars($go_to_top_text_color); ?>" title="กลับขึ้นด้านบน" style="<?php echo $go_to_top_position === 'left' ? 'left: 30px; right: auto;' : ''; ?>">
         <i class="fas <?php echo htmlspecialchars($go_to_top_icon); ?> text-lg"></i>
     </button>
     <?php endif; ?>
@@ -708,7 +768,7 @@ if ($check_gallery->num_rows == 0) {
     <!-- Go to Top Button -->
     <?php if ($go_to_top_enabled == '1'): ?>
         <button id="go-to-top" class="fixed <?php echo $go_to_top_position === 'left' ? 'left-6' : 'right-6'; ?> bottom-6 w-12 h-12 rounded-full <?php echo $go_to_top_bg_color; ?> <?php echo $go_to_top_text_color; ?> shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50">
-            <i class="<?php echo $go_to_top_icon; ?>"></i>
+            <i class="fas <?php echo $go_to_top_icon; ?>"></i>
         </button>
     <?php endif; ?>
 
@@ -891,8 +951,12 @@ if ($check_gallery->num_rows == 0) {
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 300) {
                 goToTopBtn.classList.add('show');
+                goToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                goToTopBtn.classList.add('opacity-100');
             } else {
                 goToTopBtn.classList.remove('show');
+                goToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                goToTopBtn.classList.remove('opacity-100');
             }
         });
 
@@ -905,74 +969,6 @@ if ($check_gallery->num_rows == 0) {
         <?php endif; ?>
     </script>
 
-    <!-- Footer -->
-    <footer class="bg-dark py-12 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
-                        <?php 
-                        $footer_logo_type = $global_settings['logo_type'] ?? 'text';
-                        $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
-                        $footer_logo_image = $global_settings['logo_image'] ?? '';
-                        
-                        if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 
-                        ?>
-                            <img src="<?php echo UPLOADS_URL . '/' . $footer_logo_image; ?>" alt="<?php echo htmlspecialchars($footer_logo_text); ?>" class="h-12 object-contain">
-                        <?php else: ?>
-                            <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($footer_logo_text); ?>
-                        <?php endif; ?>
-                    </div>
-                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
-                    <?php if (!empty($active_socials)): ?>
-                    <div class="flex space-x-3">
-                        <?php foreach ($active_socials as $platform => $social): ?>
-                        <a href="<?php echo htmlspecialchars($social['url']); ?>" class="bg-gray-800 <?php echo str_replace('bg-', 'hover:bg-', explode(' ', $social['color'])[0]); ?> w-10 h-10 rounded-full text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
-                            <i class="fab <?php echo $social['icon']; ?>"></i>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
-                    <ul class="space-y-2">
-                        <li><a href="<?php echo BASE_URL; ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
-                        <?php foreach ($main_menus as $menu): ?>
-                        <li><a href="<?php echo htmlspecialchars($menu['url']); ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($menu['title']); ?></a></li>
-                        <?php endforeach; ?>
-                        <li><a href="<?php echo BASE_URL; ?>#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">บริการของเรา</h4>
-                    <ul class="space-y-2">
-                        <li><a href="models.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดล</a></li>
-                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
-                        <li><a href="gallery.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">แกลลอรี่</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อสอบถาม</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><i class="fas fa-phone mr-2"></i><?php echo htmlspecialchars($contact_info['phone']); ?></li>
-                        <li><i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($contact_info['email']); ?></li>
-                        <li><i class="fab fa-line mr-2"></i><?php echo htmlspecialchars($contact_info['line_id']); ?></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; <?php echo date('Y'); ?> VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>
 

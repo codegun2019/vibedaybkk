@@ -340,6 +340,12 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
                                     <p class="text-sm text-gray-400 mb-3">รหัส: <?php echo h($model['code'] ?? ''); ?></p>
                                 <?php endif; ?>
                                 
+                                <?php 
+                                // ตรวจสอบการตั้งค่าการแสดงรายละเอียดส่วนตัว
+                                $show_model_details = ($global_settings['show_model_details'] ?? '1') == '1';
+                                
+                                if ($show_model_details): 
+                                ?>
                                 <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
                                     <?php if (!empty($model['height'])): ?>
                                         <span><i class="fas fa-ruler-vertical mr-1 text-red-primary"></i><?php echo h($model['height'] ?? ''); ?> cm</span>
@@ -349,12 +355,13 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
                                         <span><i class="fas fa-weight mr-1 text-red-primary"></i><?php echo h($model['weight'] ?? ''); ?> kg</span>
                                     <?php endif; ?>
                                 </div>
+                                <?php endif; ?>
                                 
                                 <?php 
                                 // ตรวจสอบการตั้งค่าการแสดงราคา
-                                $models_list_show_price = ($global_settings['models_list_show_price'] ?? '1') == '1';
+                                $show_model_price = ($global_settings['show_model_price'] ?? '1') == '1';
                                 
-                                if ($models_list_show_price && !empty($model['price']) && $model['price'] > 0): 
+                                if ($show_model_price && !empty($model['price']) && $model['price'] > 0): 
                                 ?>
                                     <div class="text-2xl font-bold text-red-primary mb-4">
                                         <?php echo number_format($model['price'] ?? 0); ?> ฿

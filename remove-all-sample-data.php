@@ -348,3 +348,5 @@ foreach ($all_images as $image) {
 </html>
 
 <?php $conn->close(); ?>
+
+

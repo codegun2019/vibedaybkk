@@ -107,11 +107,11 @@ while ($rel = $related_result->fetch_assoc()) {
 }
 
 // ตรวจสอบฟิลด์ที่แสดงได้ (ตาม settings)
-$show_price = ($global_settings['model_detail_show_price'] ?? '1') == '1';
+$show_price = ($global_settings['show_model_price'] ?? '1') == '1';
 $show_price_range = ($global_settings['model_detail_show_price_range'] ?? '1') == '1';
 $show_measurements = ($global_settings['model_detail_show_measurements'] ?? '1') == '1';
-$show_personal_info = ($global_settings['model_detail_show_personal_info'] ?? '1') == '1';
-$show_experience = ($global_settings['model_detail_show_experience'] ?? '1') == '1';
+$show_personal_info = ($global_settings['show_model_details'] ?? '1') == '1';
+$show_experience = ($global_settings['show_model_details'] ?? '1') == '1';
 $show_portfolio = ($global_settings['model_detail_show_portfolio'] ?? '1') == '1';
 $show_contact = ($global_settings['model_detail_show_contact'] ?? '1') == '1';
 ?>

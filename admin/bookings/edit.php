@@ -12,3 +12,5 @@ redirect(ADMIN_URL . '/bookings/view.php?id=' . $id);
 ?>
 
 
+
+

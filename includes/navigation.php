@@ -48,13 +48,6 @@ foreach ($social_platforms as $platform => $data) {
         }
     }
 }
-
-// Contact
-$contact_info = [
-    'phone' => $global_settings['site_phone'] ?? $global_settings['contact_phone'] ?? '02-123-4567',
-    'email' => $global_settings['site_email'] ?? $global_settings['contact_email'] ?? 'info@vibedaybkk.com',
-    'line_id' => $global_settings['site_line'] ?? $global_settings['contact_line'] ?? '@vibedaybkk',
-];
 ?>
 
 <!-- Navigation -->
@@ -102,8 +95,8 @@ $contact_info = [
     </div>
     
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 shadow-2xl md:hidden z-50" style="background: linear-gradient(135deg, rgba(10,10,10,0.98) 0%, rgba(26,26,26,0.98) 50%, rgba(10,10,10,0.98) 100%); backdrop-filter: blur(20px);">
-        <div class="p-6 h-full overflow-y-auto">
+    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl md:hidden z-50 backdrop-blur-md">
+        <div class="p-6">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
                 <div class="flex items-center gap-3">
@@ -114,7 +107,7 @@ $contact_info = [
                         <span class="text-white font-bold text-lg"><?php echo htmlspecialchars($logo_text); ?></span>
                     <?php endif; ?>
                 </div>
-                <button id="close-menu" class="text-gray-300 hover:text-white transition-colors p-2 hover:bg-red-primary/20 rounded-lg">
+                <button id="close-menu" class="text-gray-300 hover:text-white transition-colors">
                     <i class="fas fa-times text-2xl"></i>
                 </button>
             </div>
@@ -147,86 +140,55 @@ $contact_info = [
             <!-- Social Media -->
             <?php if (!empty($active_socials)): ?>
             <div class="mb-8 pb-6 border-t border-gray-700 pt-6">
-                <p class="text-gray-400 text-sm mb-4 font-semibold uppercase tracking-wider">ติดตามเรา</p>
-                <div class="flex flex-wrap gap-3">
+                <h4 class="text-sm font-semibold text-gray-400 mb-4">ติดตามเรา</h4>
+                <div class="flex space-x-3">
                     <?php foreach ($active_socials as $platform => $social): ?>
                     <a href="<?php echo htmlspecialchars($social['url']); ?>" 
-                       class="w-12 h-12 <?php echo str_replace('hover:bg-', 'bg-', explode(' ', $social['color'])[0]); ?> rounded-xl flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg hover:shadow-xl" 
-                       title="<?php echo $social['title']; ?>" 
-                       target="_blank" 
-                       rel="noopener">
-                        <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+                       class="w-10 h-10 rounded-full bg-gray-800 hover:bg-red-primary flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 hover:scale-110" 
+                       title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+                        <i class="fab <?php echo $social['icon']; ?>"></i>
                     </a>
                     <?php endforeach; ?>
                 </div>
             </div>
             <?php endif; ?>
-            
-            <!-- Contact Info -->
-            <div class="pt-6 border-t border-gray-700">
-                <p class="text-gray-400 text-sm mb-4 font-semibold uppercase tracking-wider">ติดต่อเรา</p>
-                <div class="space-y-3">
-                    <a href="tel:<?php echo htmlspecialchars($contact_info['phone']); ?>" class="flex items-center gap-3 text-gray-300 hover:text-red-primary transition-colors p-2 rounded-lg hover:bg-red-primary/10">
-                        <div class="w-8 h-8 bg-red-primary/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-phone text-red-primary text-sm"></i>
-                        </div>
-                        <span class="text-sm"><?php echo htmlspecialchars($contact_info['phone']); ?></span>
-                    </a>
-                    <a href="<?php echo htmlspecialchars($contact_info['line_id']); ?>" class="flex items-center gap-3 text-gray-300 hover:text-red-primary transition-colors p-2 rounded-lg hover:bg-red-primary/10">
-                        <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                            <i class="fab fa-line text-green-500 text-sm"></i>
-                        </div>
-                        <span class="text-sm"><?php echo htmlspecialchars($contact_info['line_id']); ?></span>
-                    </a>
-                    <a href="mailto:<?php echo htmlspecialchars($contact_info['email']); ?>" class="flex items-center gap-3 text-gray-300 hover:text-red-primary transition-colors p-2 rounded-lg hover:bg-red-primary/10">
-                        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-envelope text-blue-500 text-sm"></i>
-                        </div>
-                        <span class="text-sm"><?php echo htmlspecialchars($contact_info['email']); ?></span>
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 </nav>
 
-<!-- Mobile Menu Script -->
 <script>
 // Mobile Menu Toggle
-const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-const mobileMenu = document.getElementById('mobile-menu');
-const closeMenuBtn = document.getElementById('close-menu');
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const closeMenuBtn = document.getElementById('close-menu');
 
-if (mobileMenuBtn && mobileMenu && closeMenuBtn) {
-    mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    });
-
-    closeMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.remove('open');
-        document.body.style.overflow = 'auto';
-    });
-
-    // Close when clicking menu links
-    const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-    mobileMenuLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            mobileMenu.classList.remove('open');
-            document.body.style.overflow = 'auto';
+    if (mobileMenuBtn && mobileMenu && closeMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.add('open');
+            document.body.style.overflow = 'hidden';
         });
-    });
-    
-    // Close on outside click
-    document.addEventListener('click', (e) => {
-        if (mobileMenu.classList.contains('open') && 
-            !mobileMenu.contains(e.target) && 
-            !mobileMenuBtn.contains(e.target)) {
+
+        closeMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.remove('open');
-            document.body.style.overflow = 'auto';
-        }
-    });
-}
+            document.body.style.overflow = '';
+        });
+
+        // Close menu when clicking outside
+        mobileMenu.addEventListener('click', function(e) {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close menu when pressing escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+                mobileMenu.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+});
 </script>
-
-

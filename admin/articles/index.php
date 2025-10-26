@@ -170,10 +170,10 @@ require_once '../includes/readonly-notice.php';
                             <td class="px-4 py-3">
                                 <?php if ($article['featured_image']): ?>
                                     <img src="<?php echo UPLOADS_URL . '/' . $article['featured_image']; ?>" 
-                                         class="w-15 h-15 rounded-lg object-cover">
+                                         class="w-8 h-8 rounded-lg object-cover">
                                 <?php else: ?>
-                                    <div class="w-15 h-15 bg-gray-200 text-gray-500 rounded-lg flex items-center justify-center">
-                                        <i class="fas fa-image text-lg"></i>
+                                    <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-xs"></i>
                                     </div>
                                 <?php endif; ?>
                             </td>
