@@ -16,6 +16,9 @@ foreach ($result as $row) {
 // ดึงข้อมูลเมนู
 $main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
 
+// ดึงข้อมูลหมวดหมู่บริการสำหรับ footer
+$service_categories = db_get_rows($conn, "SELECT * FROM categories WHERE status = 'active' ORDER BY sort_order ASC LIMIT 4");
+
 // ดึงข้อมูลโซเชียลมีเดีย (ตรงตามหลังบ้าน)
 $social_platforms = [
     'facebook' => ['color' => 'bg-blue-600 hover:bg-blue-700', 'default_icon' => 'fa-facebook-f', 'title' => 'Facebook'],
@@ -752,11 +755,16 @@ if ($check_gallery->num_rows == 0) {
                     <h4 class="text-lg font-semibold mb-4">บริการของเรา</h4>
                     <ul class="space-y-2">
                         <?php 
-                        $service_categories = array_slice($categories, 0, 4);
-                        foreach ($service_categories as $category): 
+                        if (!empty($service_categories)): 
+                            foreach ($service_categories as $category): 
                         ?>
-                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($category['name']); ?></a></li>
-                        <?php endforeach; ?>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($category['name'] ?? ''); ?></a></li>
+                        <?php 
+                            endforeach;
+                        else:
+                        ?>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการของเรา</a></li>
+                        <?php endif; ?>
                     </ul>
                 </div>
                 
