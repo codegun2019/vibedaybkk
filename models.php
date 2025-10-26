@@ -170,84 +170,8 @@ $go_to_top_position = $global_settings['gototop_position'] ?? 'right';
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="bg-dark/90 backdrop-blur-md fixed w-full top-0 z-50 border-b border-gray-700">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <?php if (!empty($global_settings['logo_image'])): ?>
-                        <img src="<?php echo UPLOADS_URL . '/' . htmlspecialchars($global_settings['logo_image']); ?>" 
-                             alt="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>"
-                             class="h-10 w-auto">
-                    <?php else: ?>
-                        <h1 class="text-2xl font-bold text-red-primary">
-                            <?php echo htmlspecialchars($global_settings['logo_text'] ?? $global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>
-                        </h1>
-                    <?php endif; ?>
-                </div>
-                
-                <!-- Desktop Menu -->
-                <nav class="hidden lg:flex items-center space-x-8">
-                    <?php foreach ($main_menus as $menu): ?>
-                        <a href="<?php echo h($menu['url'] ?? ''); ?>" 
-                           class="text-gray-300 hover:text-red-primary transition-colors duration-300 font-medium">
-                            <?php echo h($menu['title'] ?? ''); ?>
-                        </a>
-                    <?php endforeach; ?>
-                </nav>
-                
-                <!-- Mobile Menu Button -->
-                <button class="lg:hidden text-gray-300 hover:text-red-primary transition-colors duration-300" onclick="toggleMobileMenu()">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden mobile-menu border-t border-gray-700 hidden">
-            <div class="container mx-auto px-4 py-4">
-                <?php foreach ($main_menus as $menu): ?>
-                    <a href="<?php echo h($menu['url'] ?? ''); ?>" 
-                       class="block py-3 text-gray-300 hover:text-red-primary transition-colors duration-300 font-medium border-b border-gray-700 last:border-b-0">
-                        <?php echo h($menu['title'] ?? ''); ?>
-                    </a>
-                <?php endforeach; ?>
-                
-                <!-- Social Media in Mobile Menu -->
-                <?php if (!empty($active_socials)): ?>
-                    <div class="mt-6 pt-6 border-t border-gray-700">
-                        <h4 class="text-sm font-medium text-gray-400 mb-4">ติดตามเรา</h4>
-                        <div class="flex space-x-4">
-                            <?php foreach ($active_socials as $platform => $data): ?>
-                                <a href="<?php echo htmlspecialchars($data['url']); ?>" 
-                                   target="_blank" 
-                                   class="<?php echo $data['color']; ?> text-white w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110">
-                                    <i class="fab <?php echo $data['icon']; ?>"></i>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- Contact Info in Mobile Menu -->
-                <div class="mt-6 pt-6 border-t border-gray-700">
-                    <h4 class="text-sm font-medium text-gray-400 mb-4">ติดต่อเรา</h4>
-                    <div class="space-y-2 text-sm text-gray-300">
-                        <?php if (!empty($contact_info['phone'])): ?>
-                            <p><i class="fas fa-phone mr-2 text-red-primary"></i><?php echo htmlspecialchars($contact_info['phone']); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($contact_info['email'])): ?>
-                            <p><i class="fas fa-envelope mr-2 text-red-primary"></i><?php echo htmlspecialchars($contact_info['email']); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($contact_info['line_id'])): ?>
-                            <p><i class="fab fa-line mr-2 text-red-primary"></i><?php echo htmlspecialchars($contact_info['line_id']); ?></p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Navigation -->
+    <?php include 'includes/navigation.php'; ?>
 
     <!-- Hero Section -->
     <section class="hero-gradient pt-24 pb-16">
