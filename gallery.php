@@ -690,77 +690,88 @@ if ($check_gallery->num_rows == 0) {
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark-light py-16">
+    <footer class="bg-dark py-12 border-t border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Company Info -->
-                <div class="md:col-span-2">
-                    <div class="flex items-center mb-6">
-                        <?php if (!empty($global_settings['logo_image'])): ?>
-                            <img src="<?php echo UPLOADS_URL . '/' . $global_settings['logo_image']; ?>" alt="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>" class="h-12 w-auto mr-4">
+                <div>
+                    <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
+                        <?php 
+                        $footer_logo_type = $global_settings['logo_type'] ?? 'text';
+                        $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $footer_logo_image = $global_settings['logo_image'] ?? '';
+                        
+                        if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 
+                        ?>
+                            <img src="<?php echo UPLOADS_URL . '/' . $footer_logo_image; ?>" alt="<?php echo htmlspecialchars($footer_logo_text); ?>" class="h-12 object-contain">
                         <?php else: ?>
-                            <span class="text-3xl font-bold text-white mr-4">
-                                <?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>
-                            </span>
+                            <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($footer_logo_text); ?>
                         <?php endif; ?>
                     </div>
-                    <p class="text-gray-400 mb-6 leading-relaxed">
-                        <?php echo htmlspecialchars($global_settings['site_description'] ?? 'บริการโมเดลและนางแบบมืออาชีพ'); ?>
-                    </p>
-                    
-                    <!-- Social Media -->
+                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
                     <?php if (!empty($active_socials)): ?>
-                        <div class="flex space-x-4">
-                            <?php foreach ($active_socials as $platform => $social): ?>
-                                <a href="<?php echo htmlspecialchars($social['url']); ?>" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full flex items-center justify-center transition-colors <?php echo $social['color']; ?>">
-                                    <i class="fab <?php echo $social['icon']; ?>"></i>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
+                    <div class="flex space-x-3">
+                        <?php foreach ($active_socials as $platform => $social): ?>
+                        <a href="<?php echo htmlspecialchars($social['url']); ?>" class="<?php echo $social['color']; ?> text-white" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+                            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
                     <?php endif; ?>
                 </div>
                 
-                <!-- Quick Links -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-6">ลิงก์ด่วน</h3>
-                    <ul class="space-y-3">
-                        <?php foreach (array_slice($main_menus, 0, 5) as $menu): ?>
-                            <li>
-                                <a href="<?php echo BASE_URL . '/' . $menu['url']; ?>" class="text-gray-400 hover:text-white transition-colors">
-                                    <?php echo htmlspecialchars($menu['title']); ?>
-                                </a>
-                            </li>
+                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2">
+                        <?php 
+                        // ใช้เมนูจากฐานข้อมูล (ไม่มีไอคอนใน footer)
+                        if (!empty($main_menus)): 
+                            foreach ($main_menus as $menu): 
+                        ?>
+                        <li>
+                            <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">
+                                <?php echo htmlspecialchars($menu['title']); ?>
+                            </a>
+                        </li>
+                        <?php 
+                            endforeach;
+                        else:
+                            // Fallback ถ้าไม่มีเมนูในฐานข้อมูล
+                        ?>
+                        <li><a href="<?php echo BASE_URL; ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
+                        <li><a href="models.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดล</a></li>
+                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
+                        <li><a href="gallery.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ผลงาน</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">บริการของเรา</h4>
+                    <ul class="space-y-2">
+                        <?php 
+                        $service_categories = array_slice($categories, 0, 4);
+                        foreach ($service_categories as $category): 
+                        ?>
+                        <li><a href="#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($category['name']); ?></a></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
                 
-                <!-- Contact Info -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-6">ติดต่อเรา</h3>
-                    <div class="space-y-3 text-gray-400">
-                        <div class="flex items-center">
-                            <i class="fas fa-phone mr-3 text-red-primary"></i>
-                            <span><?php echo htmlspecialchars($contact_info['phone']); ?></span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-envelope mr-3 text-red-primary"></i>
-                            <span><?php echo htmlspecialchars($contact_info['email']); ?></span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fab fa-line mr-3 text-red-primary"></i>
-                            <span><?php echo htmlspecialchars($contact_info['line_id']); ?></span>
-                        </div>
-                        <div class="flex items-start">
-                            <i class="fas fa-map-marker-alt mr-3 text-red-primary mt-1"></i>
-                            <span><?php echo htmlspecialchars($contact_info['address']); ?></span>
-                        </div>
-                    </div>
+                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><i class="fas fa-phone mr-2"></i><?php echo htmlspecialchars($contact_info['phone']); ?></li>
+                        <li><i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($contact_info['email']); ?></li>
+                        <li><i class="fab fa-line mr-2"></i><?php echo htmlspecialchars($contact_info['line_id']); ?></li>
+                    </ul>
                 </div>
             </div>
             
-            <!-- Copyright -->
-            <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>. All rights reserved.</p>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; <?php echo date('Y'); ?> VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
             </div>
         </div>
     </footer>
