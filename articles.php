@@ -719,13 +719,29 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
                 <div>
                     <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
                     <ul class="space-y-2">
+                        <?php 
+                        // ใช้เมนูจากฐานข้อมูล (ไม่มีไอคอนใน footer)
+                        if (!empty($main_menus)): 
+                            foreach ($main_menus as $menu): 
+                        ?>
+                        <li>
+                            <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">
+                                <?php echo htmlspecialchars($menu['title']); ?>
+                            </a>
+                        </li>
+                        <?php 
+                            endforeach;
+                        else:
+                            // Fallback ถ้าไม่มีเมนูในฐานข้อมูล
+                        ?>
                         <li><a href="<?php echo BASE_URL; ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300">หน้าแรก</a></li>
                         <li><a href="<?php echo BASE_URL; ?>#about" class="text-gray-400 hover:text-red-primary transition-colors duration-300">เกี่ยวกับเรา</a></li>
                         <li><a href="<?php echo BASE_URL; ?>#services" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บริการ</a></li>
-                        <?php foreach ($main_menus as $menu): ?>
-                        <li><a href="<?php echo htmlspecialchars($menu['url']); ?>" class="text-gray-400 hover:text-red-primary transition-colors duration-300"><?php echo htmlspecialchars($menu['title']); ?></a></li>
-                        <?php endforeach; ?>
+                        <li><a href="models.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">โมเดล</a></li>
+                        <li><a href="articles.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">บทความ</a></li>
+                        <li><a href="gallery.php" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ผลงาน</a></li>
                         <li><a href="<?php echo BASE_URL; ?>#contact" class="text-gray-400 hover:text-red-primary transition-colors duration-300">ติดต่อ</a></li>
+                        <?php endif; ?>
                     </ul>
                 </div>
                 
