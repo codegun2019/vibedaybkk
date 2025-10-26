@@ -189,16 +189,6 @@ $full_name = $_SESSION['full_name'];
                     </span>
                     <?php endif; ?>
                 </a>
-                <a href="<?php echo ADMIN_URL; ?>/homepage/content.php" 
-                   class="sidebar-link <?php echo ($current_page ?? '') == 'homepage-content' ? 'active' : ''; ?> flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-white transition-all duration-200">
-                    <i class="fas fa-edit w-5 mr-3"></i>
-                    <span>แก้ไขเนื้อหา</span>
-                    <?php if (!has_permission('homepage', 'edit')): ?>
-                    <span class="ml-auto text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded flex items-center gap-1">
-                        <i class="fas fa-lock text-xs"></i>ปลดล็อค
-                    </span>
-                    <?php endif; ?>
-                </a>
                 <?php endif; ?>
                 
                 <?php if (has_permission('articles', 'view')): ?>
