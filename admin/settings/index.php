@@ -172,16 +172,6 @@ require_once '../includes/locked-form.php';
         </div>
         <p class="text-gray-600 text-sm">ไอคอนโซเชียล, ปุ่ม Go to Top, สีธีม</p>
     </a>
-    
-    <a href="<?php echo ADMIN_URL; ?>/homepage/" class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:border-2 hover:border-green-500">
-        <div class="flex items-center mb-4">
-            <div class="w-12 h-12 bg-gradient-to-r from-green-600 to-green-700 rounded-lg flex items-center justify-center mr-4">
-                <i class="fas fa-home text-white text-xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900">จัดการหน้าแรก</h3>
-        </div>
-        <p class="text-gray-600 text-sm">Section, Gallery, Features</p>
-    </a>
 </div>
 
 <?php if (!empty($errors)): ?>
