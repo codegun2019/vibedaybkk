@@ -573,131 +573,12 @@ if (!$about_section) {
         </div>
     </div>
 
-    <!-- Navigation -->
+    <!-- ================================
+         SECTION: NAVIGATION
+         ใช้ไฟล์ shared component
+         จัดการที่: includes/navigation.php
+         ================================ -->
     <?php include 'includes/navigation.php'; ?>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="<?php echo BASE_URL; ?>" class="text-2xl font-bold text-red-primary flex items-center">
-                        <?php 
-                        $logo_type = $global_settings['logo_type'] ?? 'text';
-                        $logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
-                        $logo_image = $global_settings['logo_image'] ?? '';
-                        
-                        if ($logo_type === 'image' && !empty($logo_image)): 
-                        ?>
-                            <img src="<?php echo UPLOADS_URL . '/' . $logo_image; ?>" alt="<?php echo htmlspecialchars($logo_text); ?>" class="h-10 object-contain">
-                        <?php else: ?>
-                            <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($logo_text); ?>
-                        <?php endif; ?>
-                    </a>
-                </div>
-                
-                <!-- Desktop Menu -->
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <?php 
-                        // ดึงเมนูทั้งหมดจาก database เท่านั้น (ไม่ hard-coded)
-                        if (!empty($main_menus)): 
-                            foreach ($main_menus as $menu): 
-                        ?>
-                            <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="nav-link text-gray-300 hover:text-red-primary transition-colors duration-300">
-                                <?php if (!empty($menu['icon'])): ?>
-                                    <i class="fas <?php echo htmlspecialchars($menu['icon']); ?> mr-1"></i>
-                                <?php endif; ?>
-                                <?php echo htmlspecialchars($menu['title']); ?>
-                            </a>
-                        <?php 
-                            endforeach;
-                        endif; 
-                        ?>
-                    </div>
-                </div>
-                
-                <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl md:hidden z-50 backdrop-blur-md">
-            <div class="p-6">
-                <!-- Header Mobile Menu -->
-                <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
-                    <div class="flex items-center gap-3">
-                        <?php if ($logo_type === 'image' && !empty($logo_image)): ?>
-                            <img src="<?php echo UPLOADS_URL . '/' . $logo_image; ?>" alt="Logo" class="h-8 object-contain">
-                        <?php else: ?>
-                            <i class="fas fa-star text-red-primary text-xl"></i>
-                            <span class="text-white font-bold text-lg"><?php echo htmlspecialchars($logo_text); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <button id="close-menu" class="text-gray-300 hover:text-white transition-colors">
-                        <i class="fas fa-times text-2xl"></i>
-                    </button>
-                </div>
-                
-                <!-- Menu Items -->
-                <div class="space-y-2">
-                    <?php 
-                    // ดึงเมนูจาก database เท่านั้น
-                    if (!empty($main_menus)): 
-                        foreach ($main_menus as $index => $menu): 
-                    ?>
-                        <a href="<?php echo htmlspecialchars($menu['url']); ?>" class="mobile-menu-link group flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-red-primary/20 transition-all duration-300 border border-transparent hover:border-red-primary/30">
-                            <?php if (!empty($menu['icon'])): ?>
-                                <i class="fas <?php echo htmlspecialchars($menu['icon']); ?> text-lg group-hover:text-red-primary transition-colors"></i>
-                            <?php else: ?>
-                                <i class="fas fa-circle text-xs group-hover:text-red-primary transition-colors"></i>
-                            <?php endif; ?>
-                            <span class="font-medium"><?php echo htmlspecialchars($menu['title']); ?></span>
-                            <i class="fas fa-chevron-right text-xs ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                        </a>
-                    <?php 
-                        endforeach;
-                    endif; 
-                    ?>
-                </div>
-                
-                <!-- Social Media in Mobile Menu -->
-                <?php if (!empty($active_socials)): ?>
-                <div class="mt-8 pt-6 border-t border-gray-700">
-                    <p class="text-gray-400 text-sm mb-4 font-semibold">ติดตามเรา</p>
-                    <div class="flex flex-wrap gap-3">
-                        <?php foreach ($active_socials as $platform => $social): ?>
-                        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
-                           class="w-12 h-12 <?php echo str_replace('hover:bg-', 'bg-', explode(' ', $social['color'])[0]); ?> rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg" 
-                           title="<?php echo $social['title']; ?>" 
-                           target="_blank" 
-                           rel="noopener">
-                            <i class="fab <?php echo $social['icon']; ?>"></i>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                
-                <!-- Contact Info in Mobile Menu -->
-                <div class="mt-6 pt-6 border-t border-gray-700">
-                    <p class="text-gray-400 text-sm mb-4 font-semibold">ติดต่อเรา</p>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex items-center gap-3 text-gray-300">
-                            <i class="fas fa-phone text-red-primary"></i>
-                            <span><?php echo htmlspecialchars($contact_info['phone']); ?></span>
-                        </div>
-                        <div class="flex items-center gap-3 text-gray-300">
-                            <i class="fab fa-line text-red-primary"></i>
-                            <span><?php echo htmlspecialchars($contact_info['line_id']); ?></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     <!-- Social Sidebar -->
     <?php if (!empty($active_socials)): ?>
@@ -717,7 +598,10 @@ if (!$about_section) {
     </button>
     <?php endif; ?>
 
-    <!-- Hero Section -->
+    <!-- ================================
+         SECTION: HERO
+         จัดการที่: admin/homepage/edit.php?id=1
+         ================================ -->
     <section id="home" class="hero-gradient min-h-screen flex items-center pt-16"
              <?php if (($hero_section['background_type'] ?? 'color') === 'image' && !empty($hero_section['background_image'])): ?>
              style="background-image: url('<?php echo UPLOADS_URL . '/' . $hero_section['background_image']; ?>'); 
@@ -795,7 +679,11 @@ if (!$about_section) {
         </div>
     </section>
 
-    <!-- About Section -->
+    <!-- ================================
+         SECTION: ABOUT
+         จัดการที่: admin/homepage/edit.php?id=2
+         Features จัดการได้ในฟอร์ม
+         ================================ -->
     <section id="about" class="py-20"
              <?php if (($about_section['background_type'] ?? 'color') === 'image' && !empty($about_section['background_image'])): ?>
              style="background-image: url('<?php echo UPLOADS_URL . '/' . $about_section['background_image']; ?>'); 
@@ -902,7 +790,10 @@ if (!$about_section) {
         </div>
     </section>
 
-    <!-- Services Section -->
+    <!-- ================================
+         SECTION: SERVICES
+         จัดการที่: admin/homepage/edit.php?id=3
+         ================================ -->
     <section id="services" class="py-20 bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <?php
@@ -1051,7 +942,11 @@ if (!$about_section) {
         </div>
     </section>
 
-    <!-- How to Book Section -->
+    <!-- ================================
+         SECTION: HOW TO BOOK
+         จัดการที่: admin/homepage/edit.php?id=4
+         Steps จัดการได้ในฟอร์ม
+         ================================ -->
     <section id="how-to-book" class="py-20 bg-dark-light">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -1220,7 +1115,10 @@ if (!$about_section) {
     </section>
     <?php endif; ?>
 
-    <!-- Articles Section -->
+    <!-- ================================
+         SECTION: ARTICLES
+         จัดการที่: admin/articles/
+         ================================ -->
     <?php if (!empty($articles)): ?>
     <section class="py-20 bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1293,7 +1191,10 @@ if (!$about_section) {
     </section>
     <?php endif; ?>
 
-    <!-- Contact Section -->
+    <!-- ================================
+         SECTION: CONTACT
+         จัดการที่: admin/settings/
+         ================================ -->
     <section id="contact" class="py-20 bg-dark-light">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
