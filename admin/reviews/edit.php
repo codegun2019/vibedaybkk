@@ -44,19 +44,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['image']['tmp_name'])) {
             $upload = upload_image($_FILES['image'], 'reviews');
             if ($upload['success']) {
-                $data['image'] = $upload['file_path'];
+                // upload_image() ส่งกลับมาเป็น 'reviews/filename.jpg'
+                // ต้องเพิ่ม 'uploads/' เพื่อให้เป็น 'uploads/reviews/filename.jpg'
+                $data['image'] = 'uploads/' . $upload['file_path'];
+                
                 // Delete old image
                 if (!empty($review['image'])) {
                     // ลอง path ต่างๆ
                     $old_image_paths = [
-                        UPLOADS_PATH . '/' . str_replace('uploads/', '', $review['image']),
                         ROOT_PATH . '/' . $review['image'],
+                        UPLOADS_PATH . '/' . str_replace('uploads/', '', $review['image']),
                         $review['image']
                     ];
                     
                     foreach ($old_image_paths as $old_path) {
                         if (file_exists($old_path)) {
                             @unlink($old_path);
+                            
+                            // ลบ thumbnail ด้วย
+                            $thumb_path = str_replace('/' . basename($old_path), '/thumbs/thumb_' . basename($old_path), $old_path);
+                            if (file_exists($thumb_path)) {
+                                @unlink($thumb_path);
+                            }
                             break;
                         }
                     }
@@ -195,25 +204,36 @@ include '../includes/header.php';
             // ตรวจสอบ path ของรูปภาพ
             $image_path = $review['image'];
             
-            // ถ้าเป็น relative path (เริ่มด้วย uploads/) ให้ใช้ UPLOADS_URL
-            if (strpos($image_path, 'uploads/') === 0) {
-                $image_url = UPLOADS_URL . '/' . str_replace('uploads/', '', $image_path);
-            } 
-            // ถ้าไม่มี 'http' ให้ต่อกับ BASE_URL
-            elseif (strpos($image_path, 'http') === false) {
-                $image_url = BASE_URL . '/' . $image_path;
-            } 
+            // Path ในฐานข้อมูลอาจเป็น: 'reviews/filename.jpg' หรือ 'uploads/reviews/filename.jpg'
+            // ต้องแก้ให้เป็น: 'uploads/reviews/filename.jpg'
+            
+            // ถ้า path ไม่มี 'uploads/' ต้องเพิ่มเข้าไป
+            if (strpos($image_path, 'uploads/') === false) {
+                // ถ้าเป็น path แบบ 'reviews/xxx' ให้แก้เป็น 'uploads/reviews/xxx'
+                if (strpos($image_path, 'reviews/') === 0) {
+                    $image_path = 'uploads/' . $image_path;
+                } elseif (strpos($image_path, '/') !== 0) {
+                    // ถ้าเป็น path แบบ 'xxx' ให้แปลงเป็น 'uploads/xxx'
+                    $image_path = 'uploads/' . $image_path;
+                }
+            }
+            
+            // สร้าง URL จาก path
             // ถ้าเป็น full URL อยู่แล้ว
-            else {
+            if (strpos($image_path, 'http') === 0) {
                 $image_url = $image_path;
+            } 
+            // ถ้าเป็น relative path ให้ต่อกับ BASE_URL
+            else {
+                $image_url = BASE_URL . '/' . $image_path;
             }
             
             // ตรวจสอบว่าไฟล์มีอยู่จริงหรือไม่
             $image_exists = false;
             $test_paths = [
-                $image_path,
                 ROOT_PATH . '/' . $image_path,
-                str_replace('uploads/', UPLOADS_PATH . '/', $image_path)
+                str_replace('uploads/', UPLOADS_PATH . '/', $image_path),
+                $image_path
             ];
             
             foreach ($test_paths as $test_path) {
@@ -225,7 +245,8 @@ include '../includes/header.php';
             
             // Debug info (remove in production)
             $debug_info = [
-                'database_path' => $image_path,
+                'database_path' => $review['image'],
+                'corrected_path' => $image_path,
                 'resolved_url' => $image_url,
                 'file_exists' => $image_exists
             ];
@@ -258,7 +279,8 @@ include '../includes/header.php';
                         <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
                         <div>
                             <p class="text-sm font-medium text-yellow-800 mb-1">ไม่พบไฟล์รูปภาพ</p>
-                            <p class="text-xs text-yellow-600">Path ในฐานข้อมูล: <?php echo htmlspecialchars($image_path); ?></p>
+                            <p class="text-xs text-yellow-600">Path ในฐานข้อมูล: <?php echo htmlspecialchars($review['image']); ?></p>
+                            <p class="text-xs text-yellow-600">Corrected Path: <?php echo htmlspecialchars($image_path); ?></p>
                             <p class="text-xs text-yellow-600">Resolved URL: <?php echo htmlspecialchars($image_url); ?></p>
                         </div>
                     </div>
