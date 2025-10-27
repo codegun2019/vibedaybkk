@@ -46,8 +46,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($upload['success']) {
                 $data['image'] = $upload['file_path'];
                 // Delete old image
-                if (!empty($review['image']) && file_exists(ROOT_PATH . '/' . $review['image'])) {
-                    @unlink(ROOT_PATH . '/' . $review['image']);
+                if (!empty($review['image'])) {
+                    // ลอง path ต่างๆ
+                    $old_image_paths = [
+                        UPLOADS_PATH . '/' . str_replace('uploads/', '', $review['image']),
+                        ROOT_PATH . '/' . $review['image'],
+                        $review['image']
+                    ];
+                    
+                    foreach ($old_image_paths as $old_path) {
+                        if (file_exists($old_path)) {
+                            @unlink($old_path);
+                            break;
+                        }
+                    }
                 }
             } else {
                 $errors[] = 'ไม่สามารถอัพโหลดรูปภาพได้: ' . ($upload['error'] ?? 'Unknown error');
@@ -179,11 +191,28 @@ include '../includes/header.php';
         </div>
         <div class="p-6 space-y-6">
             <?php if (!empty($review['image'])): ?>
+            <?php 
+            // ตรวจสอบ path ของรูปภาพ
+            $image_path = $review['image'];
+            
+            // ถ้าเป็น relative path (เริ่มด้วย uploads/) ให้ใช้ UPLOADS_URL
+            if (strpos($image_path, 'uploads/') === 0) {
+                $image_url = UPLOADS_URL . '/' . str_replace('uploads/', '', $image_path);
+            } 
+            // ถ้าไม่มี 'http' ให้ต่อกับ BASE_URL
+            elseif (strpos($image_path, 'http') === false) {
+                $image_url = BASE_URL . '/' . $image_path;
+            } 
+            // ถ้าเป็น full URL อยู่แล้ว
+            else {
+                $image_url = $image_path;
+            }
+            ?>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</label>
                 <div class="flex items-start space-x-4">
                     <div class="relative group">
-                        <img src="<?php echo BASE_URL . '/' . $review['image']; ?>" 
+                        <img src="<?php echo htmlspecialchars($image_url); ?>" 
                              alt="รูปภาพรีวิว" 
                              class="w-32 h-32 object-cover rounded-xl shadow-lg border-2 border-gray-200 group-hover:shadow-xl transition-all duration-300">
                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-xl transition-all duration-300 flex items-center justify-center">
@@ -192,7 +221,7 @@ include '../includes/header.php';
                     </div>
                     <div class="flex-1">
                         <p class="text-sm text-gray-600 mb-2">คลิกที่รูปเพื่อดูขนาดเต็ม</p>
-                        <button type="button" onclick="viewImage('<?php echo BASE_URL . '/' . $review['image']; ?>')" 
+                        <button type="button" onclick="viewImage('<?php echo htmlspecialchars($image_url); ?>')" 
                                 class="inline-flex items-center px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm font-medium transition-colors duration-200">
                             <i class="fas fa-expand mr-2"></i>ดูรูปภาพ
                         </button>
