@@ -66,35 +66,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            if (db_update($conn, 'categories', $data, 'id = :id', ['id' => $category_id])) {
-                
-                // Update requirements
-                $conn->query("DELETE FROM model_requirements WHERE category_id = {$category_id}");
-                if (!empty($_POST['requirements'])) {
-                    $requirements = explode("\n", $_POST['requirements']);
-                    $sort = 1;
-                    foreach ($requirements as $req) {
-                        $req = trim($req);
-                        if (!empty($req)) {
-                            $req_data = [
-                                'category_id' => $category_id,
-                                'requirement' => $req,
-                                'sort_order' => $sort++
-                            ];
-                            db_insert($conn, 'model_requirements', $req_data);
-                        }
+            // ใช้ direct SQL แทน db_update เพราะ db_update ไม่รองรับ WHERE แบบ MySQLi
+            $setParts = [];
+            $params = [];
+            $types = '';
+            
+            foreach ($data as $key => $value) {
+                if ($value !== null || $key === 'price_min' || $key === 'price_max') {
+                    $setParts[] = "{$key} = ?";
+                    
+                    if ($key === 'price_min' || $key === 'price_max') {
+                        $params[] = $value;
+                        $types .= 'd'; // double
+                    } elseif ($key === 'sort_order') {
+                        $params[] = $value;
+                        $types .= 'i'; // integer
+                    } else {
+                        $params[] = $value;
+                        $types .= 's'; // string
                     }
                 }
-                
-                log_activity($conn, $_SESSION['user_id'], 'update', 'categories', $category_id, $category, $data);
-                
-                $success = true;
-                // Refresh data
-                $category = get_category($conn, $category_id);
-                $requirements = db_get_rows($conn, "SELECT * FROM model_requirements WHERE category_id = {$category_id} ORDER BY sort_order ASC");
-                $requirements_text = implode("\n", array_column($requirements, 'requirement'));
+            }
+            
+            $setString = implode(', ', $setParts);
+            $sql = "UPDATE categories SET {$setString} WHERE id = ?";
+            $params[] = $category_id;
+            $types .= 'i';
+            
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                $errors[] = 'SQL Error: ' . $conn->error;
             } else {
-                $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+                $stmt->bind_param($types, ...$params);
+                
+                if ($stmt->execute()) {
+                    // Update requirements
+                    $conn->query("DELETE FROM model_requirements WHERE category_id = {$category_id}");
+                    if (!empty($_POST['requirements'])) {
+                        $requirements = explode("\n", $_POST['requirements']);
+                        $sort = 1;
+                        foreach ($requirements as $req) {
+                            $req = trim($req);
+                            if (!empty($req)) {
+                                $req_data = [
+                                    'category_id' => $category_id,
+                                    'requirement' => $req,
+                                    'sort_order' => $sort++
+                                ];
+                                db_insert($conn, 'model_requirements', $req_data);
+                            }
+                        }
+                    }
+                    
+                    log_activity($conn, $_SESSION['user_id'], 'update', 'categories', $category_id, json_encode($category), json_encode($data));
+                    
+                    $success = true;
+                    // Refresh data
+                    $category = get_category($conn, $category_id);
+                    $requirements = db_get_rows($conn, "SELECT * FROM model_requirements WHERE category_id = {$category_id} ORDER BY sort_order ASC");
+                    $requirements_text = implode("\n", array_column($requirements, 'requirement'));
+                } else {
+                    $errors[] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $conn->error;
+                }
+                $stmt->close();
             }
         }
     }
