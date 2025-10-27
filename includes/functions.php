@@ -506,12 +506,33 @@ function upload_image($file, $folder = 'general', $createThumbnail = true) {
         
         $imageInfo = @getimagesize($file['tmp_name']);
         if ($imageInfo === false) {
-            return ['success' => false, 'error' => 'ไฟล์ไม่ใช่รูปภาพที่ถูกต้อง'];
+            // ถ้า getimagesize ล้มเหลว ลองใช้ imagecreatefromstring
+            $imgData = @file_get_contents($file['tmp_name']);
+            if ($imgData === false) {
+                return ['success' => false, 'error' => 'ไม่สามารถอ่านไฟล์ได้'];
+            }
+            
+            // ลองแปลงเป็น image resource
+            $imgResource = @imagecreatefromstring($imgData);
+            if ($imgResource === false) {
+                return ['success' => false, 'error' => 'ไฟล์ไม่ใช่รูปภาพที่ถูกต้อง'];
+            }
+            
+            // ถ้าแปลงได้ แปลงเป็น JPEG แทน
+            $mimeType = 'image/jpeg';
+            $width = imagesx($imgResource);
+            $height = imagesy($imgResource);
+            imagedestroy($imgResource);
+            
+            // แปลง extension เป็น jpeg
+            if ($ext === 'webp') {
+                $ext = 'jpg';
+            }
+        } else {
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            $mimeType = $imageInfo['mime'];
         }
-        
-        $width = $imageInfo[0];
-        $height = $imageInfo[1];
-        $mimeType = $imageInfo['mime'];
         
         // Create upload directory if not exists
         $uploadDir = ROOT_PATH . '/uploads/' . $folder;
@@ -528,6 +549,28 @@ function upload_image($file, $folder = 'general', $createThumbnail = true) {
         // Move uploaded file
         if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
             return ['success' => false, 'error' => 'ไม่สามารถย้ายไฟล์ได้'];
+        }
+        
+        // ถ้าเป็น WEBP ที่อาจเสียหาย ให้แปลงเป็น JPEG
+        if ($ext === 'webp' && !isset($imageInfo)) {
+            // สร้าง image resource จาก WEBP ที่เสียแล้ว
+            $imgData = file_get_contents($uploadPath);
+            $imgResource = @imagecreatefromstring($imgData);
+            
+            if ($imgResource !== false) {
+                // แปลงเป็น JPEG
+                $newJpegPath = str_replace('.webp', '.jpg', $uploadPath);
+                imagejpeg($imgResource, $newJpegPath, 85);
+                imagedestroy($imgResource);
+                
+                // ลบ WEBP เดิม
+                unlink($uploadPath);
+                
+                // ใช้ JPEG แทน
+                $uploadPath = $newJpegPath;
+                $newFilename = str_replace('.webp', '.jpg', $newFilename);
+                $ext = 'jpg';
+            }
         }
         
         // เก็บ path แบบ 'general/filename.png' (ไม่ใส่ uploads/ เพราะ UPLOADS_URL มีอยู่แล้ว)
@@ -601,7 +644,43 @@ function create_thumbnail($source, $destination, $maxWidth, $maxHeight) {
                 break;
             case 'image/webp':
                 if (function_exists('imagecreatefromwebp')) {
-                    $srcImage = imagecreatefromwebp($source);
+                    // ตรวจสอบว่าเป็นไฟล์ valid ก่อน
+                    if (!file_exists($source) || !is_readable($source)) {
+                        error_log("WEBP file not accessible: $source");
+                        return false;
+                    }
+                    
+                    // ตรวจสอบ file signature
+                    $handle = @fopen($source, 'rb');
+                    if (!$handle) {
+                        error_log("Cannot open WEBP file: $source");
+                        return false;
+                    }
+                    
+                    $header = fread($handle, 12);
+                    fclose($handle);
+                    
+                    // Check WEBP signature
+                    if (substr($header, 0, 4) !== 'RIFF' || substr($header, 8, 4) !== 'WEBP') {
+                        error_log("Invalid WEBP signature: $source");
+                        // ลองแปลงเป็น JPEG แทน
+                        $srcImage = @imagecreatefromstring(file_get_contents($source));
+                        if ($srcImage === false) {
+                            return false;
+                        }
+                        $mimeType = 'image/jpeg'; // เปลี่ยนเป็น JPEG
+                    } else {
+                        $srcImage = @imagecreatefromwebp($source);
+                        if ($srcImage === false) {
+                            error_log("Failed to create image from WEBP: $source");
+                            // ลองใช้ imagecreatefromstring เป็น fallback
+                            $srcImage = @imagecreatefromstring(file_get_contents($source));
+                            if ($srcImage === false) {
+                                return false;
+                            }
+                            $mimeType = 'image/jpeg'; // เปลี่ยนเป็น JPEG
+                        }
+                    }
                 } else {
                     return false;
                 }
