@@ -207,14 +207,39 @@ include '../includes/header.php';
             else {
                 $image_url = $image_path;
             }
+            
+            // ตรวจสอบว่าไฟล์มีอยู่จริงหรือไม่
+            $image_exists = false;
+            $test_paths = [
+                $image_path,
+                ROOT_PATH . '/' . $image_path,
+                str_replace('uploads/', UPLOADS_PATH . '/', $image_path)
+            ];
+            
+            foreach ($test_paths as $test_path) {
+                if (file_exists($test_path)) {
+                    $image_exists = true;
+                    break;
+                }
+            }
+            
+            // Debug info (remove in production)
+            $debug_info = [
+                'database_path' => $image_path,
+                'resolved_url' => $image_url,
+                'file_exists' => $image_exists
+            ];
             ?>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-3">รูปภาพปัจจุบัน</label>
+                
+                <?php if ($image_exists): ?>
                 <div class="flex items-start space-x-4">
                     <div class="relative group">
                         <img src="<?php echo htmlspecialchars($image_url); ?>" 
                              alt="รูปภาพรีวิว" 
-                             class="w-32 h-32 object-cover rounded-xl shadow-lg border-2 border-gray-200 group-hover:shadow-xl transition-all duration-300">
+                             class="w-32 h-32 object-cover rounded-xl shadow-lg border-2 border-gray-200 group-hover:shadow-xl transition-all duration-300"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23e5e7eb%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2212%22 fill=%22%23999%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3Eไม่พบรูป%3C/text%3E%3C/svg%3E';">
                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-xl transition-all duration-300 flex items-center justify-center">
                             <i class="fas fa-eye text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
                         </div>
@@ -227,6 +252,18 @@ include '../includes/header.php';
                         </button>
                     </div>
                 </div>
+                <?php else: ?>
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+                        <div>
+                            <p class="text-sm font-medium text-yellow-800 mb-1">ไม่พบไฟล์รูปภาพ</p>
+                            <p class="text-xs text-yellow-600">Path ในฐานข้อมูล: <?php echo htmlspecialchars($image_path); ?></p>
+                            <p class="text-xs text-yellow-600">Resolved URL: <?php echo htmlspecialchars($image_url); ?></p>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
             
