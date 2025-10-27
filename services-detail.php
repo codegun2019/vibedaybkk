@@ -280,7 +280,7 @@ foreach ($main_menus as $menu) {
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; <?php echo date('Y'); ?> VIBEDAYBKK. สงวนลิขสิทธิ์.</p>
+                <p>&copy; 2025 lollipop24hours. สงวนลิขสิทธิ์.</p>
             </div>
         </div>
     </footer>
