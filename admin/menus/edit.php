@@ -53,17 +53,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($data['url'])) $errors[] = 'กรุณากรอก URL';
         
         if (empty($errors)) {
-            if (db_update($conn, 'menus', $data, 'id = :id', ['id' => $menu_id])) {
-                log_activity($conn, $_SESSION['user_id'], 'update', 'menus', $menu_id, $menu, $data);
+            // ใช้แบบ direct SQL แทน
+            $setParts = [];
+            $params = [];
+            $types = '';
+            
+            foreach ($data as $key => $value) {
+                if ($key !== 'parent_id' || $value !== null) {
+                    $setParts[] = "{$key} = ?";
+                    $params[] = $value;
+                    
+                    if ($key === 'sort_order') {
+                        $types .= 'i';
+                    } else {
+                        $types .= 's';
+                    }
+                }
+            }
+            
+            $setString = implode(', ', $setParts);
+            $sql = "UPDATE menus SET {$setString} WHERE id = ?";
+            $params[] = $menu_id;
+            $types .= 'i';
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+            
+            if ($stmt->execute()) {
+                log_activity($conn, $_SESSION['user_id'], 'update', 'menus', $menu_id, json_encode($menu), json_encode($data));
                 $success = true;
                 
+                // Refresh menu data
                 $stmt = $conn->prepare("SELECT * FROM menus WHERE id = ?");
                 $stmt->bind_param('i', $menu_id);
-            $stmt->execute();
+                $stmt->execute();
                 $result = $stmt->get_result();
-$menu = $result->fetch_assoc();
+                $menu = $result->fetch_assoc();
             } else {
-                $errors[] = 'เกิดข้อผิดพลาด';
+                $errors[] = 'เกิดข้อผิดพลาด: ' . $conn->error;
             }
         }
     }
@@ -153,7 +180,7 @@ include '../includes/header.php';
                             <i class="fas fa-question text-3xl text-gray-400"></i>
                             <?php endif; ?>
                         </div>
-                        <button type="button" class="icon-picker-btn px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
+                        <button type="button" id="open-icon-picker" class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg">
                             <i class="fas fa-icons mr-2"></i>เลือกไอคอน
                         </button>
                     </div>
@@ -254,16 +281,18 @@ const popularIcons = [
 
 // Icon preview
 const iconInput = document.getElementById('icon-input');
-const iconPreview = document.getElementById('icon-preview');
+const iconPreview = document.getElementById('icon-input_preview');
 
-iconInput.addEventListener('input', function() {
-    const iconClass = this.value.trim();
-    if (iconClass) {
-        iconPreview.innerHTML = '<i class="fas ' + iconClass + ' text-3xl text-blue-600"></i>';
-    } else {
-        iconPreview.innerHTML = '<i class="fas fa-question text-3xl text-gray-400"></i>';
-    }
-});
+if (iconInput && iconPreview) {
+    iconInput.addEventListener('input', function() {
+        const iconClass = this.value.trim();
+        if (iconClass) {
+            iconPreview.innerHTML = '<i class="fas ' + iconClass + ' text-3xl text-blue-600"></i>';
+        } else {
+            iconPreview.innerHTML = '<i class="fas fa-question text-3xl text-gray-400"></i>';
+        }
+    });
+}
 
 // Icon Picker Modal
 const modal = document.getElementById('icon-picker-modal');
@@ -284,8 +313,8 @@ function loadIcons(filter = '') {
         div.className = 'icon-item flex flex-col items-center justify-center p-3 bg-gray-50 hover:bg-purple-100 rounded-lg cursor-pointer transition-all duration-200 border-2 border-transparent hover:border-purple-500';
         div.innerHTML = '<i class="fas ' + icon + ' text-2xl text-gray-700 mb-1"></i><span class="text-xs text-gray-600">' + icon.replace('fa-', '') + '</span>';
         div.addEventListener('click', function() {
-            iconInput.value = icon;
-            iconPreview.innerHTML = '<i class="fas ' + icon + ' text-3xl text-blue-600"></i>';
+            if (iconInput) iconInput.value = icon;
+            if (iconPreview) iconPreview.innerHTML = '<i class="fas ' + icon + ' text-3xl text-blue-600"></i>';
             modal.classList.add('hidden');
             
             // Show toast
@@ -310,32 +339,40 @@ function loadIcons(filter = '') {
 }
 
 // Open modal
-openBtn.addEventListener('click', function() {
-    modal.classList.remove('hidden');
-    loadIcons();
-    iconSearch.focus();
-});
+if (openBtn) {
+    openBtn.addEventListener('click', function() {
+        modal.classList.remove('hidden');
+        loadIcons();
+        if (iconSearch) iconSearch.focus();
+    });
+}
 
 // Close modal
-closeBtn.addEventListener('click', function() {
-    modal.classList.add('hidden');
-});
+if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+}
 
 // Close on outside click
-modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-        modal.classList.add('hidden');
-    }
-});
+if (modal) {
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+}
 
 // Search icons
-iconSearch.addEventListener('input', function() {
-    loadIcons(this.value);
-});
+if (iconSearch) {
+    iconSearch.addEventListener('input', function() {
+        loadIcons(this.value);
+    });
+}
 
 // Close on ESC key
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
         modal.classList.add('hidden');
     }
 });
