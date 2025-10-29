@@ -81,9 +81,21 @@ include '../includes/header.php';
     <?php foreach ($reviews as $review): ?>
     <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
         <!-- Review Image -->
-        <?php if (!empty($review['image'])): ?>
+        <?php 
+        $img_url = '';
+        if (!empty($review['image'])) {
+            if (preg_match('/^https?:\\/\\//', $review['image'])) {
+                $img_url = $review['image'];
+            } elseif (strpos($review['image'], 'uploads/') === 0) {
+                $img_url = BASE_URL . '/' . $review['image'];
+            } else {
+                $img_url = UPLOADS_URL . '/' . $review['image'];
+            }
+        }
+        ?>
+        <?php if (!empty($img_url)): ?>
         <div class="aspect-w-16 aspect-h-9 bg-gradient-to-br from-purple-100 to-pink-100 overflow-hidden">
-            <img src="<?php echo UPLOADS_URL . '/' . $review['image']; ?>" 
+            <img src="<?php echo htmlspecialchars($img_url); ?>" 
                  alt="<?php echo htmlspecialchars($review['customer_name']); ?>"
                  class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300">
         </div>
