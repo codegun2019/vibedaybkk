@@ -709,6 +709,8 @@ if (!$about_section) {
                 </div>
             </div>
         </div>
+        <!-- Mobile Menu Backdrop -->
+        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/60 hidden md:hidden z-40"></div>
 
     <!-- Social Sidebar -->
     <?php if (!empty($active_socials)): ?>
@@ -1522,20 +1524,36 @@ if (!$about_section) {
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const closeMenuBtn = document.getElementById('close-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
 
         mobileMenuBtn.addEventListener('click', () => {
             mobileMenu.classList.add('open');
+            if (mobileMenuOverlay) mobileMenuOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         });
 
         closeMenuBtn.addEventListener('click', () => {
             mobileMenu.classList.remove('open');
+            if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
         });
 
         const mobileMenuLinks = mobileMenu.querySelectorAll('a');
         mobileMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenu.classList.remove('open');
+                if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
             });
+        });
+
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                mobileMenuOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            });
+        }
         });
 
         // Go to Top Button
