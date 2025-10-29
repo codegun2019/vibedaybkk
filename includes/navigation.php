@@ -154,6 +154,8 @@ foreach ($social_platforms as $platform => $data) {
             <?php endif; ?>
         </div>
     </div>
+    <!-- Mobile Menu Backdrop -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/60 hidden md:hidden z-40"></div>
 </nav>
 
 <script>
@@ -163,23 +165,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenu = document.getElementById('mobile-menu');
     const closeMenuBtn = document.getElementById('close-menu');
 
-    if (mobileMenuBtn && mobileMenu && closeMenuBtn) {
+    const overlay = document.getElementById('mobile-menu-overlay');
+    if (mobileMenuBtn && mobileMenu && closeMenuBtn && overlay) {
         mobileMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.add('open');
             document.body.style.overflow = 'hidden';
+            overlay.classList.remove('hidden');
         });
 
         closeMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.remove('open');
             document.body.style.overflow = '';
+            overlay.classList.add('hidden');
         });
 
-        // Close menu when clicking outside
-        mobileMenu.addEventListener('click', function(e) {
-            if (e.target === mobileMenu) {
-                mobileMenu.classList.remove('open');
-                document.body.style.overflow = '';
-            }
+        // Close menu when clicking overlay
+        overlay.addEventListener('click', function() {
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+            overlay.classList.add('hidden');
         });
 
         // Close menu when pressing escape
@@ -187,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
                 mobileMenu.classList.remove('open');
                 document.body.style.overflow = '';
+                overlay.classList.add('hidden');
             }
         });
     }
