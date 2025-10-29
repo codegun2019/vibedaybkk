@@ -160,13 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
         
-        <!-- Info Box -->
-        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4 text-white text-center">
-            <p class="text-sm">
-                <i class="fas fa-info-circle mr-2"></i>
-                ข้อมูลเริ่มต้น: <strong>admin</strong> / <strong>admin123</strong>
-            </p>
-        </div>
+        
     </div>
 </body>
 </html>
