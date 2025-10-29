@@ -224,19 +224,26 @@ document.querySelectorAll('form[action="toggle-status.php"]').forEach(form => {
             method: 'POST',
             body: formData
         })
-        .then(response => response.text())
+        .then(response => response.json())
         .then(data => {
-            // Toggle button classes
-            if (button.classList.contains('bg-green-600')) {
-                button.classList.remove('bg-green-600');
-                button.classList.add('bg-gray-300');
-                toggleSpan.classList.remove('translate-x-6');
-                toggleSpan.classList.add('translate-x-1');
+            if (data.success) {
+                // Update button UI based on actual server response
+                if (data.is_active == 1) {
+                    button.classList.remove('bg-gray-300');
+                    button.classList.add('bg-green-600');
+                    toggleSpan.classList.remove('translate-x-1');
+                    toggleSpan.classList.add('translate-x-6');
+                } else {
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-gray-300');
+                    toggleSpan.classList.remove('translate-x-6');
+                    toggleSpan.classList.add('translate-x-1');
+                }
                 
                 Swal.fire({
                     icon: 'success',
                     title: 'สำเร็จ!',
-                    text: 'ปิดการใช้งาน section แล้ว',
+                    text: data.message,
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -244,15 +251,10 @@ document.querySelectorAll('form[action="toggle-status.php"]').forEach(form => {
                     timerProgressBar: true
                 });
             } else {
-                button.classList.remove('bg-gray-300');
-                button.classList.add('bg-green-600');
-                toggleSpan.classList.remove('translate-x-1');
-                toggleSpan.classList.add('translate-x-6');
-                
                 Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: 'เปิดใช้งาน section แล้ว',
+                    icon: 'error',
+                    title: 'ผิดพลาด!',
+                    text: data.message || 'เกิดข้อผิดพลาดในการอัปเดต',
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -266,7 +268,7 @@ document.querySelectorAll('form[action="toggle-status.php"]').forEach(form => {
             Swal.fire({
                 icon: 'error',
                 title: 'ผิดพลาด!',
-                text: 'เกิดข้อผิดพลาดในการอัปเดต',
+                text: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์',
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,

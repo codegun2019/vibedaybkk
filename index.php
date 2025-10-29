@@ -903,6 +903,11 @@ if (!$about_section) {
     </section>
 
     <!-- Services Section -->
+    <?php
+    // ตรวจสอบว่าต้องแสดง section โมเดลหรือไม่
+    $homepage_models_enabled = ($global_settings['homepage_models_enabled'] ?? '1') == '1';
+    ?>
+    <?php if ($homepage_models_enabled): ?>
     <section id="services" class="py-20 bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <?php
@@ -1050,6 +1055,7 @@ if (!$about_section) {
             <?php endif; ?>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- How to Book Section -->
     <section id="how-to-book" class="py-20 bg-dark-light">
