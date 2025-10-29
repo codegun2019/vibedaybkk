@@ -94,8 +94,11 @@ foreach ($social_platforms as $platform => $data) {
         </div>
     </div>
     
+    <!-- Mobile Backdrop -->
+    <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 opacity-0 invisible transition-opacity duration-300 md:hidden z-40"></div>
+    
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl md:hidden z-50 backdrop-blur-md">
+    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl md:hidden z-50 backdrop-blur-md pointer-events-auto">
         <div class="p-6">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
@@ -154,44 +157,39 @@ foreach ($social_platforms as $platform => $data) {
             <?php endif; ?>
         </div>
     </div>
-    <!-- Mobile Menu Backdrop -->
-    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/60 hidden md:hidden z-40"></div>
 </nav>
 
 <script>
-// Mobile Menu Toggle
+// Mobile Menu Toggle + Backdrop & z-index management
 document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
+    const backdrop = document.getElementById('mobile-backdrop');
     const closeMenuBtn = document.getElementById('close-menu');
 
-    const overlay = document.getElementById('mobile-menu-overlay');
-    if (mobileMenuBtn && mobileMenu && closeMenuBtn && overlay) {
-        mobileMenuBtn.addEventListener('click', function() {
-            mobileMenu.classList.add('open');
-            document.body.style.overflow = 'hidden';
-            overlay.classList.remove('hidden');
-        });
+    function openMenu() {
+        mobileMenu.classList.add('open');
+        backdrop.classList.remove('invisible');
+        backdrop.classList.add('opacity-100');
+        document.body.style.overflow = 'hidden';
+    }
 
-        closeMenuBtn.addEventListener('click', function() {
-            mobileMenu.classList.remove('open');
-            document.body.style.overflow = '';
-            overlay.classList.add('hidden');
-        });
+    function closeMenu() {
+        mobileMenu.classList.remove('open');
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('invisible');
+        document.body.style.overflow = '';
+    }
 
-        // Close menu when clicking overlay
-        overlay.addEventListener('click', function() {
-            mobileMenu.classList.remove('open');
-            document.body.style.overflow = '';
-            overlay.classList.add('hidden');
-        });
+    if (mobileMenuBtn && mobileMenu && closeMenuBtn && backdrop) {
+        mobileMenuBtn.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
 
-        // Close menu when pressing escape
+        // Close menu when pressing Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
-                mobileMenu.classList.remove('open');
-                document.body.style.overflow = '';
-                overlay.classList.add('hidden');
+                closeMenu();
             }
         });
     }
