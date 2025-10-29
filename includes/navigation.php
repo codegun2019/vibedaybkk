@@ -98,7 +98,7 @@ foreach ($social_platforms as $platform => $data) {
     <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 opacity-0 invisible transition-opacity duration-300 md:hidden z-40"></div>
     
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl md:hidden z-50 backdrop-blur-md pointer-events-auto">
+    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-96 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 shadow-2xl md:hidden z-50 backdrop-blur-md pointer-events-auto">
         <div class="p-6">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
@@ -116,23 +116,22 @@ foreach ($social_platforms as $platform => $data) {
             </div>
             
             <!-- Menu Items -->
-            <div class="space-y-2 mb-8">
+            <div class="space-y-3 mb-10">
                 <?php 
                 if (!empty($main_menus)): 
                     foreach ($main_menus as $index => $menu): 
                 ?>
                     <a href="<?php echo htmlspecialchars($menu['url']); ?>" 
-                       class="mobile-menu-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-300 hover:text-white transition-all duration-300 border border-gray-700/50 hover:border-red-primary/50"
-                       style="background: rgba(255, 255, 255, 0.03);">
-                        <div class="w-10 h-10 rounded-lg bg-gray-800/50 group-hover:bg-red-primary/20 flex items-center justify-center transition-colors">
+                       class="group flex items-center gap-4 px-5 py-4 rounded-xl text-gray-200 hover:text-white transition-all duration-300 bg-white/5 hover:bg-white/10 border border-white/10">
+                        <div class="w-10 h-10 rounded-lg bg-white/10 group-hover:bg-red-primary/20 flex items-center justify-center transition-colors">
                             <?php if (!empty($menu['icon'])): ?>
                                 <i class="fas <?php echo htmlspecialchars($menu['icon']); ?> text-lg group-hover:text-red-primary transition-colors"></i>
                             <?php else: ?>
                                 <i class="fas fa-circle text-xs group-hover:text-red-primary transition-colors"></i>
                             <?php endif; ?>
                         </div>
-                        <span class="font-medium flex-1"><?php echo htmlspecialchars($menu['title']); ?></span>
-                        <i class="fas fa-chevron-right text-xs opacity-0 group-hover:opacity-100 group-hover:text-red-primary transition-all"></i>
+                        <span class="font-semibold flex-1 text-base tracking-wide"><?php echo htmlspecialchars($menu['title']); ?></span>
+                        <i class="fas fa-chevron-right text-sm opacity-0 group-hover:opacity-100 group-hover:text-red-primary transition-all"></i>
                     </a>
                 <?php 
                     endforeach;
