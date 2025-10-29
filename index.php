@@ -47,7 +47,22 @@ foreach ($social_platforms as $platform => $data) {
 $categories = db_get_rows($conn, "SELECT * FROM categories WHERE status = 'active' ORDER BY sort_order ASC");
 
 // ดึงข้อมูล reviews
-$reviews = db_get_rows($conn, "SELECT * FROM customer_reviews WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 6");
+$reviews = db_get_rows($conn, "
+    SELECT 
+        id,
+        customer_name,
+        rating,
+        CASE 
+            WHEN review_image IS NOT NULL AND review_image <> '' THEN review_image
+            WHEN customer_image IS NOT NULL AND customer_image <> '' THEN customer_image
+            ELSE NULL
+        END AS image,
+        COALESCE(review_text, '') AS content
+    FROM customer_reviews 
+    WHERE is_active = 1 
+    ORDER BY sort_order ASC 
+    LIMIT 6
+");
 
 // ดึงข้อมูลบทความ
 $articles = db_get_rows($conn, "
@@ -1183,9 +1198,21 @@ if (!$about_section) {
                     <!-- Review <?php echo $index + 1; ?> -->
                     <div class="carousel-slide px-4">
                         <div class="bg-dark-light rounded-lg p-6 mx-auto max-w-sm hover-scale">
-                            <?php if (!empty($review['image'])): ?>
+                            <?php 
+                            $img_url = '';
+                            if (!empty($review['image'])) {
+                                if (preg_match('/^https?:\/\//', $review['image'])) {
+                                    $img_url = $review['image'];
+                                } elseif (strpos($review['image'], 'uploads/') === 0) {
+                                    $img_url = BASE_URL . '/' . $review['image'];
+                                } else {
+                                    $img_url = UPLOADS_URL . '/' . $review['image'];
+                                }
+                            }
+                            ?>
+                            <?php if (!empty($img_url)): ?>
                             <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 overflow-hidden">
-                                <img src="<?php echo UPLOADS_URL . '/' . $review['image']; ?>" alt="<?php echo htmlspecialchars($review['customer_name']); ?>" class="w-full h-full object-cover">
+                                <img src="<?php echo htmlspecialchars($img_url); ?>" alt="<?php echo htmlspecialchars($review['customer_name']); ?>" class="w-full h-full object-cover">
                             </div>
                             <?php else: ?>
                             <div class="bg-<?php echo $color; ?> h-64 rounded-lg mb-4 flex items-center justify-center">
