@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Header -->
             <div class="bg-gradient-to-r from-red-600 to-red-500 text-white p-10 text-center">
                 <i class="fas fa-star text-6xl mb-4 animate-pulse"></i>
-                <h2 class="text-3xl font-bold">VIBEDAYBKK</h2>
+                <h2 class="text-3xl font-bold">ระบบสมาชิก</h2>
                 <p class="text-red-100 mt-2">ระบบจัดการ Admin</p>
             </div>
             
