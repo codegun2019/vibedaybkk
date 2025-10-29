@@ -52,12 +52,8 @@ $reviews = db_get_rows($conn, "
         id,
         customer_name,
         rating,
-        CASE 
-            WHEN review_image IS NOT NULL AND review_image <> '' THEN review_image
-            WHEN customer_image IS NOT NULL AND customer_image <> '' THEN customer_image
-            ELSE NULL
-        END AS image,
-        COALESCE(review_text, '') AS content
+        image,
+        COALESCE(content, '') AS content
     FROM customer_reviews 
     WHERE is_active = 1 
     ORDER BY sort_order ASC 
