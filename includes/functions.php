@@ -120,12 +120,11 @@ function has_permission($feature, $action = 'view') {
     
     $role_key = $_SESSION['user_role'];
     
-    // Check in permissions table using role_id and module
+    // Check in permissions table using role_key and feature
     $stmt = $conn->prepare("
-        SELECT p.can_view, p.can_create, p.can_edit, p.can_delete, p.can_export 
-        FROM permissions p
-        JOIN roles r ON p.role_id = r.id
-        WHERE r.role_key = ? AND p.module = ?
+        SELECT can_view, can_create, can_edit, can_delete, can_export 
+        FROM permissions 
+        WHERE role_key = ? AND feature = ?
     ");
     $stmt->bind_param('ss', $role_key, $feature);
     $stmt->execute();
