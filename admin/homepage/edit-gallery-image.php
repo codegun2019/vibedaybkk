@@ -7,7 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
-require_admin();
+// Permission check - allow editors to edit gallery
+require_permission('homepage', 'edit');
+$can_delete = has_permission('homepage', 'delete');
 
 $page_title = 'แก้ไขรูปภาพ';
 $current_page = 'homepage';

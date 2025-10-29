@@ -7,7 +7,9 @@
 define('VIBEDAYBKK_ADMIN', true);
 require_once '../../includes/config.php';
 
-require_admin();
+// Permission check - allow editors to edit homepage
+require_permission('homepage', 'edit');
+$can_delete = has_permission('homepage', 'delete');
 
 $page_title = 'แก้ไข Section';
 $current_page = 'homepage';
