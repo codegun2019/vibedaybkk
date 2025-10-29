@@ -113,15 +113,20 @@ function has_permission($feature, $action = 'view') {
         return false;
     }
     
-    // Programmer has all permissions
-    if ($_SESSION['user_role'] === 'programmer') {
+    // Programmer and Admin have all permissions
+    if (in_array($_SESSION['user_role'], ['programmer', 'admin'])) {
         return true;
     }
     
     $role_key = $_SESSION['user_role'];
     
-    // Check in permissions table
-    $stmt = $conn->prepare("SELECT can_view, can_create, can_edit, can_delete, can_export FROM permissions WHERE role_key = ? AND feature = ?");
+    // Check in permissions table using role_id and module
+    $stmt = $conn->prepare("
+        SELECT p.can_view, p.can_create, p.can_edit, p.can_delete, p.can_export 
+        FROM permissions p
+        JOIN roles r ON p.role_id = r.id
+        WHERE r.role_key = ? AND p.module = ?
+    ");
     $stmt->bind_param('ss', $role_key, $feature);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -150,17 +155,18 @@ function has_permission($feature, $action = 'view') {
     }
 }
 
-// Require specific permission (soft check - allow view but lock actions)
+// Require specific permission (check and redirect if no access)
 function require_permission($feature, $action = 'view') {
-    // Always allow view permission to show locked UI
-    if ($action === 'view') {
-        return true;
+    if (!is_logged_in()) {
+        header('Location: ' . ADMIN_URL . '/login.php');
+        exit;
     }
     
-    // For create/edit/delete, redirect if no permission
+    // Check permission
     if (!has_permission($feature, $action)) {
-        set_message('error', 'คุณไม่มีสิทธิ์ทำการนี้ - กรุณาอัพเกรดบทบาท');
-        redirect(ADMIN_URL . '/index.php');
+        $_SESSION['error'] = 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้';
+        header('Location: ' . ADMIN_URL . '/dashboard.php');
+        exit;
     }
 }
 
