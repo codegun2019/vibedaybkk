@@ -316,6 +316,32 @@ require_once '../includes/locked-form.php';
             <div class="space-y-4">
                 <h6 class="text-sm font-semibold text-gray-700 mb-3">การแสดงผลในหน้าแรก</h6>
                 
+                <div class="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <span class="text-gray-900 font-semibold flex items-center">
+                                <i class="fas fa-users mr-2 text-green-600"></i>แสดง Section โมเดล
+                            </span>
+                            <p class="text-sm text-gray-600">เปิด/ปิดการแสดง section โมเดลทั้งหมดในหน้าแรก</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="homepage_models_enabled_checkbox" 
+                                   <?php echo ($settings['homepage_models_enabled'] ?? '1') == '1' ? 'checked' : ''; ?>
+                                   class="sr-only peer"
+                                   onchange="toggleModelsSection(this)">
+                            <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                        </label>
+                    </div>
+                    <input type="hidden" id="homepage_models_enabled_value" name="setting_homepage_models_enabled" 
+                           value="<?php echo ($settings['homepage_models_enabled'] ?? '1'); ?>">
+                    <div class="mt-3 pt-3 border-t border-green-200">
+                        <a href="homepage-models.php" class="inline-flex items-center text-sm text-green-600 hover:text-green-700 font-medium">
+                            <i class="fas fa-cog mr-1"></i>ตั้งค่าโมเดลขั้นสูง
+                            <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                
                 <div class="p-4 bg-purple-50 rounded-lg">
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
@@ -436,6 +462,37 @@ function toggleDetailsSetting(checkbox) {
     const text = checkbox.checked 
         ? 'รายละเอียดส่วนตัวจะแสดง (น้ำหนัก, ส่วนสูง, วันเกิด, ประสบการณ์)' 
         : 'รายละเอียดส่วนตัวจะถูกซ่อนจากหน้าเว็บทั้งหมด';
+    
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        showClass: {
+            popup: 'animate__animated animate__fadeInRight'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutRight'
+        }
+    });
+}
+
+// Toggle models section with notification
+function toggleModelsSection(checkbox) {
+    const hiddenInput = document.getElementById('homepage_models_enabled_value');
+    const newValue = checkbox.checked ? '1' : '0';
+    hiddenInput.value = newValue;
+    
+    // Show notification
+    const icon = checkbox.checked ? 'success' : 'warning';
+    const title = checkbox.checked ? 'เปิดการแสดง Section โมเดล' : 'ปิดการแสดง Section โมเดล';
+    const text = checkbox.checked 
+        ? 'Section โมเดลจะแสดงในหน้าแรก' 
+        : 'Section โมเดลจะถูกซ่อนจากหน้าแรกทั้งหมด';
     
     Swal.fire({
         icon: icon,
