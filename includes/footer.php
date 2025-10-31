@@ -18,9 +18,50 @@ if (!isset($main_menus)) {
     $main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AND status = 'active' ORDER BY sort_order ASC");
 }
 
-// ดึงหมวดหมู่บริการ
+// ดึงหมวดหมู่บริการ (ทนต่อ schema ต่างกันระหว่างเครื่อง/โปรดักชัน)
 if (!isset($service_categories)) {
-    $service_categories = db_get_rows($conn, "SELECT * FROM categories WHERE status = 'active' ORDER BY sort_order ASC LIMIT 4");
+    $service_categories = [];
+    // ตรวจว่ามีตาราง categories ไหม
+    $has_categories_table = false;
+    if ($conn) {
+        $check = $conn->query("SHOW TABLES LIKE 'categories'");
+        $has_categories_table = $check && $check->num_rows > 0;
+    }
+    if ($has_categories_table) {
+        // ตรวจโครงสร้างฟิลด์
+        $fields = [];
+        $desc = $conn->query("DESCRIBE categories");
+        if ($desc) {
+            while ($row = $desc->fetch_assoc()) { $fields[] = $row['Field']; }
+        }
+
+        $where = [];
+        // เงื่อนไข Active
+        if (in_array('status', $fields)) {
+            // รองรับทั้ง 'active' และ 1
+            $where[] = "(status = 'active' OR status = 1)";
+        } elseif (in_array('is_active', $fields)) {
+            $where[] = "is_active = 1";
+        }
+
+        // เฉพาะชื่อไม่ว่าง
+        if (in_array('name', $fields)) {
+            $where[] = "name IS NOT NULL AND name != ''";
+        }
+        $where_sql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        // จัดเรียง
+        if (in_array('sort_order', $fields)) {
+            $order_sql = 'ORDER BY sort_order ASC';
+        } elseif (in_array('name', $fields)) {
+            $order_sql = 'ORDER BY name ASC';
+        } else {
+            $order_sql = '';
+        }
+
+        $sql = trim("SELECT * FROM categories $where_sql $order_sql LIMIT 4");
+        $service_categories = db_get_rows($conn, $sql);
+    }
 }
 
 // โซเชียลมีเดีย
