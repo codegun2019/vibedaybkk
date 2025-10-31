@@ -444,14 +444,13 @@ if ($check_gallery->num_rows == 0) {
     <!-- Main Content -->
     <main class="min-h-screen">
         <!-- Hero Section -->
-        <section class="py-20 bg-gradient-to-br from-red-primary to-red-light">
+        <section class="py-20 bg-dark">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h1 class="text-4xl md:text-6xl font-bold mb-6">
                     <i class="fas fa-images mr-4"></i>แกลลอรี่
                 </h1>
-                <p class="text-xl md:text-2xl text-white/90 mb-8">
-                    รูปภาพและผลงานของเรา
-                </p>
+                <p class="text-xl md:text-2xl text-white/90 mb-2">รีวิวผลงานของ</p>
+                <p class="text-2xl md:text-3xl font-extrabold tracking-wide text-white">LOLLIPOP MODELING</p>
                 
                 <!-- Search and Filter -->
                 <!-- <div class="max-w-2xl mx-auto">
