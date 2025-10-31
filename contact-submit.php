@@ -27,6 +27,9 @@ try {
     $email = clean_input($_POST['email'] ?? '');
     $phone = clean_input($_POST['phone'] ?? '');
     $service_type = clean_input($_POST['service_type'] ?? '');
+    if ($service_type === '') {
+        $service_type = 'ทั่วไป';
+    }
     $message = clean_input($_POST['message'] ?? '');
     
     // Validate ข้อมูล
@@ -46,9 +49,7 @@ try {
         $errors[] = 'กรุณากรอกเบอร์โทรศัพท์';
     }
     
-    if (empty($service_type)) {
-        $errors[] = 'กรุณาเลือกประเภทงาน';
-    }
+    // ประเภทงานไม่บังคับอีกต่อไป (ซ่อนจากฟอร์ม)
     
     if (empty($message)) {
         $errors[] = 'กรุณากรอกรายละเอียดงาน';

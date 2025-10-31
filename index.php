@@ -709,8 +709,6 @@ if (!$about_section) {
                 </div>
             </div>
         </div>
-        <!-- Mobile Menu Backdrop -->
-        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/60 hidden md:hidden z-40"></div>
 
     <!-- Social Sidebar -->
     <?php if (!empty($active_socials)): ?>
@@ -1351,17 +1349,8 @@ if (!$about_section) {
                             <label class="block text-sm font-medium mb-2">เบอร์โทรศัพท์</label>
                             <input type="tel" name="phone" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">ประเภทงาน</label>
-                            <select name="service_type" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" required>
-                                <option value="">เลือกประเภทงาน</option>
-                                <option value="fashion">งานแฟชั่น</option>
-                                <option value="photography">งานถ่ายภาพ</option>
-                                <option value="event">งานอีเวนต์</option>
-                                <option value="commercial">งานโฆษณา</option>
-                                <option value="other">อื่นๆ</option>
-                            </select>
-                        </div>
+                        <!-- ซ่อนประเภทงานออกจากฟอร์ม แต่ยังส่งค่าเริ่มต้นเพื่อความเข้ากันได้ -->
+                        <input type="hidden" name="service_type" value="ทั่วไป">
                         <div>
                             <label class="block text-sm font-medium mb-2">รายละเอียดงาน</label>
                             <textarea name="message" rows="4" class="w-full px-4 py-3 bg-dark border border-gray-600 rounded-lg focus:border-red-primary focus:outline-none transition-colors duration-300" placeholder="กรุณาระบุรายละเอียดงาน วันที่ เวลา และสถานที่" required></textarea>
@@ -1399,8 +1388,8 @@ if (!$about_section) {
                     <div>
                         <h4 class="text-xl font-semibold mb-4">เวลาทำการ</h4>
                         <div class="space-y-2 text-gray-400">
-                            <p>จันทร์ - ศุกร์: 9:00 - 18:00</p>
-                            <p>เสาร์ - อาทิตย์: 10:00 - 16:00</p>
+                            <p>พร้อมบริการตลอด 24 ชั่วโมงไม่มีวันหยุด</p>
+                            <!-- <p>เสาร์ - อาทิตย์: 10:00 - 16:00</p> -->
                         </div>
                     </div>
                     
@@ -1439,7 +1428,8 @@ if (!$about_section) {
                             <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($footer_logo_text); ?>
                         <?php endif; ?>
                     </div>
-                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <p class="text-gray-400 mb-4">บริการจัดหาเด็กเอนเตอร์เทน ชงเหล้า
+                    24 ชั่วโมง</p>
                     <?php if (!empty($active_socials)): ?>
                     <div class="flex space-x-3">
                         <?php foreach ($active_socials as $platform => $social): ?>
@@ -1509,58 +1499,35 @@ if (!$about_section) {
     </footer>
 
     <script>
-        // Preloader (fail-safe)
-        function hidePreloader() {
-            const preloader = document.getElementById('preloader');
-            if (!preloader) return;
-            preloader.classList.add('hidden');
-            setTimeout(() => {
-                if (preloader && preloader.parentNode) preloader.remove();
-            }, 500);
-        }
-        // Hide when window loaded
+        // Preloader
         window.addEventListener('load', function() {
-            setTimeout(hidePreloader, 1000);
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                setTimeout(() => {
+                    preloader.remove();
+                }, 500);
+            }, 1000);
         });
-        // Ensure hide anyway after 3s (in case of load issues)
-        setTimeout(hidePreloader, 3000);
 
         // Mobile Menu Toggle
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const closeMenuBtn = document.getElementById('close-menu');
-        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
 
-        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => {
+        mobileMenuBtn.addEventListener('click', () => {
             mobileMenu.classList.add('open');
-            if (mobileMenuOverlay) mobileMenuOverlay.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
         });
 
-        if (closeMenuBtn) closeMenuBtn.addEventListener('click', () => {
+        closeMenuBtn.addEventListener('click', () => {
             mobileMenu.classList.remove('open');
-            if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
-            document.body.style.overflow = '';
         });
 
-        if (mobileMenu) {
-            const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-            mobileMenuLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.remove('open');
-                    if (mobileMenuOverlay) mobileMenuOverlay.classList.add('hidden');
-                    document.body.style.overflow = '';
-                });
-            });
-        }
-
-        if (mobileMenuOverlay) {
-            mobileMenuOverlay.addEventListener('click', () => {
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
                 mobileMenu.classList.remove('open');
-                mobileMenuOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
             });
-        }
         });
 
         // Go to Top Button
