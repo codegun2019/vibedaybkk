@@ -45,8 +45,11 @@ if (!isset($service_categories)) {
         }
 
         // เฉพาะชื่อไม่ว่าง
-        if (in_array('name', $fields)) {
-            $where[] = "name IS NOT NULL AND name != ''";
+        $nameFields = array_values(array_intersect(['name','title','category'], $fields));
+        if (!empty($nameFields)) {
+            // ใช้ฟิลด์แรกที่เจอเพื่อกรอง not empty
+            $firstNameField = $nameFields[0];
+            $where[] = "$firstNameField IS NOT NULL AND $firstNameField != ''";
         }
         $where_sql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
 
@@ -59,8 +62,32 @@ if (!isset($service_categories)) {
             $order_sql = '';
         }
 
-        $sql = trim("SELECT * FROM categories $where_sql $order_sql LIMIT 4");
-        $service_categories = db_get_rows($conn, $sql);
+        // สร้าง select โดย alias เป็น name เพื่อให้ renderer ใช้งานได้เสมอ
+        $coalesceParts = [];
+        foreach (['name','title','category'] as $nf) {
+            if (in_array($nf, $fields)) { $coalesceParts[] = $nf; }
+        }
+        $nameExpr = !empty($coalesceParts) ? ('COALESCE(' . implode(',', $coalesceParts) . ",'') AS name") : "'' AS name";
+        $idExpr = in_array('id', $fields) ? 'id,' : '';
+
+        $sql = trim("SELECT $idExpr $nameExpr FROM categories $where_sql $order_sql LIMIT 4");
+        $service_categories = db_get_rows($conn, $sql) ?? [];
+
+        // ถ้ายังว่าง ให้ลอง fallback จากตาราง gallery (DISTINCT category)
+        if (empty($service_categories)) {
+            $checkGal = $conn->query("SHOW TABLES LIKE 'gallery'");
+            if ($checkGal && $checkGal->num_rows > 0) {
+                $galFields = [];
+                $descGal = $conn->query("DESCRIBE gallery");
+                if ($descGal) { while ($r = $descGal->fetch_assoc()) { $galFields[] = $r['Field']; } }
+                if (in_array('category', $galFields)) {
+                    $galWhere = "WHERE category IS NOT NULL AND category != ''";
+                    if (in_array('is_active', $galFields)) { $galWhere .= " AND is_active = 1"; }
+                    $galSql = "SELECT DISTINCT category AS name FROM gallery $galWhere ORDER BY category ASC LIMIT 4";
+                    $service_categories = db_get_rows($conn, $galSql) ?? [];
+                }
+            }
+        }
     }
 }
 
