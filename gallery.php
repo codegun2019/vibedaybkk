@@ -573,7 +573,7 @@ if ($check_gallery->num_rows == 0) {
                 </p>
                 
                 <!-- Search and Filter -->
-                <div class="max-w-2xl mx-auto">
+                <!-- <div class="max-w-2xl mx-auto">
                     <form method="GET" class="flex flex-col md:flex-row gap-4">
                         <div class="flex-1">
                             <input type="text" name="search" value="<?php echo htmlspecialchars($search_query); ?>" placeholder="ค้นหารูปภาพ..." class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50">
@@ -593,7 +593,7 @@ if ($check_gallery->num_rows == 0) {
                         </button>
                     </form>
                 </div>
-            </div>
+            </div> -->
         </section>
 
         <!-- Gallery Section -->
@@ -710,7 +710,7 @@ if ($check_gallery->num_rows == 0) {
                             <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($footer_logo_text); ?>
                         <?php endif; ?>
                     </div>
-                    <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                    <p class="text-gray-400 mb-4">บริการจัดหาเด็กเอนเตอร์เทน ชงเหล้า<br>24 ชั่วโมง</p>
                     <?php if (!empty($active_socials)): ?>
                     <div class="flex space-x-3">
                         <?php foreach ($active_socials as $platform => $social): ?>

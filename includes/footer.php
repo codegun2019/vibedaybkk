@@ -80,7 +80,8 @@ if (!isset($contact_info)) {
                         <i class="fas fa-star mr-2"></i><?php echo htmlspecialchars($footer_logo_text); ?>
                     <?php endif; ?>
                 </div>
-                <p class="text-gray-400 mb-4">บริการโมเดลและนางแบบมืออาชีพ ครบวงจร คุณภาพสูง</p>
+                <p class="text-gray-400 mb-4">บริการจัดหาเด็กเอนเตอร์เทน ชงเหล้า
+                24 ชั่วโมง</p>
                 <?php if (!empty($active_socials)): ?>
                 <div class="flex space-x-3">
                     <?php foreach ($active_socials as $platform => $social): ?>
