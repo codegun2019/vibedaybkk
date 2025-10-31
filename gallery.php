@@ -194,8 +194,16 @@ if ($check_gallery->num_rows == 0) {
     <meta name="twitter:description" content="แกลลอรี่รูปภาพและผลงานของ lollipop24hours">
     <meta name="twitter:image" content="<?php echo BASE_URL; ?>/<?php echo $global_settings['logo_image'] ?? 'assets/images/logo.png'; ?>">
     
-    <!-- Favicon -->
+    <!-- Favicon: ใช้ไฟล์เดียวกับโลโก้ ถ้ามี -->
+    <?php 
+    $logo_image_for_favicon = $global_settings['logo_image'] ?? '';
+    if (!empty($logo_image_for_favicon)):
+    ?>
+    <link rel="icon" type="image/png" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <link rel="apple-touch-icon" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <?php else: ?>
     <link rel="icon" type="image/x-icon" href="<?php echo BASE_URL; ?>/favicon.ico">
+    <?php endif; ?>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

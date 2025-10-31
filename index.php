@@ -175,8 +175,14 @@ if (!$about_section) {
     <meta name="apple-mobile-web-app-status-bar-style" content="<?php echo htmlspecialchars($global_settings['meta_apple_status_bar_style'] ?? 'black-translucent'); ?>">
     <?php endif; ?>
     
-    <!-- Favicon -->
-    <?php if (!empty($global_settings['favicon'])): ?>
+    <!-- Favicon: ใช้ไฟล์เดียวกับโลโก้ ถ้ามี -->
+    <?php 
+    $logo_image_for_favicon = $global_settings['logo_image'] ?? '';
+    if (!empty($logo_image_for_favicon)):
+    ?>
+    <link rel="icon" type="image/png" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <link rel="apple-touch-icon" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <?php elseif (!empty($global_settings['favicon'])): ?>
     <link rel="icon" type="image/x-icon" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($global_settings['favicon']); ?>">
     <?php endif; ?>
     

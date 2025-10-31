@@ -146,6 +146,17 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
     <link href="https://fonts.googleapis.com/css2?family=<?php echo urlencode($font_family); ?>:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Favicon: ใช้ไฟล์เดียวกับโลโก้ ถ้ามี -->
+    <?php 
+    $logo_image_for_favicon = $global_settings['logo_image'] ?? '';
+    if (!empty($logo_image_for_favicon)):
+    ?>
+    <link rel="icon" type="image/png" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <link rel="apple-touch-icon" href="<?php echo UPLOADS_URL . '/' . htmlspecialchars($logo_image_for_favicon); ?>">
+    <?php else: ?>
+    <link rel="icon" type="image/x-icon" href="<?php echo BASE_URL; ?>/favicon.ico">
+    <?php endif; ?>
     <script>
         tailwind.config = {
             theme: {
