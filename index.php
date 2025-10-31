@@ -462,6 +462,23 @@ if (!$about_section) {
             box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
         }
 
+        /* Floating animation for model showcase cards */
+        @keyframes floatY {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(10px); }
+        }
+        .anim-float {
+            animation-name: floatY;
+            animation-duration: 6s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        .anim-delay-1 { animation-delay: 0s; }
+        .anim-delay-2 { animation-delay: 0.8s; }
+        .anim-delay-3 { animation-delay: 1.6s; }
+
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -792,18 +809,18 @@ if (!$about_section) {
                 <!-- Right Content - Models Images -->
                 <div class="grid grid-cols-3 gap-4">
                     <div class="space-y-4">
-                        <div class="bg-gradient-to-br from-red-primary to-red-light h-64 rounded-lg flex items-center justify-center hover-scale">
-                            <i class="fas fa-user text-4xl text-white"></i>
+                        <div class="from-red-primary to-red-light h-64 rounded-lg flex items-center justify-center hover-scale anim-float anim-delay-1">
+                           <img src="img/184-1.jpg" alt="" srcset="" class="rounded-lg w-100">
                         </div>
                     </div>
                     <div class="space-y-4 mt-8">
-                        <div class="bg-gradient-to-br from-gray-700 to-gray-800 h-72 rounded-lg flex items-center justify-center hover-scale">
-                            <i class="fas fa-user text-4xl text-white"></i>
+                        <div class="from-gray-700 to-gray-800 h-72 rounded-lg flex items-center justify-center hover-scale anim-float anim-delay-2">
+                            <img src="img/184-2.jpg" alt="" srcset="" class="rounded-lg w-100">
                         </div>
                     </div>
                     <div class="space-y-4">
-                        <div class="bg-gradient-to-br from-red-light to-red-primary h-64 rounded-lg flex items-center justify-center hover-scale">
-                            <i class="fas fa-user text-4xl text-white"></i>
+                        <div class="from-red-light to-red-primary h-64 rounded-lg flex items-center justify-center hover-scale anim-float anim-delay-3">
+                            <img src="img/184-3.jpg" alt="" srcset="" class="rounded-lg w-100">
                         </div>
                     </div>
                 </div>
