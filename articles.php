@@ -457,48 +457,7 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
         </div>
     </section>
 
-    <!-- Filter & Search Section -->
-    <section class="py-8 bg-dark-light">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <!-- Search -->
-                <form method="GET" class="flex-1 max-w-md">
-                    <div class="relative">
-                        <input type="text" name="search" value="<?php echo h($search); ?>" placeholder="ค้นหาบทความ..." 
-                               class="w-full px-4 py-3 pl-12 bg-dark border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-primary">
-                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                    </div>
-                </form>
-
-                <!-- Category Filter -->
-                <div class="flex flex-wrap gap-2">
-                    <a href="articles.php" class="px-4 py-2 rounded-full <?php echo !$category_id ? 'bg-red-primary text-white' : 'bg-dark border border-gray-700 text-gray-300 hover:border-red-primary'; ?> transition-colors">
-                        ทั้งหมด
-                    </a>
-                    <?php foreach ($categories as $cat): ?>
-                    <a href="?category=<?php echo $cat['id']; ?>" 
-                       class="px-4 py-2 rounded-full <?php echo $category_id == $cat['id'] ? 'text-white' : 'bg-dark border border-gray-700 text-gray-300 hover:border-red-primary'; ?> transition-colors"
-                       style="<?php echo $category_id == $cat['id'] ? 'background-color: ' . ($cat['color'] ?? '#DC2626') : ''; ?>">
-                        <?php if (!empty($cat['icon'])): ?>
-                            <i class="<?php echo h($cat['icon']); ?> mr-1"></i>
-                        <?php else: ?>
-                            <i class="fas fa-tag mr-1"></i>
-                        <?php endif; ?>
-                        <?php echo h($cat['name']); ?>
-                    </a>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <!-- Results Count -->
-            <div class="mt-4 text-gray-400 text-sm">
-                พบ <span class="text-white font-semibold"><?php echo number_format($total_articles); ?></span> บทความ
-                <?php if ($search): ?>
-                    สำหรับคำค้นหา "<span class="text-red-primary"><?php echo h($search); ?></span>"
-                <?php endif; ?>
-            </div>
-        </div>
-    </section>
+    
 
     <!-- Articles Grid -->
     <section class="py-16 bg-dark">
