@@ -191,6 +191,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeMenu();
             }
         });
+
+        // Close menu and enable scroll when clicking a menu link
+        mobileMenu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href') || '';
+                const isHash = href.startsWith('#');
+                const isSamePageHash = href.includes('#') && href.replace(window.location.origin, '').startsWith(window.location.pathname + '#');
+
+                if (isHash || isSamePageHash) {
+                    e.preventDefault();
+                    const targetId = isHash ? href : href.split('#')[1] ? ('#' + href.split('#')[1]) : '';
+                    closeMenu();
+                    // Smooth scroll after menu closes
+                    if (targetId) {
+                        setTimeout(function() {
+                            const target = document.querySelector(targetId);
+                            if (target) {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 250);
+                    }
+                } else {
+                    // For full page navigations, still close and re-enable scroll immediately
+                    closeMenu();
+                }
+            });
+        });
     }
 });
 </script>
