@@ -133,10 +133,10 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บทความและข่าวสาร - <?php echo h($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?></title>
+    <title>บทความและข่าวสาร - <?php echo h($global_settings['site_name'] ?? 'lollipop24hours'); ?></title>
     
     <!-- Meta Tags -->
-    <meta name="description" content="อ่านบทความและข่าวสารล่าสุดจาก <?php echo h($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>">
+    <meta name="description" content="อ่านบทความและข่าวสารล่าสุดจาก <?php echo h($global_settings['site_name'] ?? 'lollipop24hours'); ?>">
     
     <!-- Fonts -->
     <?php 
@@ -469,7 +469,7 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
     <footer class="bg-dark-light py-12 border-t border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p class="text-gray-400">
-                © <?php echo date('Y'); ?> <?php echo h($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>. All rights reserved.
+                © <?php echo date('Y'); ?> <?php echo h($global_settings['site_name'] ?? 'lollipop24hours'); ?>. All rights reserved.
             </p>
         </div>
     </footer>
@@ -528,7 +528,7 @@ $categories = db_get_rows($conn, "SELECT * FROM article_categories WHERE status 
                     <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
                         <?php 
                         $footer_logo_type = $global_settings['logo_type'] ?? 'text';
-                        $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $footer_logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                         $footer_logo_image = $global_settings['logo_image'] ?? '';
                         
                         if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 

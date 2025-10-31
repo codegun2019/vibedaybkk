@@ -20,7 +20,7 @@ if (!isset($main_menus)) {
 
 // Logo
 $logo_type = $global_settings['logo_type'] ?? 'text';
-$logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+$logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
 $logo_image = $global_settings['logo_image'] ?? '';
 
 // Social
@@ -99,7 +99,7 @@ foreach ($social_platforms as $platform => $data) {
     
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-96 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 shadow-2xl md:hidden z-50 backdrop-blur-md pointer-events-auto">
-        <div class="p-6">
+        <div class="p-6 bg-black">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700">
                 <div class="flex items-center gap-3">

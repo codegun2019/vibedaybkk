@@ -91,7 +91,7 @@ $hero_section = get_homepage_section('hero');
 if (!$hero_section) {
     // ถ้าไม่มีข้อมูล ให้ใช้ค่า default
     $hero_section = [
-        'title' => 'VIBEDAYBKK',
+        'title' => 'lollipop24hours',
         'subtitle' => 'บริการโมเดลและนางแบบมืออาชีพ',
         'content' => 'เราคือผู้เชี่ยวชาญด้านบริการโมเดลและนางแบบคุณภาพสูง พร้อมให้บริการสำหรับงานถ่ายภาพ งานแฟชั่น และงานอีเวนต์ต่างๆ ด้วยทีมงานมืออาชีพและโมเดลที่ผ่านการคัดสรรอย่างดี',
         'button1_text' => 'จองบริการตอนนี้',
@@ -109,7 +109,7 @@ $about_section = get_homepage_section('about');
 if (!$about_section) {
     // ถ้าไม่มีข้อมูล ให้ใช้ค่า default
     $about_section = [
-        'title' => 'เกี่ยวกับ VIBEDAYBKK',
+        'title' => 'เกี่ยวกับ lollipop24hours',
         'subtitle' => '',
         'content' => 'VIBEDAYBKK เป็นบริษัทชั้นนำด้านบริการโมเดลและนางแบบในกรุงเทพฯ เราให้บริการครบวงจรตั้งแต่การคัดสรรโมเดล การจัดการงาน ไปจนถึงการประสานงานในวันถ่ายทำ',
         'left_image' => '',
@@ -126,7 +126,7 @@ if (!$about_section) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- SEO Basic -->
-    <title><?php echo htmlspecialchars($global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'VIBEDAYBKK'); ?> - บริการโมเดลและนางแบบมืออาชีพ</title>
+    <title><?php echo htmlspecialchars($global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'lollipop24hours'); ?> - บริการโมเดลและนางแบบมืออาชีพ</title>
     <meta name="description" content="<?php echo htmlspecialchars($global_settings['seo_description'] ?? $global_settings['site_description'] ?? 'บริการโมเดลและนางแบบมืออาชีพ'); ?>">
     <?php if (!empty($global_settings['seo_keywords'])): ?>
     <meta name="keywords" content="<?php echo htmlspecialchars($global_settings['seo_keywords']); ?>">
@@ -144,7 +144,7 @@ if (!$about_section) {
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="<?php echo htmlspecialchars($global_settings['og_type'] ?? 'website'); ?>">
     <meta property="og:url" content="<?php echo htmlspecialchars($global_settings['seo_canonical_url'] ?? SITE_URL); ?>">
-    <meta property="og:title" content="<?php echo htmlspecialchars($global_settings['og_title'] ?? $global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'VIBEDAYBKK'); ?>">
+    <meta property="og:title" content="<?php echo htmlspecialchars($global_settings['og_title'] ?? $global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'lollipop24hours'); ?>">
     <meta property="og:description" content="<?php echo htmlspecialchars($global_settings['og_description'] ?? $global_settings['seo_description'] ?? ''); ?>">
     <?php if (!empty($global_settings['og_image'])): ?>
     <meta property="og:image" content="<?php echo htmlspecialchars($global_settings['og_image']); ?>">
@@ -569,7 +569,7 @@ if (!$about_section) {
             <div class="loader-logo">
                 <?php 
                 $preloader_logo_type = $global_settings['logo_type'] ?? 'text';
-                $preloader_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                $preloader_logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                 $preloader_logo_image = $global_settings['logo_image'] ?? '';
                 
                 if ($preloader_logo_type === 'image' && !empty($preloader_logo_image)): 
@@ -593,7 +593,7 @@ if (!$about_section) {
                     <a href="<?php echo BASE_URL; ?>" class="text-2xl font-bold text-red-primary flex items-center">
                         <?php 
                         $logo_type = $global_settings['logo_type'] ?? 'text';
-                        $logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                         $logo_image = $global_settings['logo_image'] ?? '';
                         
                         if ($logo_type === 'image' && !empty($logo_image)): 
@@ -746,7 +746,7 @@ if (!$about_section) {
                 <div class="animate-fade-in">
                     <h1 class="text-4xl md:text-6xl font-bold mb-6">
                         <?php 
-                        $title = $hero_section['title'] ?? 'VIBEDAYBKK';
+                        $title = $hero_section['title'] ?? 'lollipop24hours';
                         // แยก VIBEDAYBKK เป็น VIBE DAY BKK
                         if ($title === 'VIBEDAYBKK') {
                             echo '<span class="text-red-primary">VIBE</span>DAY<span class="text-red-primary">BKK</span>';
@@ -834,7 +834,7 @@ if (!$about_section) {
                     <div class="bg-gradient-to-br from-gray-800 to-gray-900 w-64 h-96 rounded-3xl flex items-center justify-center shadow-2xl hover-scale">
                         <div class="text-center">
                             <i class="fas fa-mobile-alt text-6xl text-red-primary mb-4"></i>
-                            <p class="text-gray-400">VIBEDAYBKK App</p>
+                            <p class="text-gray-400">lollipop24hours App</p>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -846,9 +846,9 @@ if (!$about_section) {
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">
                         <?php 
                         $about_title = $about_section['title'];
-                        // ถ้ามี "VIBEDAYBKK" ในชื่อ ให้เปลี่ยนสีแดง
-                        if (strpos($about_title, 'VIBEDAYBKK') !== false) {
-                            echo str_replace('VIBEDAYBKK', '<span class="text-red-primary">VIBEDAYBKK</span>', htmlspecialchars($about_title));
+                        // ชื่อแบรนด์
+                        if (strpos($about_title, 'lollipop24hours') !== false) {
+                            echo htmlspecialchars($about_title);
                         } else {
                             echo htmlspecialchars($about_title);
                         }
@@ -1418,7 +1418,7 @@ if (!$about_section) {
                     <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
                         <?php 
                         $footer_logo_type = $global_settings['logo_type'] ?? 'text';
-                        $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $footer_logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                         $footer_logo_image = $global_settings['logo_image'] ?? '';
                         
                         if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 

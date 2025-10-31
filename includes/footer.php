@@ -70,7 +70,7 @@ if (!isset($contact_info)) {
                 <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
                     <?php 
                     $footer_logo_type = $global_settings['logo_type'] ?? 'text';
-                    $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                    $footer_logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                     $footer_logo_image = $global_settings['logo_image'] ?? '';
                     
                     if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 
@@ -81,7 +81,7 @@ if (!isset($contact_info)) {
                     <?php endif; ?>
                 </div>
                 <p class="text-gray-400 mb-4">บริการจัดหาเด็กเอนเตอร์เทน ชงเหล้า
-                24 ชั่วโมง</p>
+                    24 ชั่วโมง</p>
                 <?php if (!empty($active_socials)): ?>
                 <div class="flex space-x-3">
                     <?php foreach ($active_socials as $platform => $social): ?>

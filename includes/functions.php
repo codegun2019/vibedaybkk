@@ -1,6 +1,6 @@
 <?php
 /**
- * VIBEDAYBKK - Functions Library
+ * lollipop24hours - Functions Library
  * ฟังก์ชันที่ใช้ร่วมกันทั้งระบบ
  */
 
@@ -1048,9 +1048,9 @@ function get_logo($settings) {
     $logo_type = $settings['logo_type'] ?? 'text';
     
     if ($logo_type == 'image' && !empty($settings['logo_image'])) {
-        return '<img src="' . UPLOADS_URL . '/' . $settings['logo_image'] . '" alt="' . ($settings['site_name'] ?? 'VIBEDAYBKK') . '" style="height: 40px;">';
+        return '<img src="' . UPLOADS_URL . '/' . $settings['logo_image'] . '" alt="' . ($settings['site_name'] ?? 'lollipop24hours') . '" style="height: 40px;">';
     } else {
-        $logo_text = $settings['logo_text'] ?? $settings['site_name'] ?? 'VIBEDAYBKK';
+        $logo_text = $settings['logo_text'] ?? $settings['site_name'] ?? 'lollipop24hours';
         return '<i class="fas fa-star mr-2"></i>' . $logo_text;
     }
 }

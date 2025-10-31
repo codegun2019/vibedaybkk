@@ -219,7 +219,7 @@ require_once '../includes/locked-form.php';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">ข้อความโลโก้</label>
-                    <input type="text" class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="setting_logo_text" value="<?php echo $settings['logo_text'] ?? 'VIBEDAYBKK'; ?>">
+                    <input type="text" class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200" name="setting_logo_text" value="<?php echo $settings['logo_text'] ?? 'lollipop24hours'; ?>">
                     <p class="text-sm text-gray-500 mt-2">ใช้เมื่อเลือกประเภทโลโก้เป็น "ข้อความ"</p>
                 </div>
                 <div>

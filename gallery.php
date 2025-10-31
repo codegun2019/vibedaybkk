@@ -175,23 +175,23 @@ if ($check_gallery->num_rows == 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- SEO Basic -->
-    <title><?php echo htmlspecialchars($global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'VIBEDAYBKK'); ?> - แกลลอรี่</title>
-    <meta name="description" content="แกลลอรี่รูปภาพและผลงานของ VIBEDAYBKK">
+    <title><?php echo htmlspecialchars($global_settings['seo_title'] ?? $global_settings['site_name'] ?? 'lollipop24hours'); ?> - แกลลอรี่</title>
+    <meta name="description" content="แกลลอรี่รูปภาพและผลงานของ lollipop24hours">
     
     <!-- Robots -->
     <meta name="robots" content="<?php echo (($global_settings['robots_index'] ?? '1') == '1' ? 'index' : 'noindex') . ',' . (($global_settings['robots_follow'] ?? '1') == '1' ? 'follow' : 'nofollow'); ?>">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?> - แกลลอรี่">
-    <meta property="og:description" content="แกลลอรี่รูปภาพและผลงานของ VIBEDAYBKK">
+    <meta property="og:title" content="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'lollipop24hours'); ?> - แกลลอรี่">
+    <meta property="og:description" content="แกลลอรี่รูปภาพและผลงานของ lollipop24hours">
     <meta property="og:url" content="<?php echo BASE_URL; ?>/gallery.php">
     <meta property="og:image" content="<?php echo BASE_URL; ?>/<?php echo $global_settings['logo_image'] ?? 'assets/images/logo.png'; ?>">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'VIBEDAYBKK'); ?> - แกลลอรี่">
-    <meta name="twitter:description" content="แกลลอรี่รูปภาพและผลงานของ VIBEDAYBKK">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($global_settings['site_name'] ?? 'lollipop24hours'); ?> - แกลลอรี่">
+    <meta name="twitter:description" content="แกลลอรี่รูปภาพและผลงานของ lollipop24hours">
     <meta name="twitter:image" content="<?php echo BASE_URL; ?>/<?php echo $global_settings['logo_image'] ?? 'assets/images/logo.png'; ?>">
     
     <!-- Favicon -->
@@ -573,7 +573,7 @@ if ($check_gallery->num_rows == 0) {
                     <div class="text-2xl font-bold text-red-primary mb-4 flex items-center">
                         <?php 
                         $footer_logo_type = $global_settings['logo_type'] ?? 'text';
-                        $footer_logo_text = $global_settings['logo_text'] ?? 'VIBEDAYBKK';
+                        $footer_logo_text = $global_settings['logo_text'] ?? 'lollipop24hours';
                         $footer_logo_image = $global_settings['logo_image'] ?? '';
                         
                         if ($footer_logo_type === 'image' && !empty($footer_logo_image)): 
