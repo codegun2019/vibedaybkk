@@ -793,7 +793,7 @@ if (!$about_section) {
                         <?php if (!empty($hero_section['button1_text'])): ?>
                         <a href="<?php echo htmlspecialchars($hero_section['button1_link'] ?? '#'); ?>" 
                            class="bg-red-primary hover:bg-red-light px-8 py-3 rounded-lg font-medium transition-all duration-300 hover-scale text-center shadow-lg">
-                            <i class="fas fa-calendar-check mr-2"></i><?php echo htmlspecialchars($hero_section['button1_text']); ?>
+                            <i class="fab fa-line mr-2"></i><?php echo htmlspecialchars($hero_section['button1_text']); ?>
                         </a>
                         <?php endif; ?>
                         <?php if (!empty($hero_section['button2_text'])): ?>
@@ -810,12 +810,12 @@ if (!$about_section) {
                 <div class="grid grid-cols-3 gap-4">
                     <div class="space-y-4">
                         <div class="from-red-primary to-red-light h-64 rounded-lg flex items-center justify-center hover-scale anim-float anim-delay-1">
-                           <img src="img/184-1.jpg" alt="" srcset="" class="rounded-lg w-100">
+                           <img src="img/184-2.jpg" alt="" srcset="" class="rounded-lg w-100">
                         </div>
                     </div>
                     <div class="space-y-4 mt-8">
                         <div class="from-gray-700 to-gray-800 h-72 rounded-lg flex items-center justify-center hover-scale anim-float anim-delay-2">
-                            <img src="img/184-2.jpg" alt="" srcset="" class="rounded-lg w-100">
+                            <img src="img/184-1.jpg" alt="" srcset="" class="rounded-lg w-100">
                         </div>
                     </div>
                     <div class="space-y-4">
