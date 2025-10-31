@@ -714,8 +714,21 @@ if ($check_gallery->num_rows == 0) {
                     <?php if (!empty($active_socials)): ?>
                     <div class="flex space-x-3">
                         <?php foreach ($active_socials as $platform => $social): ?>
-                        <a href="<?php echo htmlspecialchars($social['url']); ?>" class="<?php echo $social['color']; ?> text-white" title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
-                            <i class="fab <?php echo $social['icon']; ?> text-lg"></i>
+                        <?php
+                            // ใช้พื้นหลังฐานสีเทา และใช้สีแพลตฟอร์มเป็น hover:bg-*
+                            $baseHoverClass = 'hover:bg-gray-700';
+                            $tokens = explode(' ', trim($social['color']));
+                            if (!empty($tokens)) {
+                                $first = $tokens[0]; // เช่น bg-blue-600
+                                if (strpos($first, 'bg-') === 0) {
+                                    $baseHoverClass = str_replace('bg-', 'hover:bg-', $first);
+                                }
+                            }
+                        ?>
+                        <a href="<?php echo htmlspecialchars($social['url']); ?>" 
+                           class="w-10 h-10 rounded-full bg-gray-800 <?php echo $baseHoverClass; ?> text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110" 
+                           title="<?php echo $social['title']; ?>" target="_blank" rel="noopener">
+                            <i class="fab <?php echo $social['icon']; ?>"></i>
                         </a>
                         <?php endforeach; ?>
                     </div>
