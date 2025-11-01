@@ -4,10 +4,12 @@
  */
 
 define('VIBEDAYBKK_ADMIN', true);
+ob_start(); // เริ่ม output buffering เพื่อป้องกัน output ก่อน header
 require_once '../../includes/config.php';
 
 // Permission check
 require_permission('gallery', 'delete');
+ob_clean(); // ล้าง buffer ก่อนส่ง JSON
 header('Content-Type: application/json');
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
