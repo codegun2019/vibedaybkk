@@ -228,24 +228,8 @@ $main_menus = db_get_rows($conn, "SELECT * FROM menus WHERE parent_id IS NULL AN
                 <?php echo $article['content']; ?>
             </div>
 
-            <!-- Share Buttons -->
-            <div class="mt-12 pt-8 border-t border-gray-800">
-                <h3 class="text-lg font-bold mb-4">แชร์บทความนี้</h3>
-                <div class="flex gap-3">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(BASE_URL . '/article-detail.php?slug=' . $article['slug']); ?>" target="_blank" 
-                       class="flex items-center justify-center w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full text-white transition-colors">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode(BASE_URL . '/article-detail.php?slug=' . $article['slug']); ?>&text=<?php echo urlencode($article['title']); ?>" target="_blank"
-                       class="flex items-center justify-center w-12 h-12 bg-sky-500 hover:bg-sky-600 rounded-full text-white transition-colors">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="https://social-plugins.line.me/lineit/share?url=<?php echo urlencode(BASE_URL . '/article-detail.php?slug=' . $article['slug']); ?>" target="_blank"
-                       class="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 rounded-full text-white transition-colors">
-                        <i class="fab fa-line"></i>
-                    </a>
-                </div>
-            </div>
+            <!-- Share Buttons: ซ่อนไว้ -->
+            <?php /* Removed share section */ ?>
         </div>
     </article>
 
