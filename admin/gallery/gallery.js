@@ -119,14 +119,18 @@ function viewImage(imageId) {
                                         class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-lg">
                                     <i class="fas fa-download mr-2"></i>ดาวน์โหลด
                                 </button>
+                                ${typeof canEdit !== 'undefined' && canEdit ? `
                                 <button onclick="Swal.close(); editImage(${img.id})" 
                                         class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-lg">
                                     <i class="fas fa-edit mr-2"></i>แก้ไข
                                 </button>
+                                ` : ''}
+                                ${typeof canDelete !== 'undefined' && canDelete ? `
                                 <button onclick="Swal.close(); deleteImage(${img.id})" 
                                         class="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold shadow-lg">
                                     <i class="fas fa-trash mr-2"></i>ลบ
                                 </button>
+                                ` : ''}
                             </div>
                         </div>
                     `,

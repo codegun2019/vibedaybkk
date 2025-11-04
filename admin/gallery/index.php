@@ -234,16 +234,20 @@ require_once '../includes/readonly-notice.php';
                     title="ดูรายละเอียด">
                 <i class="fas fa-eye text-xs"></i>
             </button>
+            <?php if ($can_edit): ?>
             <button onclick="event.stopPropagation(); editImage(<?php echo $image['id']; ?>)" 
                     class="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg"
                     title="แก้ไข">
                 <i class="fas fa-edit text-xs"></i>
             </button>
+            <?php endif; ?>
+            <?php if ($can_delete): ?>
             <button onclick="event.stopPropagation(); deleteImage(<?php echo $image['id']; ?>)" 
                     class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-lg"
                     title="ลบ">
                 <i class="fas fa-trash text-xs"></i>
             </button>
+            <?php endif; ?>
         </div>
         
         <!-- Category Badge -->
@@ -273,6 +277,10 @@ endif;
 <script src="gallery.js"></script>
 
 <script>
+// Permission flags from PHP
+const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
+const canDelete = <?php echo $can_delete ? 'true' : 'false'; ?>;
+
 // Bulk selection mode
 let bulkSelectMode = false;
 
